@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1b6b3e">
+<title>FK Agro Vnorovy – Dorost | Pokutníček</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<main class="wrap">
+
+    <section class="section">
+        <div class="section-head">
+            <h2>Druhy pokut</h2>
+            <p>Přehled všech pokut v týmu. Zápis pokuty konkrétnímu hráči provádí přihlášený člen týmu tlačítkem u jeho jména níže.</p>
+        </div>
+        <div class="catalog" id="catalogList"></div>
+    </section>
+
+    <section class="section">
+        <div class="section-head">
+            <h2>Hráči</h2>
+            <p>U každého hráče je rozepsáno, kolik má na kontě za jednotlivé druhy pokut, a celková částka. Po přihlášení se u hráčů objeví tlačítka pro zápis.</p>
+        </div>
+        <div class="playergrid" id="playerGrid"></div>
+    </section>
+
+    <section class="section" id="archiveSection" hidden>
+        <div class="section-head">
+            <h2>Historie zápisů</h2>
+            <p>Kompletní archiv všech zapsaných pokut – kdo, komu, co a kdy zapsal. Viditelné jen po přihlášení.</p>
+        </div>
+        <div class="archive" id="archiveBody"></div>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · pokutníček týmu</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Michal Smetka" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================================================== ostatní (vlastní pokuta) -->
+<div class="overlay" id="customOverlay">
+    <div class="modal">
+        <h3>Jiná pokuta</h3>
+        <p class="hint">Hráč: <b id="customPlayerName"></b></p>
+        <form id="customForm">
+            <label class="label" for="customAmount">Částka (Kč)</label>
+            <input class="field" id="customAmount" type="number" min="1" step="1" placeholder="např. 30" required>
+            <label class="label" for="customNote">Důvod</label>
+            <input class="field" id="customNote" type="text" placeholder="popiš prohřešek" required>
+            <div class="modal__err" id="customErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--fine">Zapsat pokutu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================================================ pozdní příchod na zápas -->
+<div class="overlay" id="minutesOverlay">
+    <div class="modal">
+        <h3>Pozdní příchod na zápas</h3>
+        <p class="hint">Hráč: <b id="minutesPlayerName"></b> · 10 Kč za každou minutu</p>
+        <form id="minutesForm">
+            <label class="label" for="minutesValue">Počet minut zpoždění</label>
+            <input class="field" id="minutesValue" type="number" min="1" step="1" placeholder="např. 5" required>
+            <div class="modal__err" id="minutesErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--fine">Zapsat pokutu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
