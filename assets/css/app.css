@@ -14,12 +14,15 @@
     --muted:      #69766e;
     --dim:        #94a099;
 
-    --accent:      #1b6b3e;   /* zelená FK Agro Vnorovy */
-    --accent-dark: #124f2d;
-    --accent-lt:   #2f9058;
-    --accent-tint: #e7f3ec;
+    --ink:       #14171a;   /* černá – hlavička, tmavé plochy */
+    --ink-soft:  #23282c;
 
-    --fine:      #c8102e;   /* pokuty – červená */
+    --accent:      #c8102e;   /* červená FK Agro Vnorovy */
+    --accent-dark: #a10d25;
+    --accent-lt:   #e14257;
+    --accent-tint: #fdeef0;
+
+    --fine:      #c8102e;   /* pokuty – červená (stejná jako accent) */
     --fine-dark: #a10d25;
     --fine-tint: #fdeef0;
 
@@ -67,9 +70,10 @@ input, select, textarea, button { font-family: inherit; }
 /* ======================================================== HORNÍ LIŠTA ==== */
 
 .appbar {
-    background: var(--accent);
+    background: var(--ink);
     color: #fff;
     box-shadow: var(--shadow);
+    border-bottom: 3px solid var(--accent);
 }
 .appbar__in {
     max-width: 1400px;

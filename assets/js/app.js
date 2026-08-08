@@ -17,12 +17,12 @@ import {
    Project settings → General → Your apps → SDK setup and configuration).
    ---------------------------------------------------------------------- */
 const FIREBASE_CONFIG = {
-    apiKey: "REPLACE_ME",
-    authDomain: "REPLACE_ME.firebaseapp.com",
-    projectId: "REPLACE_ME",
-    storageBucket: "REPLACE_ME.firebasestorage.app",
-    messagingSenderId: "REPLACE_ME",
-    appId: "REPLACE_ME"
+    apiKey: "AIzaSyAkDXYhRK3YwNlg00PntMJ88qVwyHkT7Fw",
+    authDomain: "dorost-vnorovy.firebaseapp.com",
+    projectId: "dorost-vnorovy",
+    storageBucket: "dorost-vnorovy.firebasestorage.app",
+    messagingSenderId: "547110091681",
+    appId: "1:547110091681:web:e417f869fba98fd85169e0"
 };
 const APP_ID = "dorost-pokuty";
 const ADMIN_PASSWORD = "AgroDorost26";
