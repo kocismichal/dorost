@@ -10,7 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/app.css">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=2">
 </head>
 <body>
 
@@ -43,9 +44,12 @@
     </section>
 
     <section class="section">
-        <div class="section-head">
-            <h2>Hráči</h2>
-            <p>U každého hráče je rozepsáno, kolik má na kontě za jednotlivé druhy pokut, a celková částka. Po přihlášení se u hráčů objeví tlačítka pro zápis.</p>
+        <div class="section-head section-head--row">
+            <div>
+                <h2>Hráči</h2>
+                <p>U každého hráče je rozepsáno, kolik má na kontě za jednotlivé druhy pokut, a celková částka. Po přihlášení se u hráčů objeví tlačítka pro zápis.</p>
+            </div>
+            <button type="button" id="addPlayerBtn" class="btn btn--primary admin-only" hidden>+ Přidat hráče</button>
         </div>
         <div class="playergrid" id="playerGrid"></div>
     </section>
@@ -76,6 +80,23 @@
             <div class="modal__actions">
                 <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
                 <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================= přidání hráče -->
+<div class="overlay" id="playerOverlay">
+    <div class="modal">
+        <h3>Přidat hráče</h3>
+        <p class="hint">Hráč se objeví na soupisce všem, i nepřihlášeným.</p>
+        <form id="playerForm">
+            <label class="label" for="playerName">Jméno hráče</label>
+            <input class="field" id="playerName" type="text" placeholder="např. Novák Jan" required>
+            <div class="modal__err" id="playerErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přidat</button>
             </div>
         </form>
     </div>
@@ -119,6 +140,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/app.js"></script>
+<script type="module" src="assets/js/app.js?v=2"></script>
 </body>
 </html>

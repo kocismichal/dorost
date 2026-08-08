@@ -8,7 +8,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
-    getFirestore, collection, addDoc, deleteDoc, doc,
+    getFirestore, collection, addDoc, deleteDoc, doc, setDoc, writeBatch,
     onSnapshot, serverTimestamp, query, orderBy
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -27,16 +27,20 @@ const FIREBASE_CONFIG = {
 const APP_ID = "dorost-pokuty";
 const ADMIN_PASSWORD = "AgroDorost26";
 
-/* ------------------------------------------------------------- hráči ---- */
+/* ------------------------------------------------------------- hráči ----
+   Soupiska žije v databázi, aby se dala měnit přímo na webu (po přihlášení).
+   Tenhle seznam je jen výchozí stav – použije se, dokud soupisku někdo
+   poprvé neuloží. Ruční úpravy tady proto nemají smysl, měň ji na webu.
+   ------------------------------------------------------------------- */
 
-const PLAYERS = [
+const DEFAULT_PLAYERS = [
     "Chudík Vít", "Janoušek Tobiáš", "Komínek Štěpán", "Kučera David",
     "Smetka Michal", "Ivan Marián", "Tomeček Denis", "Ficnar Tobias",
     "Herodes Lukáš", "Hříbek Josef", "Chudík Šimon", "Páleník Kryštof",
     "Slavík David", "Bellingham", "Všetula Jakub", "Knotek Petr",
     "Konečný Adam", "Křen Tomáš", "Křižka Matyáš", "Neumann Jiří",
     "Hála Patrik", "Štěpán Macháček"
-].map(name => ({ id: slug(name), name }));
+].map((name, i) => ({ id: slug(name), name, order: i }));
 
 function slug(str) {
     return str.normalize("NFD").replace(/[̀-ͯ]/g, "")
@@ -67,11 +71,21 @@ const fineByKey = (key) => FINE_TYPES.find(f => f.key === key) || (key === DEDUC
 
 /* ------------------------------------------------------------- stav ---- */
 
-const state = { fines: [], status: "connecting", ready: false };
+const state = { fines: [], players: [], rosterSaved: false, status: "connecting", ready: false };
 
 let db = null;
 
-function finesCol() { return collection(db, "artifacts", APP_ID, "public", "data", "fines"); }
+function finesCol()    { return collection(db, "artifacts", APP_ID, "public", "data", "fines"); }
+function playersCol()  { return collection(db, "artifacts", APP_ID, "public", "data", "players"); }
+function playerDoc(id) { return doc(db, "artifacts", APP_ID, "public", "data", "players", id); }
+function configDoc()   { return doc(db, "artifacts", APP_ID, "public", "data", "meta", "config"); }
+
+/* Dokud soupisku nikdo neuložil, jede se podle výchozího seznamu. Příznak
+   v databázi (rosterSaved) odlišuje „ještě se needitovalo“ od „všichni hráči
+   byli smazáni“ – jinak by se po smazání posledního hráče vrátil výchozí
+   seznam zpátky. */
+function roster() { return state.rosterSaved ? state.players : DEFAULT_PLAYERS; }
+const playerById = (id) => roster().find(p => p.id === id);
 
 /* ---------------------------------------------------------------- start ---
    Anonymní přihlášení proběhne pro každého návštěvníka (i bez zadání
@@ -91,16 +105,28 @@ try {
 
     onAuthStateChanged(auth, (user) => {
         if (!user) return;
-        const q = query(finesCol(), orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
+
+        const onError = (err) => {
+            console.error("Firestore chyba:", err);
+            setStatus("offline");
+        };
+
+        onSnapshot(query(finesCol(), orderBy("createdAt", "desc")), (snapshot) => {
             state.fines = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             state.ready = true;
             setStatus("online");
             renderAll();
-        }, (err) => {
-            console.error("Firestore chyba:", err);
-            setStatus("offline");
-        });
+        }, onError);
+
+        onSnapshot(query(playersCol(), orderBy("order")), (snapshot) => {
+            state.players = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderAll();
+        }, onError);
+
+        onSnapshot(configDoc(), (snapshot) => {
+            state.rosterSaved = snapshot.exists() && snapshot.data().rosterSaved === true;
+            renderAll();
+        }, onError);
     });
 } catch (err) {
     console.error("Firebase se nepodařilo nastartovat:", err);
@@ -139,6 +165,7 @@ function updateAuthUI() {
         authbox.hidden = true;
     }
     document.querySelectorAll(".pcard__admin").forEach(el => el.classList.toggle("is-on", isAdmin()));
+    document.querySelectorAll(".admin-only").forEach(el => { el.hidden = !isAdmin(); });
     document.getElementById("archiveSection").hidden = !isAdmin();
 }
 
@@ -198,7 +225,17 @@ function renderCatalog() {
 
 function renderPlayers() {
     const host = document.getElementById("playerGrid");
-    host.innerHTML = PLAYERS.map(p => {
+    const list = roster();
+
+    if (!list.length) {
+        host.innerHTML = `<div class="pcard" style="padding:26px;text-align:center;color:var(--muted);font-size:13.5px">
+            Na soupisce zatím není nikdo. Po přihlášení přidej hráče tlačítkem <b>+ Přidat hráče</b>.
+        </div>`;
+        updateAuthUI();
+        return;
+    }
+
+    host.innerHTML = list.map(p => {
         const { rows, total } = sumsForPlayer(p.id);
         const breakdown = rows.length
             ? rows.map(r => `
@@ -237,12 +274,16 @@ function renderPlayers() {
                         + Jiná pokuta (Ostatní)
                     </button>
                 </div>
+                <button type="button" class="pcard__remove" data-remove="${p.id}">Odebrat hráče ze soupisky</button>
             </div>
         </div>`;
     }).join("");
 
     document.querySelectorAll(".finebtn").forEach(btn => {
         btn.addEventListener("click", () => onFineClick(btn.dataset.player, btn.dataset.type));
+    });
+    document.querySelectorAll("[data-remove]").forEach(btn => {
+        btn.addEventListener("click", () => onRemovePlayer(btn.dataset.remove));
     });
     updateAuthUI();
 }
@@ -301,6 +342,56 @@ async function saveFine({ playerId, playerName, typeKey, label, amount, note }) 
     }
 }
 
+/* ------------------------------------------------------------ soupiska ----
+   Před první úpravou se výchozí seznam musí uložit do databáze, jinak by
+   se přidaný hráč mísil s pevným seznamem v kódu a odebrání by nefungovalo.
+   ------------------------------------------------------------------- */
+
+async function saveDefaultRoster() {
+    if (state.rosterSaved) return;
+    const batch = writeBatch(db);
+    DEFAULT_PLAYERS.forEach(p => batch.set(playerDoc(p.id), { name: p.name, order: p.order }));
+    batch.set(configDoc(), { rosterSaved: true }, { merge: true });
+    await batch.commit();
+    state.rosterSaved = true;
+    state.players = DEFAULT_PLAYERS.map(p => ({ ...p }));
+}
+
+async function addPlayer(name) {
+    const id = slug(name);
+    if (!id) throw new Error("Jméno musí obsahovat aspoň jedno písmeno nebo číslici.");
+    if (roster().some(p => p.id === id)) throw new Error("Hráč s tímto jménem už na soupisce je.");
+
+    const order = roster().reduce((max, p) => Math.max(max, p.order ?? 0), -1) + 1;
+    await saveDefaultRoster();
+    await setDoc(playerDoc(id), { name, order });
+}
+
+async function removePlayer(id) {
+    await saveDefaultRoster();
+    await deleteDoc(playerDoc(id));
+}
+
+async function onRemovePlayer(id) {
+    if (!isAdmin()) return;
+    const player = playerById(id);
+    if (!player) return;
+
+    const count = state.fines.filter(f => f.playerId === id).length;
+    const warning = count
+        ? `\n\nMá zapsáno ${count} ${count === 1 ? "pokutu" : count < 5 ? "pokuty" : "pokut"} – ty zůstanou v historii zápisů, ale zmizí z přehledu.`
+        : "";
+    if (!confirm(`Odebrat hráče ${player.name} ze soupisky?${warning}`)) return;
+
+    try {
+        await removePlayer(id);
+        toast(`${player.name} odebrán ze soupisky`);
+    } catch (err) {
+        console.error(err);
+        toast("Odebrání se nepovedlo.");
+    }
+}
+
 async function onDeleteFine(id) {
     if (!isAdmin()) return;
     if (!confirm("Opravdu smazat tento záznam?")) return;
@@ -315,7 +406,7 @@ async function onDeleteFine(id) {
 
 function onFineClick(playerId, typeKey) {
     if (!isAdmin()) return;
-    const player = PLAYERS.find(p => p.id === playerId);
+    const player = playerById(playerId);
     if (!player) return;
 
     if (typeKey === OTHER_KEY) {
@@ -408,6 +499,29 @@ document.addEventListener("DOMContentLoaded", () => {
         updateAuthUI();
         renderPlayers();
         toast(`Přihlášen(a) jako ${name}`);
+    });
+
+    document.getElementById("addPlayerBtn").addEventListener("click", () => {
+        document.getElementById("playerName").value = "";
+        document.getElementById("playerErr").classList.remove("is-on");
+        document.getElementById("playerOverlay").classList.add("is-open");
+        setTimeout(() => document.getElementById("playerName").focus(), 50);
+    });
+
+    document.getElementById("playerForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = document.getElementById("playerName").value.trim();
+        const err = document.getElementById("playerErr");
+        if (!name) { err.textContent = "Zadej jméno hráče."; err.classList.add("is-on"); return; }
+        try {
+            await addPlayer(name);
+            closeOverlays();
+            toast(`${name} přidán na soupisku`);
+        } catch (ex) {
+            console.error(ex);
+            err.textContent = ex.message || "Přidání se nepovedlo.";
+            err.classList.add("is-on");
+        }
     });
 
     document.getElementById("customForm").addEventListener("submit", (e) => {

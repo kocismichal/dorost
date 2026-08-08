@@ -153,6 +153,15 @@ main { padding: 30px 0 80px; }
 }
 .section-head p { font-size: 14px; color: var(--muted); margin: 0; line-height: 1.55; max-width: 80ch; }
 
+/* nadpis sekce s akčním tlačítkem vpravo */
+.section-head--row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
 /* ---------------------------------------------------- katalog pokut ---- */
 
 .catalog {
@@ -293,6 +302,23 @@ main { padding: 30px 0 80px; }
     grid-column: 1 / -1;
 }
 .finebtn--other:hover { background: var(--text); color: #fff; }
+
+/* odebrání hráče – nenápadné, ať se neklikne omylem místo pokuty */
+.pcard__remove {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 7px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: none;
+    color: var(--dim);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color .13s, border-color .13s, background .13s;
+}
+.pcard__remove:hover { color: var(--danger); border-color: var(--danger); background: #fdecec; }
 
 /* ---------------------------------------------------------- archiv ---- */
 
