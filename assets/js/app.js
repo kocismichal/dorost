@@ -75,10 +75,10 @@ const FINE_TYPES = [
     { key: "trenink_pozde", label: "Pozdní příchod na trénink", desc: "Trénink 5 minut před začátkem na hřišti", amount: 10, btn: "Pozdní příchod - trénink" },
     { key: "zapas_pozde", label: "Pozdní příchod na zápas", desc: "10 Kč za každou minutu", amount: 10, perMinute: true, btn: "Pozdní příchod - zápas" },
     { key: "neprihlasen", label: "Nepřihlášen do 12:00", amount: 20, btn: "Nepřihlášení" },
-    { key: "duvod_nepritomnosti", label: "Neudán důvod nepřítomnosti", amount: 20, btn: "Důvod nepřítomnosti" },
+    { key: "duvod_nepritomnosti", label: "Neudán důvod nepřítomnosti", amount: 10, btn: "Důvod nepřítomnosti" },
     { key: "balon", label: "Překopnutý balon přes plot/síť", amount: 10, btn: "Balon přes plot" },
     { key: "sprosta_slova", label: "Sprostá slova", amount: 10, btn: "Sprostá slova" },
-    { key: "zluta_karta", label: "Žlutá karta za kecy", amount: 50, btn: "Žlutá karta - kecy" },
+    { key: "zluta_karta", label: "Žlutá karta za kecy, oplácení a nesportovní chování", amount: 50, btn: "Žlutá karta - chování" },
     { key: "cervena_karta", label: "Červená karta", amount: 50, btn: "Červená karta" },
     { key: "zivotosprava", label: "Životospráva", amount: 50, btn: "Životospráva" },
     { key: "mobil", label: "Mobil v ruce před zápasem po čase srazu", amount: 20, btn: "Mobil" }
@@ -191,24 +191,41 @@ function updateAuthUI() {
 /* ------------------------------------------------------------- pomocné ---- */
 
 const money = (n) => (n > 0 ? "+" : "") + n.toLocaleString("cs-CZ") + " Kč";
-const initials = (name) => name.split(" ").filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase();
 const czDateTime = (ts) => {
     if (!ts || !ts.toDate) return "…";
     const d = ts.toDate();
     return d.toLocaleDateString("cs-CZ") + " " + d.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
 };
 
+/* Zápisy bez potvrzeného času (ještě letí na server) patří na konec. */
+const finedAt = (f) => (f.createdAt && f.createdAt.toMillis ? f.createdAt.toMillis() : Number.MAX_SAFE_INTEGER);
+
 function sumsForPlayer(playerId) {
+    const mine = state.fines.filter(f => f.playerId === playerId);
+
+    // rozpis – kolik dohromady za každou položku
     const rows = new Map();
-    let total = 0;
-    state.fines.filter(f => f.playerId === playerId).forEach(f => {
-        total += f.amount;
+    mine.forEach(f => {
         const key = f.typeKey === OTHER_KEY ? (OTHER_KEY + "|" + (f.note || "")) : f.typeKey;
         const prev = rows.get(key) || { label: f.typeKey === OTHER_KEY ? ("Ostatní – " + (f.note || "bez popisu")) : f.label, amount: 0 };
         prev.amount += f.amount;
         rows.set(key, prev);
     });
-    return { rows: Array.from(rows.values()), total };
+
+    /* Dluh se počítá popořadě, jak zápisy vznikaly, a po každém se drží
+       na nule – odečet umí dluh jen smazat, ne přeplatit do mínusu.
+       Co se nevešlo, propadá, jinak by si hráč naspořil na pokuty dopředu. */
+    let total = 0, forfeited = 0;
+    mine.slice().sort((a, b) => finedAt(a) - finedAt(b)).forEach(f => {
+        const next = total + f.amount;
+        if (next < 0) { forfeited -= next; total = 0; } else { total = next; }
+    });
+
+    const list = Array.from(rows.values());
+    if (forfeited > 0) list.push({ label: "Z toho propadlo (nad rámec dluhu)", amount: forfeited, muted: true });
+
+    const weeks = mine.filter(f => f.typeKey === DEDUCTION.key).length;
+    return { rows: list, total, weeks };
 }
 
 /* --------------------------------------------------------------- render ---- */
@@ -255,10 +272,10 @@ function renderPlayers() {
     }
 
     host.innerHTML = list.map(p => {
-        const { rows, total } = sumsForPlayer(p.id);
+        const { rows, total, weeks } = sumsForPlayer(p.id);
         const breakdown = rows.length
             ? rows.map(r => `
-                <div class="brow">
+                <div class="brow${r.muted ? " brow--muted" : ""}">
                     <span class="brow__label">${esc(r.label)}</span>
                     <span class="brow__amount${r.amount < 0 ? " brow__amount--ok" : ""}">${money(r.amount)}</span>
                 </div>`).join("")
@@ -273,7 +290,7 @@ function renderPlayers() {
         return `
         <div class="pcard">
             <div class="pcard__head">
-                <div class="pcard__avatar">${esc(initials(p.name))}</div>
+                <div class="pcard__avatar" title="Splněné tréninkové týdny: ${weeks}">${weeks}</div>
                 <div class="pcard__name">${esc(p.name)}</div>
                 <div class="pcard__total${total <= 0 ? " pcard__total--zero" : ""}">
                     <b>${total === 0 ? "0 Kč" : money(total)}</b>
