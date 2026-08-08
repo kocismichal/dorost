@@ -33,14 +33,33 @@ const ADMIN_PASSWORD = "AgroDorost26";
    poprvé neuloží. Ruční úpravy tady proto nemají smysl, měň ji na webu.
    ------------------------------------------------------------------- */
 
+/* Vnitřní ID je natvrdo a záměrně neodpovídá jménu – vzniklo z původního
+   zápisu „příjmení jméno“. Zápisy pokut se na hráče vážou přes tohle ID,
+   takže přejmenování hráče nesmí ID měnit, jinak by se pokuty odpojily. */
 const DEFAULT_PLAYERS = [
-    "Chudík Vít", "Janoušek Tobiáš", "Komínek Štěpán", "Kučera David",
-    "Smetka Michal", "Ivan Marián", "Tomeček Denis", "Ficnar Tobias",
-    "Herodes Lukáš", "Hříbek Josef", "Chudík Šimon", "Páleník Kryštof",
-    "Slavík David", "Bellingham", "Všetula Jakub", "Knotek Petr",
-    "Konečný Adam", "Křen Tomáš", "Křižka Matyáš", "Neumann Jiří",
-    "Hála Patrik", "Štěpán Macháček"
-].map((name, i) => ({ id: slug(name), name, order: i }));
+    ["chudik-vit",       "Vít Chudík"],
+    ["janousek-tobias",  "Tobiáš Janoušek"],
+    ["kominek-stepan",   "Štěpán Komínek"],
+    ["kucera-david",     "David Kučera"],
+    ["smetka-michal",    "Michal Smetka"],
+    ["ivan-marian",      "Marián Ivan"],
+    ["tomecek-denis",    "Denis Tomeček"],
+    ["ficnar-tobias",    "Tobias Ficnar"],
+    ["herodes-lukas",    "Lukáš Herodes"],
+    ["hribek-josef",     "Josef Hříbek"],
+    ["chudik-simon",     "Šimon Chudík"],
+    ["palenik-krystof",  "Kryštof Páleník"],
+    ["slavik-david",     "David Slavík"],
+    ["bellingham",       "Bellingham"],
+    ["vsetula-jakub",    "Jakub Všetula"],
+    ["knotek-petr",      "Petr Knotek"],
+    ["konecny-adam",     "Adam Konečný"],
+    ["kren-tomas",       "Tomáš Křen"],
+    ["krizka-matyas",    "Matyáš Křižka"],
+    ["neumann-jiri",     "Jiří Neumann"],
+    ["hala-patrik",      "Patrik Hála"],
+    ["stepan-machacek",  "Štěpán Macháček"]
+].map(([id, name], i) => ({ id, name, order: i }));
 
 function slug(str) {
     return str.normalize("NFD").replace(/[̀-ͯ]/g, "")

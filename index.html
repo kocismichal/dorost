@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
-<link rel="stylesheet" href="assets/css/app.css?v=2">
+<link rel="stylesheet" href="assets/css/app.css?v=3">
 </head>
 <body>
 
@@ -70,10 +70,10 @@
 <div class="overlay" id="loginOverlay">
     <div class="modal">
         <h3>Přihlášení</h3>
-        <p class="hint">Jméno slouží jen pro archiv zápisů. Heslo je společné pro celý tým.</p>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
         <form id="loginForm">
             <label class="label" for="loginName">Tvoje jméno</label>
-            <input class="field" id="loginName" type="text" placeholder="např. Michal Smetka" autocomplete="name" required>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
             <label class="label" for="loginPassword">Heslo</label>
             <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
             <div class="modal__err" id="loginErr"></div>
@@ -92,7 +92,7 @@
         <p class="hint">Hráč se objeví na soupisce všem, i nepřihlášeným.</p>
         <form id="playerForm">
             <label class="label" for="playerName">Jméno hráče</label>
-            <input class="field" id="playerName" type="text" placeholder="např. Novák Jan" required>
+            <input class="field" id="playerName" type="text" placeholder="např. Jan Novák" required>
             <div class="modal__err" id="playerErr"></div>
             <div class="modal__actions">
                 <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
@@ -140,6 +140,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/app.js?v=2"></script>
+<script type="module" src="assets/js/app.js?v=3"></script>
 </body>
 </html>
