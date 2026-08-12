@@ -256,7 +256,7 @@ main { padding: 30px 0 80px; }
 .brow__amount { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--fine); }
 .brow__amount--ok { color: var(--ok); }
 
-/* propadlý odečet – jen dopočet do nuly, ne další pokuta */
+/* poznámka pod rozpisem (kredit k dobru) – ne další položka pokuty */
 .brow--muted { font-style: italic; }
 .brow--muted .brow__label,
 .brow--muted .brow__amount { color: var(--dim); font-weight: 600; }

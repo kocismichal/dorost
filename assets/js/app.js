@@ -197,9 +197,6 @@ const czDateTime = (ts) => {
     return d.toLocaleDateString("cs-CZ") + " " + d.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
 };
 
-/* Zápisy bez potvrzeného času (ještě letí na server) patří na konec. */
-const finedAt = (f) => (f.createdAt && f.createdAt.toMillis ? f.createdAt.toMillis() : Number.MAX_SAFE_INTEGER);
-
 function sumsForPlayer(playerId) {
     const mine = state.fines.filter(f => f.playerId === playerId);
 
@@ -212,17 +209,19 @@ function sumsForPlayer(playerId) {
         rows.set(key, prev);
     });
 
-    /* Dluh se počítá popořadě, jak zápisy vznikaly, a po každém se drží
-       na nule – odečet umí dluh jen smazat, ne přeplatit do mínusu.
-       Co se nevešlo, propadá, jinak by si hráč naspořil na pokuty dopředu. */
-    let total = 0, forfeited = 0;
-    mine.slice().sort((a, b) => finedAt(a) - finedAt(b)).forEach(f => {
-        const next = total + f.amount;
-        if (next < 0) { forfeited -= next; total = 0; } else { total = next; }
-    });
+    /* Bilance je prostý součet všeho – na pořadí zápisů nezáleží, odečet
+       se hráči veze dál a umazává i pokuty, které přijdou až po něm.
+       Na kartě se ale mínus neukazuje: dluh spadne na nulu a přeplatek
+       se vypíše zvlášť jako kredit na příští pokuty. */
+    const balance = mine.reduce((sum, f) => sum + f.amount, 0);
+    const total = Math.max(balance, 0);
+    const credit = balance < 0 ? -balance : 0;
 
     const list = Array.from(rows.values());
-    if (forfeited > 0) list.push({ label: "Z toho propadlo (nad rámec dluhu)", amount: forfeited, muted: true });
+    if (credit > 0) list.push({
+        label: "K dobru na příští pokuty", amount: -credit, muted: true,
+        display: credit.toLocaleString("cs-CZ") + " Kč"
+    });
 
     const weeks = mine.filter(f => f.typeKey === DEDUCTION.key).length;
     return { rows: list, total, weeks };
@@ -277,7 +276,7 @@ function renderPlayers() {
             ? rows.map(r => `
                 <div class="brow${r.muted ? " brow--muted" : ""}">
                     <span class="brow__label">${esc(r.label)}</span>
-                    <span class="brow__amount${r.amount < 0 ? " brow__amount--ok" : ""}">${money(r.amount)}</span>
+                    <span class="brow__amount${r.amount < 0 ? " brow__amount--ok" : ""}">${r.display || money(r.amount)}</span>
                 </div>`).join("")
             : `<div class="pcard__empty">Zatím žádné pokuty</div>`;
 
