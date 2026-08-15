@@ -1,70 +1,19 @@
 /* ==========================================================================
    FK AGRO VNOROVY – DOROST · Pokutníček
-   Datová vrstva: Firebase Firestore (živá synchronizace, zdarma).
-   Přihlášení "admina" je jen na straně prohlížeče (společné heslo pro celý
-   tým) – slouží k odemčení tlačítek pro zápis, ne jako bezpečnostní bariéra.
+   Zápis a přehled pokut. Firebase, přihlášení a soupiska jsou ve sdíleném
+   jádru (core.js), tady žije jen to, co se týká pokut.
    ========================================================================== */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import {
-    getFirestore, collection, addDoc, deleteDoc, doc, setDoc, writeBatch,
-    onSnapshot, serverTimestamp, query, orderBy
+    addDoc, deleteDoc, setDoc, onSnapshot, serverTimestamp, query, orderBy
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-/* ---------------------------------------------------------------- config ---
-   TOTO DOPLŇ podle vlastního Firebase projektu (Firebase Console →
-   Project settings → General → Your apps → SDK setup and configuration).
-   ---------------------------------------------------------------------- */
-const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyAkDXYhRK3YwNlg00PntMJ88qVwyHkT7Fw",
-    authDomain: "dorost-vnorovy.firebaseapp.com",
-    projectId: "dorost-vnorovy",
-    storageBucket: "dorost-vnorovy.firebasestorage.app",
-    messagingSenderId: "547110091681",
-    appId: "1:547110091681:web:e417f869fba98fd85169e0"
-};
-const APP_ID = "dorost-pokuty";
-const ADMIN_PASSWORD = "AgroDorost26";
-
-/* ------------------------------------------------------------- hráči ----
-   Soupiska žije v databázi, aby se dala měnit přímo na webu (po přihlášení).
-   Tenhle seznam je jen výchozí stav – použije se, dokud soupisku někdo
-   poprvé neuloží. Ruční úpravy tady proto nemají smysl, měň ji na webu.
-   ------------------------------------------------------------------- */
-
-/* Vnitřní ID je natvrdo a záměrně neodpovídá jménu – vzniklo z původního
-   zápisu „příjmení jméno“. Zápisy pokut se na hráče vážou přes tohle ID,
-   takže přejmenování hráče nesmí ID měnit, jinak by se pokuty odpojily. */
-const DEFAULT_PLAYERS = [
-    ["chudik-vit",       "Vít Chudík"],
-    ["janousek-tobias",  "Tobiáš Janoušek"],
-    ["kominek-stepan",   "Štěpán Komínek"],
-    ["kucera-david",     "David Kučera"],
-    ["smetka-michal",    "Michal Smetka"],
-    ["ivan-marian",      "Marián Ivan"],
-    ["tomecek-denis",    "Denis Tomeček"],
-    ["ficnar-tobias",    "Tobias Ficnar"],
-    ["herodes-lukas",    "Lukáš Herodes"],
-    ["hribek-josef",     "Josef Hříbek"],
-    ["chudik-simon",     "Šimon Chudík"],
-    ["palenik-krystof",  "Kryštof Páleník"],
-    ["slavik-david",     "David Slavík"],
-    ["bellingham",       "Bellingham"],
-    ["vsetula-jakub",    "Jakub Všetula"],
-    ["knotek-petr",      "Petr Knotek"],
-    ["konecny-adam",     "Adam Konečný"],
-    ["kren-tomas",       "Tomáš Křen"],
-    ["krizka-matyas",    "Matyáš Křižka"],
-    ["neumann-jiri",     "Jiří Neumann"],
-    ["hala-patrik",      "Patrik Hála"],
-    ["stepan-machacek",  "Štěpán Macháček"]
-].map(([id, name], i) => ({ id, name, order: i }));
-
-function slug(str) {
-    return str.normalize("NFD").replace(/[̀-ͯ]/g, "")
-        .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-}
+import {
+    col, docIn, whenReady, onDbError, setStatus,
+    roster, playerById, saveDefaultRoster, nextRosterOrder, slug,
+    AdminStore, isAdmin, initAuth, updateAuthUI,
+    esc, money, czDateTime, closeOverlays, openOverlay, toast
+} from "./core.js?v=6";
 
 /* --------------------------------------------------------- druhy pokut ---
    perMinute: při kliknutí se zeptá na počet minut, částka = amount * minuty
@@ -86,116 +35,27 @@ const FINE_TYPES = [
 const DEDUCTION = { key: "trenink_tyden", label: "Splnění tréninkového týdne", desc: "3 tréninky týdně", amount: -50, btn: "Tréninkový týden" };
 const OTHER_KEY = "ostatni";
 
+/** Kolik posledních pohybů se ukáže v detailu hráče. */
+const DETAIL_LIMIT = 10;
+
 const fineByKey = (key) => FINE_TYPES.find(f => f.key === key) || (key === DEDUCTION.key ? DEDUCTION : null);
+
+/** Popis položky tak, jak se má ukázat v přehledu (u „Ostatní“ i s důvodem). */
+const fineLabel = (f) => f.typeKey === OTHER_KEY ? ("Ostatní – " + (f.note || "bez popisu")) : f.label;
 
 /* ------------------------------------------------------------- stav ---- */
 
-const state = { fines: [], players: [], rosterSaved: false, status: "connecting", ready: false };
+const state = { fines: [] };
 
-let db = null;
+whenReady(() => {
+    onSnapshot(query(col("fines"), orderBy("createdAt", "desc")), (snapshot) => {
+        state.fines = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setStatus("online");
+        renderAll();
+    }, onDbError);
+});
 
-function finesCol()    { return collection(db, "artifacts", APP_ID, "public", "data", "fines"); }
-function playersCol()  { return collection(db, "artifacts", APP_ID, "public", "data", "players"); }
-function playerDoc(id) { return doc(db, "artifacts", APP_ID, "public", "data", "players", id); }
-function configDoc()   { return doc(db, "artifacts", APP_ID, "public", "data", "meta", "config"); }
-
-/* Dokud soupisku nikdo neuložil, jede se podle výchozího seznamu. Příznak
-   v databázi (rosterSaved) odlišuje „ještě se needitovalo“ od „všichni hráči
-   byli smazáni“ – jinak by se po smazání posledního hráče vrátil výchozí
-   seznam zpátky. */
-function roster() { return state.rosterSaved ? state.players : DEFAULT_PLAYERS; }
-const playerById = (id) => roster().find(p => p.id === id);
-
-/* ---------------------------------------------------------------- start ---
-   Anonymní přihlášení proběhne pro každého návštěvníka (i bez zadání
-   hesla) – jinak by Firestore pravidla nepustila ani čtení. Heslo teprve
-   odemyká admin tlačítka v UI.
-   ------------------------------------------------------------------- */
-
-try {
-    const app = initializeApp(FIREBASE_CONFIG);
-    const auth = getAuth(app);
-    db = getFirestore(app);
-
-    signInAnonymously(auth).catch(err => {
-        console.error("Anonymní přihlášení k Firebase selhalo:", err);
-        setStatus("offline");
-    });
-
-    onAuthStateChanged(auth, (user) => {
-        if (!user) return;
-
-        const onError = (err) => {
-            console.error("Firestore chyba:", err);
-            setStatus("offline");
-        };
-
-        onSnapshot(query(finesCol(), orderBy("createdAt", "desc")), (snapshot) => {
-            state.fines = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            state.ready = true;
-            setStatus("online");
-            renderAll();
-        }, onError);
-
-        onSnapshot(query(playersCol(), orderBy("order")), (snapshot) => {
-            state.players = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            renderAll();
-        }, onError);
-
-        onSnapshot(configDoc(), (snapshot) => {
-            state.rosterSaved = snapshot.exists() && snapshot.data().rosterSaved === true;
-            renderAll();
-        }, onError);
-    });
-} catch (err) {
-    console.error("Firebase se nepodařilo nastartovat:", err);
-    setStatus("offline");
-}
-
-function setStatus(s) {
-    state.status = s;
-    const el = document.getElementById("connStatus");
-    if (!el) return;
-    el.dataset.state = s;
-    el.textContent = s === "online" ? "● Online" : s === "offline" ? "● Offline" : "● Připojuji…";
-}
-
-/* -------------------------------------------------------------- admin ---- */
-
-const AdminStore = {
-    get name() { return localStorage.getItem("dorostAdminName") || ""; },
-    set name(v) { localStorage.setItem("dorostAdminName", v); },
-    get on() { return localStorage.getItem("dorostAdminOn") === "1"; },
-    set on(v) { v ? localStorage.setItem("dorostAdminOn", "1") : localStorage.removeItem("dorostAdminOn"); }
-};
-
-function isAdmin() { return AdminStore.on && !!AdminStore.name; }
-
-function updateAuthUI() {
-    const loginBtn = document.getElementById("loginBtn");
-    const authbox = document.getElementById("authbox");
-    const nameEl = document.getElementById("authName");
-    if (isAdmin()) {
-        loginBtn.hidden = true;
-        authbox.hidden = false;
-        nameEl.textContent = AdminStore.name;
-    } else {
-        loginBtn.hidden = false;
-        authbox.hidden = true;
-    }
-    document.querySelectorAll(".pcard__admin").forEach(el => el.classList.toggle("is-on", isAdmin()));
-    document.querySelectorAll(".admin-only").forEach(el => { el.hidden = !isAdmin(); });
-    document.getElementById("archiveSection").hidden = !isAdmin();
-}
-
-/* ------------------------------------------------------------- pomocné ---- */
-
-const money = (n) => (n > 0 ? "+" : "") + n.toLocaleString("cs-CZ") + " Kč";
-const czDateTime = (ts) => {
-    if (!ts || !ts.toDate) return "…";
-    const d = ts.toDate();
-    return d.toLocaleDateString("cs-CZ") + " " + d.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
-};
+/* ------------------------------------------------------------- výpočet ---- */
 
 function sumsForPlayer(playerId) {
     const mine = state.fines.filter(f => f.playerId === playerId);
@@ -204,7 +64,7 @@ function sumsForPlayer(playerId) {
     const rows = new Map();
     mine.forEach(f => {
         const key = f.typeKey === OTHER_KEY ? (OTHER_KEY + "|" + (f.note || "")) : f.typeKey;
-        const prev = rows.get(key) || { label: f.typeKey === OTHER_KEY ? ("Ostatní – " + (f.note || "bez popisu")) : f.label, amount: 0 };
+        const prev = rows.get(key) || { label: fineLabel(f), amount: 0 };
         prev.amount += f.amount;
         rows.set(key, prev);
     });
@@ -224,7 +84,7 @@ function sumsForPlayer(playerId) {
     });
 
     const weeks = mine.filter(f => f.typeKey === DEDUCTION.key).length;
-    return { rows: list, total, weeks };
+    return { rows: list, total, weeks, count: mine.length };
 }
 
 /* --------------------------------------------------------------- render ---- */
@@ -271,7 +131,7 @@ function renderPlayers() {
     }
 
     host.innerHTML = list.map(p => {
-        const { rows, total, weeks } = sumsForPlayer(p.id);
+        const { rows, total, weeks, count } = sumsForPlayer(p.id);
         const breakdown = rows.length
             ? rows.map(r => `
                 <div class="brow${r.muted ? " brow--muted" : ""}">
@@ -298,8 +158,11 @@ function renderPlayers() {
             </div>
             <div class="pcard__body">
                 <div class="pcard__breakdown">${breakdown}</div>
+                ${count ? `<button type="button" class="pcard__detail" data-detail="${p.id}">
+                    Poslední zápisy →
+                </button>` : ""}
             </div>
-            <div class="pcard__admin">
+            <div class="pcard__admin admin-only" hidden>
                 <div class="finebtns">
                     ${fineBtns}
                     <button type="button" class="finebtn finebtn--ok" data-player="${p.id}" data-type="${DEDUCTION.key}">
@@ -314,13 +177,45 @@ function renderPlayers() {
         </div>`;
     }).join("");
 
-    document.querySelectorAll(".finebtn").forEach(btn => {
+    host.querySelectorAll(".finebtn").forEach(btn => {
         btn.addEventListener("click", () => onFineClick(btn.dataset.player, btn.dataset.type));
     });
-    document.querySelectorAll("[data-remove]").forEach(btn => {
+    host.querySelectorAll("[data-remove]").forEach(btn => {
         btn.addEventListener("click", () => onRemovePlayer(btn.dataset.remove));
     });
+    host.querySelectorAll("[data-detail]").forEach(btn => {
+        btn.addEventListener("click", () => openDetail(btn.dataset.detail));
+    });
     updateAuthUI();
+}
+
+/* ------------------------------------------------------- detail hráče ----
+   Posledních pár pohybů i s datem – vidí je každý, i nepřihlášený.
+   Zápisy jdou z databáze seřazené od nejnovějšího, takže stačí useknout.
+   ------------------------------------------------------------------- */
+
+function openDetail(playerId) {
+    const player = playerById(playerId);
+    if (!player) return;
+
+    const mine = state.fines.filter(f => f.playerId === playerId);
+    const { total } = sumsForPlayer(playerId);
+
+    document.getElementById("detailPlayerName").textContent = player.name;
+    document.getElementById("detailSummary").innerHTML = mine.length > DETAIL_LIMIT
+        ? `Posledních ${DETAIL_LIMIT} z celkem ${mine.length} zápisů · aktuálně dluží <b>${total === 0 ? "0 Kč" : money(total)}</b>`
+        : `Celkem ${mine.length} ${mine.length === 1 ? "zápis" : mine.length < 5 ? "zápisy" : "zápisů"} · aktuálně dluží <b>${total === 0 ? "0 Kč" : money(total)}</b>`;
+
+    document.getElementById("detailList").innerHTML = mine.slice(0, DETAIL_LIMIT).map(f => `
+        <div class="drow">
+            <div class="drow__main">
+                <div class="drow__label">${esc(fineLabel(f))}</div>
+                <div class="drow__date">${czDateTime(f.createdAt)}${f.addedBy ? " · zapsal " + esc(f.addedBy) : ""}</div>
+            </div>
+            <div class="drow__amount${f.amount < 0 ? " drow__amount--ok" : ""}">${money(f.amount)}</div>
+        </div>`).join("");
+
+    openOverlay("detailOverlay");
 }
 
 function renderArchive() {
@@ -340,7 +235,7 @@ function renderArchive() {
             <tr>
                 <td>${czDateTime(f.createdAt)}</td>
                 <td>${esc(f.playerName)}</td>
-                <td>${esc(f.typeKey === OTHER_KEY ? ("Ostatní – " + (f.note || "")) : f.label)}</td>
+                <td>${esc(fineLabel(f))}</td>
                 <td class="archive__amount${f.amount < 0 ? " archive__amount--ok" : ""}">${money(f.amount)}</td>
                 <td>${esc(f.addedBy || "?")}</td>
                 <td><button type="button" class="archive__del" data-id="${f.id}" title="Smazat záznam">✕</button></td>
@@ -358,15 +253,11 @@ function renderAll() {
     renderArchive();
 }
 
-function esc(s) {
-    return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-
 /* ---------------------------------------------------------------- akce ---- */
 
 async function saveFine({ playerId, playerName, typeKey, label, amount, note }) {
     try {
-        await addDoc(finesCol(), {
+        await addDoc(col("fines"), {
             playerId, playerName, typeKey, label: label || null, amount, note: note || null,
             addedBy: AdminStore.name, createdAt: serverTimestamp()
         });
@@ -377,34 +268,14 @@ async function saveFine({ playerId, playerName, typeKey, label, amount, note }) 
     }
 }
 
-/* ------------------------------------------------------------ soupiska ----
-   Před první úpravou se výchozí seznam musí uložit do databáze, jinak by
-   se přidaný hráč mísil s pevným seznamem v kódu a odebrání by nefungovalo.
-   ------------------------------------------------------------------- */
-
-async function saveDefaultRoster() {
-    if (state.rosterSaved) return;
-    const batch = writeBatch(db);
-    DEFAULT_PLAYERS.forEach(p => batch.set(playerDoc(p.id), { name: p.name, order: p.order }));
-    batch.set(configDoc(), { rosterSaved: true }, { merge: true });
-    await batch.commit();
-    state.rosterSaved = true;
-    state.players = DEFAULT_PLAYERS.map(p => ({ ...p }));
-}
-
 async function addPlayer(name) {
     const id = slug(name);
     if (!id) throw new Error("Jméno musí obsahovat aspoň jedno písmeno nebo číslici.");
     if (roster().some(p => p.id === id)) throw new Error("Hráč s tímto jménem už na soupisce je.");
 
-    const order = roster().reduce((max, p) => Math.max(max, p.order ?? 0), -1) + 1;
+    const order = nextRosterOrder();
     await saveDefaultRoster();
-    await setDoc(playerDoc(id), { name, order });
-}
-
-async function removePlayer(id) {
-    await saveDefaultRoster();
-    await deleteDoc(playerDoc(id));
+    await setDoc(docIn("players", id), { name, order });
 }
 
 async function onRemovePlayer(id) {
@@ -419,7 +290,8 @@ async function onRemovePlayer(id) {
     if (!confirm(`Odebrat hráče ${player.name} ze soupisky?${warning}`)) return;
 
     try {
-        await removePlayer(id);
+        await saveDefaultRoster();
+        await deleteDoc(docIn("players", id));
         toast(`${player.name} odebrán ze soupisky`);
     } catch (err) {
         console.error(err);
@@ -431,7 +303,7 @@ async function onDeleteFine(id) {
     if (!isAdmin()) return;
     if (!confirm("Opravdu smazat tento záznam?")) return;
     try {
-        await deleteDoc(doc(db, "artifacts", APP_ID, "public", "data", "fines", id));
+        await deleteDoc(docIn("fines", id));
         toast("Záznam smazán");
     } catch (err) {
         console.error(err);
@@ -466,9 +338,9 @@ function openCustomModal(player) {
     document.getElementById("customAmount").value = "";
     document.getElementById("customNote").value = "";
     document.getElementById("customErr").classList.remove("is-on");
-    overlay.classList.add("is-open");
     overlay.dataset.playerId = player.id;
     overlay.dataset.playerName = player.name;
+    openOverlay("customOverlay");
     setTimeout(() => document.getElementById("customAmount").focus(), 50);
 }
 
@@ -477,25 +349,12 @@ function openMinutesModal(player, fineType) {
     document.getElementById("minutesPlayerName").textContent = player.name;
     document.getElementById("minutesValue").value = "";
     document.getElementById("minutesErr").classList.remove("is-on");
-    overlay.classList.add("is-open");
     overlay.dataset.playerId = player.id;
     overlay.dataset.playerName = player.name;
     overlay.dataset.typeKey = fineType.key;
     overlay.dataset.rate = fineType.amount;
+    openOverlay("minutesOverlay");
     setTimeout(() => document.getElementById("minutesValue").focus(), 50);
-}
-
-function closeOverlays() {
-    document.querySelectorAll(".overlay").forEach(o => o.classList.remove("is-open"));
-}
-
-let toastTimer = null;
-function toast(msg) {
-    const el = document.getElementById("toast");
-    el.textContent = msg;
-    el.classList.add("is-on");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove("is-on"), 2600);
 }
 
 /* --------------------------------------------------------------- init ---- */
@@ -504,42 +363,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCatalog();
     renderPlayers();
     renderArchive();
-    updateAuthUI();
-
-    document.getElementById("loginBtn").addEventListener("click", () => {
-        document.getElementById("loginName").value = AdminStore.name || "";
-        document.getElementById("loginPassword").value = "";
-        document.getElementById("loginErr").classList.remove("is-on");
-        document.getElementById("loginOverlay").classList.add("is-open");
-        setTimeout(() => document.getElementById("loginName").focus(), 50);
-    });
-
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-        AdminStore.on = false;
-        updateAuthUI();
-        renderPlayers();
-        toast("Odhlášeno");
-    });
-
-    document.getElementById("loginForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const name = document.getElementById("loginName").value.trim();
-        const pass = document.getElementById("loginPassword").value;
-        const err = document.getElementById("loginErr");
-        if (!name) { err.textContent = "Zadej své jméno."; err.classList.add("is-on"); return; }
-        if (pass !== ADMIN_PASSWORD) { err.textContent = "Špatné heslo."; err.classList.add("is-on"); return; }
-        AdminStore.name = name;
-        AdminStore.on = true;
-        closeOverlays();
-        updateAuthUI();
-        renderPlayers();
-        toast(`Přihlášen(a) jako ${name}`);
-    });
+    initAuth(renderAll);
 
     document.getElementById("addPlayerBtn").addEventListener("click", () => {
         document.getElementById("playerName").value = "";
         document.getElementById("playerErr").classList.remove("is-on");
-        document.getElementById("playerOverlay").classList.add("is-open");
+        openOverlay("playerOverlay");
         setTimeout(() => document.getElementById("playerName").focus(), 50);
     });
 
@@ -588,10 +417,4 @@ document.addEventListener("DOMContentLoaded", () => {
             typeKey: f.key, label: `${f.label} (${minutes} min)`, amount: rate * minutes
         });
     });
-
-    document.querySelectorAll("[data-close]").forEach(el => el.addEventListener("click", closeOverlays));
-    document.querySelectorAll(".overlay").forEach(o => {
-        o.addEventListener("click", (e) => { if (e.target === o) closeOverlays(); });
-    });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOverlays(); });
 });

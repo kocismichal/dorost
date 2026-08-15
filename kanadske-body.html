@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Kanadské body</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=6">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link is-active" href="kanadske-body.html">Kanadské body</a>
+    </div>
+</nav>
+
+<main class="wrap">
+
+    <section class="section">
+        <div class="section-head section-head--row">
+            <div>
+                <h2>Kanadské bodování</h2>
+                <p>Gól i asistence se počítají po jednom bodu. Tabulka se řadí podle bodů, při shodě rozhoduje víc gólů. Po přihlášení se dají zapisovat zápasy a branky.</p>
+            </div>
+            <button type="button" id="addGuestBtn" class="btn btn--ghost admin-only" hidden>+ Přidat hostujícího hráče</button>
+        </div>
+        <div class="table-card">
+            <div class="archive__scroll">
+                <table class="ptable" id="pointsTable"></table>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="section-head section-head--row">
+            <div>
+                <h2>Zápasy</h2>
+                <p>U každého zápasu je rozepsané, kdo dal gól a kdo na něj přihrál. Nejnovější zápas je nahoře.</p>
+            </div>
+            <button type="button" id="addMatchBtn" class="btn btn--primary admin-only" hidden>+ Přidat zápas</button>
+        </div>
+        <div class="matchlist" id="matchList"></div>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · kanadské bodování</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================= přidání zápasu -->
+<div class="overlay" id="matchOverlay">
+    <div class="modal">
+        <h3>Přidat zápas</h3>
+        <p class="hint">Branky se doplní až potom, tlačítkem u zápasu.</p>
+        <form id="matchForm">
+            <label class="label" for="matchOpponent">Soupeř</label>
+            <input class="field" id="matchOpponent" type="text" placeholder="např. Prušánky" required>
+
+            <label class="label" for="matchDate">Datum</label>
+            <input class="field" id="matchDate" type="date" required>
+
+            <label class="label" for="matchVenue">Kde se hrálo</label>
+            <select class="field" id="matchVenue">
+                <option value="doma">Doma</option>
+                <option value="venku">Venku</option>
+            </select>
+
+            <label class="label">Výsledek (my : soupeř)</label>
+            <div class="scorerow">
+                <input class="field" id="matchFor" type="number" min="0" step="1" placeholder="my" required>
+                <span class="scorerow__sep">:</span>
+                <input class="field" id="matchAgainst" type="number" min="0" step="1" placeholder="soupeř" required>
+            </div>
+
+            <div class="modal__err" id="matchErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přidat zápas</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================== přidání branky -->
+<div class="overlay" id="goalOverlay">
+    <div class="modal">
+        <h3>Přidat branku</h3>
+        <p class="hint">Zápas: <b id="goalMatchName"></b></p>
+        <form id="goalForm">
+            <label class="label" for="goalScorer">Střelec</label>
+            <select class="field" id="goalScorer" required></select>
+
+            <label class="label" for="goalAssist">Asistence</label>
+            <select class="field" id="goalAssist"></select>
+
+            <div class="modal__err" id="goalErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Zapsat branku</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================================================== přidání hostujícího hráče -->
+<div class="overlay" id="guestOverlay">
+    <div class="modal">
+        <h3>Přidat hostujícího hráče</h3>
+        <p class="hint">Pro hráče, kteří nejsou na soupisce dorostu – třeba starší žáci, co vypomáhají. Objeví se jen tady v kanadském bodování, do pokutníčku nezasahují.</p>
+        <form id="guestForm">
+            <label class="label" for="guestName">Jméno hráče</label>
+            <input class="field" id="guestName" type="text" placeholder="např. Jan Novák" required>
+            <div class="modal__err" id="guestErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přidat</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/points.js?v=6"></script>
+</body>
+</html>

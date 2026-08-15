@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
-<link rel="stylesheet" href="assets/css/app.css?v=5">
+<link rel="stylesheet" href="assets/css/app.css?v=6">
 </head>
 <body>
 
@@ -32,6 +32,13 @@
         </div>
     </div>
 </header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link is-active" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+    </div>
+</nav>
 
 <main class="wrap">
 
@@ -54,7 +61,7 @@
         <div class="catalog" id="catalogList"></div>
     </section>
 
-    <section class="section" id="archiveSection" hidden>
+    <section class="section admin-only" id="archiveSection" hidden>
         <div class="section-head">
             <h2>Historie zápisů</h2>
             <p>Kompletní archiv všech zapsaných pokut – kdo, komu, co a kdy zapsal. Viditelné jen po přihlášení.</p>
@@ -138,8 +145,20 @@
     </div>
 </div>
 
+<!-- =========================================================== detail hráče -->
+<div class="overlay" id="detailOverlay">
+    <div class="modal modal--wide">
+        <h3 id="detailPlayerName"></h3>
+        <p class="hint" id="detailSummary"></p>
+        <div class="dlist" id="detailList"></div>
+        <div class="modal__actions">
+            <button type="button" class="btn btn--ghost btn--block" data-close>Zavřít</button>
+        </div>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/app.js?v=5"></script>
+<script type="module" src="assets/js/app.js?v=6"></script>
 </body>
 </html>
