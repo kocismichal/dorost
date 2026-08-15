@@ -13,7 +13,7 @@ import {
     roster, onRoster, slug,
     AdminStore, isAdmin, initAuth, updateAuthUI,
     esc, czDay, closeOverlays, openOverlay, toast
-} from "./core.js?v=6";
+} from "./core.js?v=7";
 
 /* ------------------------------------------------------------- stav ----
    guests = hráči mimo soupisku dorostu (starší žáci, co vypomůžou).
@@ -115,7 +115,7 @@ function renderTable() {
                 <td class="ptable__rank">${r.rank ?? "–"}</td>
                 <td>
                     ${esc(r.name)}
-                    ${r.guest ? `<span class="tag">host</span>` : ""}
+                    ${r.guest ? `<span class="tag">st. žák</span>` : ""}
                 </td>
                 <td class="ptable__num">${r.goals}</td>
                 <td class="ptable__num">${r.assists}</td>
@@ -150,6 +150,12 @@ function renderMatches() {
         const res = m.goalsFor > m.goalsAgainst ? "win" : m.goalsFor < m.goalsAgainst ? "loss" : "draw";
         const resLabel = res === "win" ? "výhra" : res === "loss" ? "prohra" : "remíza";
 
+        /* Skóre se píše klasicky od domácích – venku tedy soupeř první.
+           Výhra/prohra i barva se ale pořád berou z našeho pohledu. */
+        const score = m.venue === "venku"
+            ? `${m.goalsAgainst}:${m.goalsFor}`
+            : `${m.goalsFor}:${m.goalsAgainst}`;
+
         const goalRows = goals.length
             ? goals.map((g, i) => `
                 <div class="grow">
@@ -172,7 +178,7 @@ function renderMatches() {
                     <div class="mcard__meta">${czDay(m.date)} · ${m.venue === "doma" ? "doma" : "venku"}</div>
                 </div>
                 <div class="mcard__score mcard__score--${res}">
-                    <b>${m.goalsFor}:${m.goalsAgainst}</b>
+                    <b>${score}</b>
                     <span>${resLabel}</span>
                 </div>
             </div>

@@ -69,9 +69,14 @@ výsledek), pak u zápasu **+ Přidat branku** (střelec a případná asistence
 Pokud je zapsaných branek míň, než kolik jich je ve skóre, karta zápasu na
 to upozorní.
 
-**Hostující hráči** (třeba starší žáci, co vypomůžou) se přidávají tlačítkem
+Do formuláře se **naše góly zadávají vždy vlevo**, ale v přehledu se skóre
+píše klasicky od domácích – u venkovního zápasu je tedy soupeř první
+(výhra 6:0 venku se ukáže jako 0:6). Výhra/prohra i barva se pořád počítají
+z našeho pohledu.
+
+**Hostující hráči** (starší žáci, co vypomůžou) se přidávají tlačítkem
 „+ Přidat hostujícího hráče“. Objeví se jen v kanadském bodování označení
-štítkem *host*, do pokutníčku nezasahují.
+štítkem *st. žák*, do pokutníčku nezasahují.
 
 Smazání zápasu smaže i jeho branky, aby body nezůstaly viset v tabulce.
 
