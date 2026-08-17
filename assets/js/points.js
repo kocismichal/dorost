@@ -13,7 +13,7 @@ import {
     roster, onRoster, slug,
     AdminStore, isAdmin, initAuth, updateAuthUI,
     esc, czDay, closeOverlays, openOverlay, toast
-} from "./core.js?v=8";
+} from "./core.js?v=9";
 
 /* ------------------------------------------------------------- stav ----
    guests = hráči mimo soupisku dorostu (starší žáci, co vypomůžou).

@@ -8,8 +8,8 @@
 import {
     col, docIn, whenReady, onDbError, setStatus,
     initAuth, isAdmin, updateAuthUI, esc, toast
-} from "./core.js?v=8";
-import { LOGA, SOUTEZE, TYMY, SEZONA } from "./plakat-data.js?v=8";
+} from "./core.js?v=9";
+import { LOGA, SOUTEZE, TYMY, SEZONA } from "./plakat-data.js?v=9";
 
 import {
     onSnapshot, setDoc, deleteDoc
@@ -240,7 +240,9 @@ function dolad() {
 function fit() {
     const box = document.querySelector("#plakatApp .preview");
     if (!box) return;
-    const s = Math.min(1, box.clientWidth / 1400);
+    const st = getComputedStyle(box);
+    const sirka = box.clientWidth - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+    const s = Math.min(1, sirka / 1400);
     document.getElementById("plakatApp").style.setProperty("--s", Math.max(0.2, s).toFixed(4));
 }
 
