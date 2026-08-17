@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Plakáty</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=8">
+<link rel="stylesheet" href="assets/css/plakat.css?v=8">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link is-active" href="plakaty.html">Plakáty</a>
+    </div>
+</nav>
+
+<main class="wrap">
+
+    <section class="section" id="plakatApp">
+        <div class="section-head">
+            <h2>Plakáty na víkend</h2>
+            <p>Plakát A3 na šířku pro každé kolo podzimu. Prohlížet a tisknout může kdokoli, upravovat jen po přihlášení. Změny se ukládají do databáze, takže je hned vidí všichni.</p>
+        </div>
+
+        <div class="pl-toolbar">
+            <button type="button" id="koloPrev" class="btn btn--ghost" title="Předchozí kolo">◀</button>
+            <select id="koloSelect" class="field pl-select" aria-label="Kolo"></select>
+            <button type="button" id="koloNext" class="btn btn--ghost" title="Další kolo">▶</button>
+            <span id="koloStav" class="pl-stav"></span>
+            <span class="pl-toolbar__spacer"></span>
+            <button type="button" id="resetBtn" class="btn btn--ghost admin-only" hidden>Vrátit podle rozlosování</button>
+            <button type="button" id="printBtn" class="btn btn--primary">Vytisknout / PDF</button>
+        </div>
+
+        <div class="preview">
+            <div class="stage"><div class="poster" id="poster"></div></div>
+        </div>
+
+        <p class="pl-hint">Tisk: v dialogu vyber <b>A3</b>, <b>na šířku</b>, okraje <b>žádné</b> a zapni <b>grafiku na pozadí</b>, jinak se nevytisknou barevné pruhy.</p>
+
+        <div class="pl-editor admin-only" id="plakatEditorBox" hidden>
+            <h3 class="pl-h pl-h--first">Úprava plakátu</h3>
+            <p class="pl-note">Změny se projeví hned v náhledu a samy se uloží.</p>
+            <div id="plakatEditor"></div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · plakáty na víkend</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/plakaty.js?v=8"></script>
+</body>
+</html>
