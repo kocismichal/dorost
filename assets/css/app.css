@@ -550,6 +550,58 @@ main { padding: 30px 0 80px; }
 }
 .mcard__remove:hover { color: var(--danger); border-color: var(--danger); background: #fdecec; }
 
+/* sestava na kartě zápasu */
+.mlineup {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line-soft);
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.mlineup__lbl {
+    display: inline-block;
+    min-width: 62px;
+    margin-right: 6px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+/* modal sestavy – řádek na hráče, přepínač – / Z / S */
+.llist { max-height: 52vh; overflow-y: auto; margin: 0 -4px 10px; padding: 0 4px; }
+.lrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line-soft);
+    font-size: 13.5px;
+}
+.lrow__name { flex: 1; font-weight: 700; color: var(--text); }
+.lrow__seg { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.lrow__seg label { position: relative; cursor: pointer; }
+.lrow__seg input { position: absolute; opacity: 0; pointer-events: none; }
+.lrow__seg span {
+    display: block;
+    min-width: 34px;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--dim);
+    background: var(--bg-soft);
+}
+.lrow__seg label + label span { border-left: 1px solid var(--line); }
+.lrow__seg input:checked + span { background: var(--accent); color: #fff; }
+.lrow__seg input[value=""]:checked + span { background: var(--line); color: var(--text-soft); }
+.lcount { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 12px; }
+
 /* výsledek v modalu na přidání zápasu */
 .scorerow { display: flex; align-items: center; gap: 10px; }
 .scorerow .field { margin-bottom: 12px; text-align: center; }
