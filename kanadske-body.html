@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
-<link rel="stylesheet" href="assets/css/app.css?v=11">
+<link rel="stylesheet" href="assets/css/app.css?v=12">
 </head>
 <body>
 
@@ -130,7 +130,7 @@
 <!-- ========================================================== přidání branky -->
 <div class="overlay" id="goalOverlay">
     <div class="modal">
-        <h3>Přidat branku</h3>
+        <h3 id="goalTitle">Přidat branku</h3>
         <p class="hint">Zápas: <b id="goalMatchName"></b></p>
         <form id="goalForm">
             <label class="label" for="goalScorer">Střelec</label>
@@ -142,7 +142,7 @@
             <div class="modal__err" id="goalErr"></div>
             <div class="modal__actions">
                 <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
-                <button type="submit" class="btn btn--primary">Zapsat branku</button>
+                <button type="submit" class="btn btn--primary" id="goalSubmit">Zapsat branku</button>
             </div>
         </form>
     </div>
@@ -153,7 +153,7 @@
     <div class="modal modal--wide">
         <h3>Sestava</h3>
         <p class="hint">Zápas: <b id="lineupMatchName"></b><br>
-            U každého hráče vyber <b>Z</b> = základ, <b>S</b> = střídal, <b>–</b> = nehrál.</p>
+            U každého hráče vyber <b>Hrál</b>, nebo <b>–</b> = nehrál.</p>
         <form id="lineupForm">
             <div class="llist" id="lineupList"></div>
             <div class="lcount" id="lineupCount"></div>
@@ -185,6 +185,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/points.js?v=11"></script>
+<script type="module" src="assets/js/points.js?v=12"></script>
 </body>
 </html>
