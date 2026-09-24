@@ -59,8 +59,14 @@ const goalsOfMatch = (matchId) => state.goals.filter(g => g.matchId === matchId)
 /* ------------------------------------------------------------ tabulka ---- */
 
 function standings() {
-    const rows = allPlayers().map(p => ({ ...p, goals: 0, assists: 0 }));
+    const rows = allPlayers().map(p => ({ ...p, games: 0, goals: 0, assists: 0 }));
     const byId = new Map(rows.map(r => [r.id, r]));
+
+    // odehrané zápasy = kolikrát je hráč v sestavě (základ i střídání)
+    state.matches.forEach(m => (m.lineup || []).forEach(l => {
+        const r = byId.get(l.id);
+        if (r) r.games++;
+    }));
 
     state.goals.forEach(g => {
         const scorer = byId.get(g.scorerId);
@@ -101,6 +107,7 @@ function renderTable() {
         <thead><tr>
             <th class="ptable__rank">#</th>
             <th>Hráč</th>
+            <th class="ptable__num" title="Odehrané zápasy (podle zapsaných sestav)">Zápasy</th>
             <th class="ptable__num">Góly</th>
             <th class="ptable__num">Asistence</th>
             <th class="ptable__num">Body</th>
@@ -114,6 +121,7 @@ function renderTable() {
                     ${esc(r.name)}
                     ${r.guest ? `<span class="tag">st. žák</span>` : ""}
                 </td>
+                <td class="ptable__num">${r.games}</td>
                 <td class="ptable__num">${r.goals}</td>
                 <td class="ptable__num">${r.assists}</td>
                 <td class="ptable__num ptable__points">${r.points}</td>
@@ -176,6 +184,14 @@ function playedCard({ fixture, match: m }) {
        zápis, co ještě nikdo nedoplnil. Radši to řekneme nahlas. */
     const missing = (m.goalsFor || 0) - goals.length;
 
+    const lineup = m.lineup || [];
+    const names = (role) => lineup.filter(l => l.role === role).map(l => esc(l.name)).join(", ");
+    const lineupRows = lineup.length ? `
+        <div class="mlineup">
+            ${names("start") ? `<div><span class="mlineup__lbl">Základ</span>${names("start")}</div>` : ""}
+            ${names("sub") ? `<div><span class="mlineup__lbl">Střídali</span>${names("sub")}</div>` : ""}
+        </div>` : "";
+
     return `
     <div class="mcard">
         <div class="mcard__head">
@@ -191,9 +207,11 @@ function playedCard({ fixture, match: m }) {
         <div class="mcard__body">
             ${goalRows}
             ${missing > 0 ? `<div class="mcard__warn">Chybí rozepsat ${missing} ${missing === 1 ? "branku" : missing < 5 ? "branky" : "branek"} ze skóre.</div>` : ""}
+            ${lineupRows}
         </div>
         <div class="mcard__admin admin-only" hidden>
             <button type="button" class="btn btn--ok btn--sm" data-addgoal="${m.id}">+ Přidat branku</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-lineup="${m.id}">Sestava</button>
             <button type="button" class="btn btn--ghost btn--sm" data-editmatch="${m.id}" data-fixture="${fixture?.id || ""}">Upravit</button>
             <button type="button" class="mcard__remove" data-delmatch="${m.id}">${fixture ? "Smazat výsledek" : "Smazat zápas"}</button>
         </div>
@@ -254,6 +272,9 @@ function renderMatches() {
     });
     host.querySelectorAll("[data-result]").forEach(btn => {
         btn.addEventListener("click", () => openMatchModal({ fixtureId: btn.dataset.result }));
+    });
+    host.querySelectorAll("[data-lineup]").forEach(btn => {
+        btn.addEventListener("click", () => openLineupModal(btn.dataset.lineup));
     });
     host.querySelectorAll("[data-editmatch]").forEach(btn => {
         btn.addEventListener("click", () => openMatchModal({ editId: btn.dataset.editmatch, fixtureId: btn.dataset.fixture }));
@@ -358,6 +379,57 @@ function openMatchModal({ editId = "", fixtureId = "" } = {}) {
     if (f && !m) setTimeout(() => document.getElementById("matchFor").focus(), 50);
 }
 
+/* Sestava: u každého hráče nehrál / základ / střídal. Hráči, co už ze
+   soupisky zmizeli, ale v sestavě jsou, zůstanou v seznamu, ať se neztratí. */
+const ROLES = [["", "–", "nehrál"], ["start", "Z", "základ"], ["sub", "S", "střídal"]];
+
+function openLineupModal(matchId) {
+    if (!isAdmin()) return;
+    const m = state.matches.find(x => x.id === matchId);
+    if (!m) return;
+
+    const overlay = document.getElementById("lineupOverlay");
+    overlay.dataset.matchId = matchId;
+    document.getElementById("lineupMatchName").textContent =
+        `${m.opponent} · ${czDay(m.date)} (${venueLabel(m.venue)})`;
+
+    const roleOf = new Map((m.lineup || []).map(l => [l.id, l.role]));
+    const players = allPlayers();
+    (m.lineup || []).forEach(l => {
+        if (!players.some(p => p.id === l.id)) players.push({ id: l.id, name: l.name, guest: false });
+    });
+
+    document.getElementById("lineupList").innerHTML = players.map(p => `
+        <div class="lrow" data-id="${p.id}" data-name="${esc(p.name)}">
+            <span class="lrow__name">${esc(p.name)}${p.guest ? `<span class="tag">st. žák</span>` : ""}</span>
+            <span class="lrow__seg">
+                ${ROLES.map(([role, short, title]) => `
+                    <label title="${title}">
+                        <input type="radio" name="l-${p.id}" value="${role}" ${(roleOf.get(p.id) || "") === role ? "checked" : ""}>
+                        <span>${short}</span>
+                    </label>`).join("")}
+            </span>
+        </div>`).join("");
+
+    document.getElementById("lineupErr").classList.remove("is-on");
+    updateLineupCount();
+    openOverlay("lineupOverlay");
+}
+
+function readLineup() {
+    return [...document.querySelectorAll("#lineupList .lrow")].map(row => ({
+        id: row.dataset.id,
+        name: row.dataset.name,
+        role: row.querySelector("input:checked")?.value || ""
+    })).filter(l => l.role);
+}
+
+function updateLineupCount() {
+    const l = readLineup();
+    document.getElementById("lineupCount").textContent =
+        `Základ ${l.filter(x => x.role === "start").length} · střídali ${l.filter(x => x.role === "sub").length}`;
+}
+
 function openGoalModal(matchId) {
     if (!isAdmin()) return;
     const m = state.matches.find(x => x.id === matchId);
@@ -449,6 +521,26 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             closeOverlays();
             toast("Branka zapsána");
+        } catch (ex) {
+            console.error(ex);
+            err.textContent = "Uložení se nepovedlo – zkontroluj připojení.";
+            err.classList.add("is-on");
+        }
+    });
+
+    /* --------------------------------------------------------- sestava -- */
+    document.getElementById("lineupList").addEventListener("change", updateLineupCount);
+
+    document.getElementById("lineupForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const err = document.getElementById("lineupErr");
+        const matchId = document.getElementById("lineupOverlay").dataset.matchId;
+        try {
+            await setDoc(docIn("matches", matchId), {
+                lineup: readLineup(), lineupBy: AdminStore.name
+            }, { merge: true });
+            closeOverlays();
+            toast("Sestava uložena");
         } catch (ex) {
             console.error(ex);
             err.textContent = "Uložení se nepovedlo – zkontroluj připojení.";

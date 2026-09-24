@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
-<link rel="stylesheet" href="assets/css/app.css?v=10">
+<link rel="stylesheet" href="assets/css/app.css?v=11">
 </head>
 <body>
 
@@ -47,7 +47,7 @@
         <div class="section-head section-head--row">
             <div>
                 <h2>Kanadské bodování</h2>
-                <p>Gól i asistence se počítají po jednom bodu. Tabulka se řadí podle bodů, při shodě rozhoduje víc gólů. Po přihlášení se dají zapisovat zápasy a branky.</p>
+                <p>Gól i asistence se počítají po jednom bodu, sloupec Zápasy je podle zapsaných sestav. Tabulka se řadí podle bodů, při shodě rozhoduje víc gólů. Po přihlášení se dají zapisovat zápasy a branky.</p>
             </div>
             <button type="button" id="addGuestBtn" class="btn btn--ghost admin-only" hidden>+ Přidat hostujícího hráče</button>
         </div>
@@ -148,6 +148,24 @@
     </div>
 </div>
 
+<!-- ================================================================ sestava -->
+<div class="overlay" id="lineupOverlay">
+    <div class="modal modal--wide">
+        <h3>Sestava</h3>
+        <p class="hint">Zápas: <b id="lineupMatchName"></b><br>
+            U každého hráče vyber <b>Z</b> = základ, <b>S</b> = střídal, <b>–</b> = nehrál.</p>
+        <form id="lineupForm">
+            <div class="llist" id="lineupList"></div>
+            <div class="lcount" id="lineupCount"></div>
+            <div class="modal__err" id="lineupErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Uložit sestavu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- ================================================== přidání hostujícího hráče -->
 <div class="overlay" id="guestOverlay">
     <div class="modal">
@@ -167,6 +185,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/points.js?v=10"></script>
+<script type="module" src="assets/js/points.js?v=11"></script>
 </body>
 </html>
