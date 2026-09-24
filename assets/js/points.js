@@ -15,6 +15,8 @@ import {
     esc, czDay, closeOverlays, openOverlay, toast
 } from "./core.js?v=9";
 
+import { ROZPIS } from "./rozpis-dorost.js?v=10";
+
 /* ------------------------------------------------------------- stav ----
    guests = hráči mimo soupisku dorostu (starší žáci, co vypomůžou).
    Žijí jen tady, do pokutníčku nezasahují.
@@ -51,11 +53,6 @@ function allPlayers() {
 }
 
 const playerName = (id) => allPlayers().find(p => p.id === id)?.name;
-
-/** Zápasy odshora od nejnovějšího – rozhoduje datum zápasu, ne kdy se zapsal. */
-function matchesByDate() {
-    return state.matches.slice().sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
-}
 
 const goalsOfMatch = (matchId) => state.goals.filter(g => g.matchId === matchId);
 
@@ -133,65 +130,118 @@ function renderTable() {
 
 /* ------------------------------------------------------------- zápasy ---- */
 
+/* Rozpis soutěže (rozpis-dorost.js) a zapsané zápasy dohromady.
+   Zápas patří k termínu z rozpisu přes fixtureId. Zápasy zapsané ručně
+   ještě před rozpisem ho nemají – ty se k termínu přiřadí podle data,
+   ať se nic nezdvojí. Co k rozpisu nepatří (přátelák), jde zvlášť. */
+function matchCards() {
+    const used = new Set();
+    const cards = ROZPIS.map(f => {
+        const m = state.matches.find(x => x.fixtureId === f.id)
+            || state.matches.find(x => !x.fixtureId && x.date === f.date && !used.has(x.id));
+        if (m) used.add(m.id);
+        return { fixture: f, match: m || null, date: m?.date || f.date };
+    });
+    state.matches
+        .filter(m => !used.has(m.id))
+        .forEach(m => cards.push({ fixture: null, match: m, date: m.date || "" }));
+    return cards;
+}
+
+const todayIso = () => new Date().toLocaleDateString("sv-SE");   // YYYY-MM-DD v místním čase
+const venueLabel = (v) => v === "doma" ? "doma" : "venku";
+
+function playedCard({ fixture, match: m }) {
+    const goals = goalsOfMatch(m.id);
+    const res = m.goalsFor > m.goalsAgainst ? "win" : m.goalsFor < m.goalsAgainst ? "loss" : "draw";
+    const resLabel = res === "win" ? "výhra" : res === "loss" ? "prohra" : "remíza";
+
+    /* Skóre se píše klasicky od domácích – venku tedy soupeř první.
+       Výhra/prohra i barva se ale pořád berou z našeho pohledu. */
+    const score = m.venue === "venku"
+        ? `${m.goalsAgainst}:${m.goalsFor}`
+        : `${m.goalsFor}:${m.goalsAgainst}`;
+
+    const goalRows = goals.length
+        ? goals.map((g, i) => `
+            <div class="grow">
+                <span class="grow__no">${i + 1}.</span>
+                <span class="grow__scorer">${esc(g.scorerName)}</span>
+                ${g.assistName ? `<span class="grow__assist">asistence ${esc(g.assistName)}</span>` : ""}
+                <button type="button" class="archive__del admin-only" hidden data-goal="${g.id}" title="Smazat branku">✕</button>
+            </div>`).join("")
+        : `<div class="pcard__empty">Branky zatím nejsou rozepsané.</div>`;
+
+    /* Zapsané branky nemusí sedět se skóre – vlastní gól soupeře nebo
+       zápis, co ještě nikdo nedoplnil. Radši to řekneme nahlas. */
+    const missing = (m.goalsFor || 0) - goals.length;
+
+    return `
+    <div class="mcard">
+        <div class="mcard__head">
+            <div>
+                <div class="mcard__opponent">${esc(m.opponent)}</div>
+                <div class="mcard__meta">${czDay(m.date)} · ${venueLabel(m.venue)}${fixture ? "" : ` <span class="tag">mimo soutěž</span>`}</div>
+            </div>
+            <div class="mcard__score mcard__score--${res}">
+                <b>${score}</b>
+                <span>${resLabel}</span>
+            </div>
+        </div>
+        <div class="mcard__body">
+            ${goalRows}
+            ${missing > 0 ? `<div class="mcard__warn">Chybí rozepsat ${missing} ${missing === 1 ? "branku" : missing < 5 ? "branky" : "branek"} ze skóre.</div>` : ""}
+        </div>
+        <div class="mcard__admin admin-only" hidden>
+            <button type="button" class="btn btn--ok btn--sm" data-addgoal="${m.id}">+ Přidat branku</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-editmatch="${m.id}" data-fixture="${fixture?.id || ""}">Upravit</button>
+            <button type="button" class="mcard__remove" data-delmatch="${m.id}">${fixture ? "Smazat výsledek" : "Smazat zápas"}</button>
+        </div>
+    </div>`;
+}
+
+/** Termín z rozpisu, ke kterému ještě není zapsaný výsledek. */
+function fixtureCard({ fixture: f }, overdue) {
+    return `
+    <div class="mcard mcard--todo">
+        <div class="mcard__head">
+            <div>
+                <div class="mcard__opponent">${esc(f.opponent)}</div>
+                <div class="mcard__meta">${czDay(f.date)} · ${f.time} · ${venueLabel(f.venue)}</div>
+            </div>
+            <div class="mcard__score mcard__score--todo">
+                <b>–:–</b>
+                <span>${overdue ? "chybí výsledek" : "nehráno"}</span>
+            </div>
+        </div>
+        <div class="mcard__body">
+            <div class="pcard__empty">${overdue
+                ? "Výsledek zatím není zapsaný."
+                : "Zápas se teprve hraje – výsledek a branky se zapíšou po něm."}</div>
+        </div>
+        <div class="mcard__admin admin-only" hidden>
+            <button type="button" class="btn btn--primary btn--sm" data-result="${f.id}">Zapsat výsledek</button>
+        </div>
+    </div>`;
+}
+
 function renderMatches() {
     const host = document.getElementById("matchList");
-    const list = matchesByDate();
+    const today = todayIso();
+    const cards = matchCards();
 
-    if (!list.length) {
-        host.innerHTML = `<div class="mcard mcard--empty">
-            Zatím není zapsaný žádný zápas. Po přihlášení ho přidáš tlačítkem <b>+ Přidat zápas</b>.
-        </div>`;
-        updateAuthUI();
-        return;
-    }
+    /* Nahoře odehrané (a ty, co už se hrály, ale chybí jim výsledek) od
+       nejnovějšího, pod nimi zbytek rozpisu v pořadí, jak se bude hrát. */
+    const played = cards.filter(c => c.match || c.date <= today)
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    const upcoming = cards.filter(c => !c.match && c.date > today)
+        .sort((a, b) => a.date.localeCompare(b.date));
 
-    host.innerHTML = list.map(m => {
-        const goals = goalsOfMatch(m.id);
-        const res = m.goalsFor > m.goalsAgainst ? "win" : m.goalsFor < m.goalsAgainst ? "loss" : "draw";
-        const resLabel = res === "win" ? "výhra" : res === "loss" ? "prohra" : "remíza";
+    const card = (c) => c.match ? playedCard(c) : fixtureCard(c, c.date <= today);
 
-        /* Skóre se píše klasicky od domácích – venku tedy soupeř první.
-           Výhra/prohra i barva se ale pořád berou z našeho pohledu. */
-        const score = m.venue === "venku"
-            ? `${m.goalsAgainst}:${m.goalsFor}`
-            : `${m.goalsFor}:${m.goalsAgainst}`;
-
-        const goalRows = goals.length
-            ? goals.map((g, i) => `
-                <div class="grow">
-                    <span class="grow__no">${i + 1}.</span>
-                    <span class="grow__scorer">${esc(g.scorerName)}</span>
-                    ${g.assistName ? `<span class="grow__assist">asistence ${esc(g.assistName)}</span>` : ""}
-                    <button type="button" class="archive__del admin-only" hidden data-goal="${g.id}" title="Smazat branku">✕</button>
-                </div>`).join("")
-            : `<div class="pcard__empty">Branky zatím nejsou rozepsané.</div>`;
-
-        /* Zapsané branky nemusí sedět se skóre – vlastní gól soupeře nebo
-           zápis, co ještě nikdo nedoplnil. Radši to řekneme nahlas. */
-        const missing = (m.goalsFor || 0) - goals.length;
-
-        return `
-        <div class="mcard">
-            <div class="mcard__head">
-                <div>
-                    <div class="mcard__opponent">${esc(m.opponent)}</div>
-                    <div class="mcard__meta">${czDay(m.date)} · ${m.venue === "doma" ? "doma" : "venku"}</div>
-                </div>
-                <div class="mcard__score mcard__score--${res}">
-                    <b>${score}</b>
-                    <span>${resLabel}</span>
-                </div>
-            </div>
-            <div class="mcard__body">
-                ${goalRows}
-                ${missing > 0 ? `<div class="mcard__warn">Chybí rozepsat ${missing} ${missing === 1 ? "branku" : missing < 5 ? "branky" : "branek"} ze skóre.</div>` : ""}
-            </div>
-            <div class="mcard__admin admin-only" hidden>
-                <button type="button" class="btn btn--ok btn--sm" data-addgoal="${m.id}">+ Přidat branku</button>
-                <button type="button" class="mcard__remove" data-delmatch="${m.id}">Smazat zápas</button>
-            </div>
-        </div>`;
-    }).join("");
+    host.innerHTML =
+        (played.length ? played.map(card).join("") : `<div class="mcard mcard--empty">Zatím se nehrál žádný zápas.</div>`)
+        + (upcoming.length ? `<h3 class="matchlist__sub">Zbývá odehrát</h3>` + upcoming.map(card).join("") : "");
 
     host.querySelectorAll("[data-addgoal]").forEach(btn => {
         btn.addEventListener("click", () => openGoalModal(btn.dataset.addgoal));
@@ -201,6 +251,12 @@ function renderMatches() {
     });
     host.querySelectorAll("[data-delmatch]").forEach(btn => {
         btn.addEventListener("click", () => onDeleteMatch(btn.dataset.delmatch));
+    });
+    host.querySelectorAll("[data-result]").forEach(btn => {
+        btn.addEventListener("click", () => openMatchModal({ fixtureId: btn.dataset.result }));
+    });
+    host.querySelectorAll("[data-editmatch]").forEach(btn => {
+        btn.addEventListener("click", () => openMatchModal({ editId: btn.dataset.editmatch, fixtureId: btn.dataset.fixture }));
     });
     updateAuthUI();
 }
@@ -273,6 +329,35 @@ function playerOptions(placeholder) {
         + (guests ? `<optgroup label="Hostující hráči">${guests}</optgroup>` : "");
 }
 
+/* Jeden modal na tři věci: výsledek k termínu z rozpisu (předvyplněný),
+   úprava už zapsaného výsledku a ruční přidání zápasu mimo rozpis. */
+function openMatchModal({ editId = "", fixtureId = "" } = {}) {
+    if (!isAdmin()) return;
+    const overlay = document.getElementById("matchOverlay");
+    const m = editId ? state.matches.find(x => x.id === editId) : null;
+    const f = fixtureId ? ROZPIS.find(x => x.id === fixtureId) : null;
+    if (editId && !m) return;
+
+    document.getElementById("matchForm").reset();
+    overlay.dataset.editId = editId;
+    overlay.dataset.fixtureId = f ? f.id : "";
+
+    const src = m || f;
+    document.getElementById("matchOpponent").value = src?.opponent || "";
+    // výchozí datum = dnešek, ať se nemusí klikat v kalendáři
+    document.getElementById("matchDate").value = src?.date || new Date().toISOString().slice(0, 10);
+    document.getElementById("matchVenue").value = src?.venue || "doma";
+    document.getElementById("matchFor").value = m ? m.goalsFor : "";
+    document.getElementById("matchAgainst").value = m ? m.goalsAgainst : "";
+
+    document.getElementById("matchTitle").textContent =
+        m ? "Upravit výsledek" : f ? "Zapsat výsledek" : "Přidat zápas mimo rozpis";
+    document.getElementById("matchSubmit").textContent = m ? "Uložit" : f ? "Zapsat výsledek" : "Přidat zápas";
+    document.getElementById("matchErr").classList.remove("is-on");
+    openOverlay("matchOverlay");
+    if (f && !m) setTimeout(() => document.getElementById("matchFor").focus(), 50);
+}
+
 function openGoalModal(matchId) {
     if (!isAdmin()) return;
     const m = state.matches.find(x => x.id === matchId);
@@ -295,13 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initAuth(renderAll);
 
     /* ----------------------------------------------------------- zápas -- */
-    document.getElementById("addMatchBtn").addEventListener("click", () => {
-        document.getElementById("matchForm").reset();
-        // výchozí datum = dnešek, ať se nemusí klikat v kalendáři
-        document.getElementById("matchDate").value = new Date().toISOString().slice(0, 10);
-        document.getElementById("matchErr").classList.remove("is-on");
-        openOverlay("matchOverlay");
-    });
+    document.getElementById("addMatchBtn").addEventListener("click", () => openMatchModal());
 
     document.getElementById("matchForm").addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -318,13 +397,28 @@ document.addEventListener("DOMContentLoaded", () => {
             err.textContent = "Zadej výsledek – obě čísla."; err.classList.add("is-on"); return;
         }
 
+        const overlay = document.getElementById("matchOverlay");
+        const { editId, fixtureId } = overlay.dataset;
+        const data = { opponent, date, venue, goalsFor, goalsAgainst };
+        if (fixtureId) data.fixtureId = fixtureId;
+
         try {
-            await addDoc(col("matches"), {
-                opponent, date, venue, goalsFor, goalsAgainst,
-                addedBy: AdminStore.name, createdAt: serverTimestamp()
-            });
+            if (editId) {
+                await setDoc(docIn("matches", editId), { ...data, editedBy: AdminStore.name }, { merge: true });
+                toast("Výsledek upraven");
+            } else if (fixtureId) {
+                // id termínu jako id dokumentu – dvojí zápis téhož zápasu se tak nezdvojí
+                await setDoc(docIn("matches", fixtureId), {
+                    ...data, addedBy: AdminStore.name, createdAt: serverTimestamp()
+                });
+                toast(`Výsledek s ${opponent} zapsán`);
+            } else {
+                await addDoc(col("matches"), {
+                    ...data, addedBy: AdminStore.name, createdAt: serverTimestamp()
+                });
+                toast(`Zápas s ${opponent} přidán`);
+            }
             closeOverlays();
-            toast(`Zápas s ${opponent} přidán`);
         } catch (ex) {
             console.error(ex);
             err.textContent = "Uložení se nepovedlo – zkontroluj připojení.";
