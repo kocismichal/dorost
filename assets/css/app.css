@@ -524,7 +524,18 @@ main { padding: 30px 0 80px; }
 .grow__no { color: var(--dim); font-weight: 800; font-size: 11.5px; min-width: 16px; }
 .grow__scorer { font-weight: 800; color: var(--text); }
 .grow__assist { font-size: 12px; color: var(--muted); }
-.grow .archive__del { margin-left: auto; font-size: 13px; }
+.grow__acts { margin-left: auto; display: inline-flex; align-items: baseline; gap: 8px; }
+.grow .archive__del { font-size: 13px; }
+.grow__edit {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--accent);
+    cursor: pointer;
+}
+.grow__edit:hover { text-decoration: underline; }
 .mcard__warn { margin-top: 6px; font-size: 11.5px; font-style: italic; color: var(--warn); }
 
 .mcard__admin {
@@ -573,7 +584,7 @@ main { padding: 30px 0 80px; }
     color: var(--muted);
 }
 
-/* modal sestavy – řádek na hráče, přepínač – / Z / S */
+/* modal sestavy – řádek na hráče, přepínač – / Hrál */
 .llist { max-height: 52vh; overflow-y: auto; margin: 0 -4px 10px; padding: 0 4px; }
 .lrow {
     display: flex;
@@ -590,7 +601,7 @@ main { padding: 30px 0 80px; }
 .lrow__seg span {
     display: block;
     min-width: 34px;
-    padding: 6px 0;
+    padding: 6px 10px;
     text-align: center;
     font-size: 12.5px;
     font-weight: 800;

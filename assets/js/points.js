@@ -176,7 +176,10 @@ function playedCard({ fixture, match: m }) {
                 <span class="grow__no">${i + 1}.</span>
                 <span class="grow__scorer">${esc(g.scorerName)}</span>
                 ${g.assistName ? `<span class="grow__assist">asistence ${esc(g.assistName)}</span>` : ""}
-                <button type="button" class="archive__del admin-only" hidden data-goal="${g.id}" title="Smazat branku">✕</button>
+                <span class="grow__acts admin-only" hidden>
+                    <button type="button" class="grow__edit" data-assist="${g.id}">${g.assistId ? "změnit asistenci" : "+ asistence"}</button>
+                    <button type="button" class="archive__del" data-goal="${g.id}" title="Smazat branku">✕</button>
+                </span>
             </div>`).join("")
         : `<div class="pcard__empty">Branky zatím nejsou rozepsané.</div>`;
 
@@ -184,12 +187,12 @@ function playedCard({ fixture, match: m }) {
        zápis, co ještě nikdo nedoplnil. Radši to řekneme nahlas. */
     const missing = (m.goalsFor || 0) - goals.length;
 
+    /* Základ a střídání se nerozlišují – střídá se často a hrají všichni.
+       Starší zápisy mají role start/sub, počítají se prostě jako „hrál“. */
     const lineup = m.lineup || [];
-    const names = (role) => lineup.filter(l => l.role === role).map(l => esc(l.name)).join(", ");
     const lineupRows = lineup.length ? `
         <div class="mlineup">
-            ${names("start") ? `<div><span class="mlineup__lbl">Základ</span>${names("start")}</div>` : ""}
-            ${names("sub") ? `<div><span class="mlineup__lbl">Střídali</span>${names("sub")}</div>` : ""}
+            <div><span class="mlineup__lbl">Hráli (${lineup.length})</span>${lineup.map(l => esc(l.name)).join(", ")}</div>
         </div>` : "";
 
     return `
@@ -263,6 +266,10 @@ function renderMatches() {
 
     host.querySelectorAll("[data-addgoal]").forEach(btn => {
         btn.addEventListener("click", () => openGoalModal(btn.dataset.addgoal));
+    });
+    host.querySelectorAll("[data-assist]").forEach(btn => {
+        const g = state.goals.find(x => x.id === btn.dataset.assist);
+        if (g) btn.addEventListener("click", () => openGoalModal(g.matchId, g.id));
     });
     host.querySelectorAll("[data-goal]").forEach(btn => {
         btn.addEventListener("click", () => onDeleteGoal(btn.dataset.goal));
@@ -379,9 +386,9 @@ function openMatchModal({ editId = "", fixtureId = "" } = {}) {
     if (f && !m) setTimeout(() => document.getElementById("matchFor").focus(), 50);
 }
 
-/* Sestava: u každého hráče nehrál / základ / střídal. Hráči, co už ze
-   soupisky zmizeli, ale v sestavě jsou, zůstanou v seznamu, ať se neztratí. */
-const ROLES = [["", "–", "nehrál"], ["start", "Z", "základ"], ["sub", "S", "střídal"]];
+/* Sestava: u každého hráče jen hrál / nehrál. Hráči, co už ze soupisky
+   zmizeli, ale v sestavě jsou, zůstanou v seznamu, ať se neztratí. */
+const ROLES = [["", "–", "nehrál"], ["played", "Hrál", "hrál"]];
 
 function openLineupModal(matchId) {
     if (!isAdmin()) return;
@@ -393,7 +400,8 @@ function openLineupModal(matchId) {
     document.getElementById("lineupMatchName").textContent =
         `${m.opponent} · ${czDay(m.date)} (${venueLabel(m.venue)})`;
 
-    const roleOf = new Map((m.lineup || []).map(l => [l.id, l.role]));
+    // kdo je v sestavě, hrál – ať má u sebe starou roli start/sub, nebo novou
+    const roleOf = new Map((m.lineup || []).map(l => [l.id, "played"]));
     const players = allPlayers();
     (m.lineup || []).forEach(l => {
         if (!players.some(p => p.id === l.id)) players.push({ id: l.id, name: l.name, guest: false });
@@ -426,23 +434,42 @@ function readLineup() {
 
 function updateLineupCount() {
     const l = readLineup();
-    document.getElementById("lineupCount").textContent =
-        `Základ ${l.filter(x => x.role === "start").length} · střídali ${l.filter(x => x.role === "sub").length}`;
+    document.getElementById("lineupCount").textContent = `Hrálo ${l.length}`;
 }
 
-function openGoalModal(matchId) {
+/* Jeden modal na novou branku i na doplnění asistence k už zapsané –
+   u té je střelec daný a mění se jen asistence. */
+function openGoalModal(matchId, editGoalId = "") {
     if (!isAdmin()) return;
     const m = state.matches.find(x => x.id === matchId);
     if (!m) return;
+    const g = editGoalId ? state.goals.find(x => x.id === editGoalId) : null;
+    if (editGoalId && !g) return;
 
     const overlay = document.getElementById("goalOverlay");
     overlay.dataset.matchId = matchId;
+    overlay.dataset.goalId = g ? g.id : "";
     document.getElementById("goalMatchName").textContent =
         `${m.opponent} · ${czDay(m.date)} (${m.venue === "doma" ? "doma" : "venku"})`;
-    document.getElementById("goalScorer").innerHTML = playerOptions("— vyber střelce —");
+
+    const scorer = document.getElementById("goalScorer");
+    scorer.innerHTML = playerOptions("— vyber střelce —");
     document.getElementById("goalAssist").innerHTML = playerOptions("— bez asistence —");
+    if (g) {
+        // střelec, co už na soupisce není, se do výběru doplní, ať je vidět
+        if (!scorer.querySelector(`option[value="${g.scorerId}"]`)) {
+            scorer.insertAdjacentHTML("beforeend", `<option value="${esc(g.scorerId)}">${esc(g.scorerName)}</option>`);
+        }
+        scorer.value = g.scorerId;
+        document.getElementById("goalAssist").value = g.assistId || "";
+    }
+    scorer.disabled = !!g;
+
+    document.getElementById("goalTitle").textContent = g ? "Asistence k brance" : "Přidat branku";
+    document.getElementById("goalSubmit").textContent = g ? "Uložit asistenci" : "Zapsat branku";
     document.getElementById("goalErr").classList.remove("is-on");
     openOverlay("goalOverlay");
+    if (g) setTimeout(() => document.getElementById("goalAssist").focus(), 50);
 }
 
 /* --------------------------------------------------------------- init ---- */
@@ -512,6 +539,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
+            if (overlay.dataset.goalId) {
+                await setDoc(docIn("goals", overlay.dataset.goalId), {
+                    assistId: assistId || null,
+                    assistName: assistId ? playerName(assistId) : null,
+                    editedBy: AdminStore.name
+                }, { merge: true });
+                closeOverlays();
+                toast(assistId ? "Asistence uložena" : "Asistence odebrána");
+                return;
+            }
             await addDoc(col("goals"), {
                 matchId: overlay.dataset.matchId,
                 scorerId, scorerName: playerName(scorerId),
