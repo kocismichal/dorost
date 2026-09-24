@@ -24,6 +24,7 @@ assets/css/plakat.css    styly plakátu (zapouzdřené pod #plakatApp)
 assets/js/core.js        sdílené jádro – Firebase, přihlášení, soupiska
 assets/js/app.js         logika pokut
 assets/js/points.js      logika kanadských bodů
+assets/js/rozpis-dorost.js rozpis zápasů dorostu (podzim 2026) pro kanadské body
 assets/js/plakaty.js     logika plakátů
 assets/js/plakat-data.js znaky, soutěže a rozlosování podzimu 2026
 assets/plakat/znaky/     znaky klubů (58 souborů)

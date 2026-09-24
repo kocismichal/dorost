@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
-<link rel="stylesheet" href="assets/css/app.css?v=9">
+<link rel="stylesheet" href="assets/css/app.css?v=10">
 </head>
 <body>
 
@@ -62,9 +62,9 @@
         <div class="section-head section-head--row">
             <div>
                 <h2>Zápasy</h2>
-                <p>U každého zápasu je rozepsané, kdo dal gól a kdo na něj přihrál. Nejnovější zápas je nahoře.</p>
+                <p>Celý rozpis podzimu. U odehraných zápasů je rozepsané, kdo dal gól a kdo na něj přihrál – nejnovější nahoře, pod nimi zápasy, co se teprve hrají. Po přihlášení se u každého zápasu zapíše výsledek a branky.</p>
             </div>
-            <button type="button" id="addMatchBtn" class="btn btn--primary admin-only" hidden>+ Přidat zápas</button>
+            <button type="button" id="addMatchBtn" class="btn btn--primary admin-only" hidden>+ Zápas mimo rozpis</button>
         </div>
         <div class="matchlist" id="matchList"></div>
     </section>
@@ -95,7 +95,7 @@
 <!-- ========================================================= přidání zápasu -->
 <div class="overlay" id="matchOverlay">
     <div class="modal">
-        <h3>Přidat zápas</h3>
+        <h3 id="matchTitle">Přidat zápas</h3>
         <p class="hint">Branky se doplní až potom, tlačítkem u zápasu.</p>
         <form id="matchForm">
             <label class="label" for="matchOpponent">Soupeř</label>
@@ -121,7 +121,7 @@
             <div class="modal__err" id="matchErr"></div>
             <div class="modal__actions">
                 <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
-                <button type="submit" class="btn btn--primary">Přidat zápas</button>
+                <button type="submit" class="btn btn--primary" id="matchSubmit">Přidat zápas</button>
             </div>
         </form>
     </div>
@@ -167,6 +167,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/points.js?v=9"></script>
+<script type="module" src="assets/js/points.js?v=10"></script>
 </body>
 </html>
