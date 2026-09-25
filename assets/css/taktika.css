@@ -286,3 +286,70 @@ body.tk-lock { overflow: hidden; }
         box-shadow: -10px 0 30px rgba(0,0,0,.25);
     }
 }
+
+/* ------------------------------------------------ tabule ve stromu ---- */
+
+.tk-brow-wrap { display: flex; align-items: center; gap: 2px; }
+.tk-brow-wrap .tk-brow { flex: 1; min-width: 0; }
+.tk-brow__del { flex: none; opacity: .55; }
+.tk-brow-wrap:hover .tk-brow__del { opacity: 1; }
+
+/* ------------------------------------------------ velikost, hledání ---- */
+
+.tk-scale-lbl { display: flex; justify-content: space-between; margin-top: 2px; }
+.tk-scale-lbl span { color: var(--text); letter-spacing: 0; text-transform: none; }
+.tk-range { width: 100%; accent-color: var(--accent); margin: 0 0 14px; }
+.tk-search { min-height: 38px; padding: 7px 11px; font-size: 13px; margin-bottom: 10px; }
+.tk-box .tk-row .btn { margin-bottom: 6px; }
+.tk-box > select.field { min-height: 38px; padding: 7px 10px; font-size: 13px; margin-bottom: 8px; }
+.tk-pgroup {
+    font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); margin: 8px 2px 2px;
+}
+.tk-pgroup:first-child { margin-top: 0; }
+
+/* --------------------------------------------------- poznámky pod tabulí ---- */
+
+.tk-notesbox {
+    margin-top: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px 14px;
+    box-shadow: var(--shadow);
+}
+.tk-notesbox .tk-box__title { display: block; margin-bottom: 8px; }
+.tk-notesbox .tk-notes { min-height: 90px; margin: 0; }
+.tk.is-full .tk-notesbox { margin-top: 8px; padding: 8px 10px 10px; }
+.tk.is-full .tk-notesbox .tk-box__title { margin-bottom: 4px; }
+.tk.is-full .tk-notesbox .tk-notes { min-height: 44px; height: 56px; }
+
+/* ------------------------------------------------------ modal sestavy ---- */
+
+.tk-lu-modal { max-width: 720px; max-height: calc(100vh - 40px); overflow-y: auto; }
+.tk-lu-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.tk-lu-src { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.tk-lu-status { font-size: 12.5px; color: var(--muted); }
+.tk-lu-preview { display: block; max-width: 100%; max-height: 220px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; }
+.tk-lu-text { margin-bottom: 12px; font-size: 13px; }
+.tk-lu-text summary { cursor: pointer; font-weight: 800; color: var(--text-soft); margin-bottom: 8px; }
+.tk-lu-text .field { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; }
+.tk-lu-rows { margin-bottom: 8px; }
+.tk-lu-head, .tk-lu-row {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) 128px 30px;
+    gap: 6px; align-items: start;
+}
+.tk-lu-head { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.tk-lu-row { padding: 4px; border: 1px solid transparent; border-radius: 9px; margin-bottom: 2px; }
+.tk-lu-row.is-free { border-color: #f3c969; background: #fffbeb; }
+.tk-lu-row .field { min-height: 36px; padding: 6px 9px; font-size: 13px; margin: 0; }
+.tk-lu-row input[data-lu-num] { text-align: center; font-weight: 900; }
+.tk-lu-who { display: flex; flex-direction: column; gap: 4px; }
+.tk-lu-modal .modal__actions { margin-top: 12px; }
+@media (max-width: 560px) {
+    .tk-lu-grid { grid-template-columns: 1fr; }
+    .tk-lu-head { display: none; }
+    .tk-lu-head, .tk-lu-row { grid-template-columns: 48px minmax(0, 1fr) 30px; }
+    .tk-lu-row select[data-lu-role] { grid-column: 2; }
+}

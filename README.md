@@ -141,8 +141,22 @@ Ukládá se samo, asi vteřinu po poslední změně.
   odehraných zápasů z kanadských bodů. Klik na jméno ho doplní do volného
   kolečka (brankář první). Čísla dresů se píšou do políčka vlevo a platí pro
   všechny tabule (dokument `meta/jerseys`). Bez čísla má kolečko iniciály.
-- **Pokyny** – volný text ke každé tabuli.
-- **Stáhnout obrázek** – PNG tabule, třeba do skupiny týmu.
+- **Poznámky** – volný text ke každé tabuli, pole je pod hřištěm.
+- **Stáhnout obrázek** – PNG tabule, třeba do skupiny týmu. Obrázek, duplikování
+  a smazání tabule jsou u názvu, smazat jde i křížkem ve stromu vlevo.
+- **Velikost hráčů** – posuvník v panelu Hřiště, ukládá se k tabuli (`tokenScale`).
+- **Výběr více prvků** – Ctrl+klik přidá do výběru, tažení po prázdném hřišti
+  vybere obdélníkem. Vybrané se posouvají spolu (i v krocích animace),
+  šipky na klávesnici je posunou o 0,5 m (se Shiftem o 2 m).
+- **Sestava na zápas** – kolekce `lineups` (název, datum, řádky s číslem,
+  hráčem a rolí brankář / základ / náhradník). Načte se z obrázku zápisu
+  (čtení textu tesseract.js přímo v prohlížeči, nic se nikam neposílá) nebo
+  z textu, spáruje se se soupiskou a jde opravit ručně. Tabule si sestavu
+  vybere (`lineupId`) – seznam hráčů pak nabízí jen ji a kolečka mají čísla
+  ze sestavy. „Postavit základ“ dá brankáře do branky a ostatní do
+  rozestavení. FAČR ID spárovaných hráčů se ukládá do `meta/facr`, takže
+  příště se spárují i hráči se stejným jménem.
+- **Hledání hráčů** – pole nad seznamem, hledá podle jména i čísla.
 - **Celá obrazovka** – tabule přes celé okno (a fullscreen prohlížeče, kde to
   jde). Panel vpravo jde schovat, Esc režim zavře.
 - **Animace po krocích** – „+ Krok“ zkopíruje postavení (bez šipek), hráče

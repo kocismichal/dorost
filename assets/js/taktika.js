@@ -17,8 +17,10 @@ import {
     db, col, docIn, whenReady, onDbError, setStatus,
     roster, onRoster,
     AdminStore, isAdmin, initAuth,
-    esc, slug, openOverlay, closeOverlays, toast
+    esc, slug, czDay, openOverlay, closeOverlays, toast
 } from "./core.js?v=9";
+
+import { ROZPIS } from "./rozpis-dorost.js?v=10";
 
 /* ------------------------------------------------------------ nastavení ---- */
 
@@ -63,7 +65,7 @@ const PRESETS = {
 };
 
 const TOOL_HINTS = {
-    move: "Klikni na prvek a táhni ho. Dvojklik na hráče bez jména nebo na text ho přepíše. Delete smaže vybrané.",
+    move: "Klikni na prvek a táhni ho. Ctrl+klik přidá další do výběru, tažením po prázdném hřišti vybereš víc prvků najednou – pak se posouvají spolu. Šipky na klávesnici posouvají vybrané, Delete je smaže. Dvojklik na hráče bez jména nebo na text ho přepíše.",
     home: "Klikni do hřiště – přidá se náš hráč. Jméno mu přiřadíš kliknutím na hráče v seznamu vpravo.",
     away: "Klikni do hřiště – přidá se hráč soupeře.",
     ball: "Klikni do hřiště – přidá se míč.",
@@ -89,7 +91,14 @@ const state = {
     lastDown: { id: null, t: 0 },
     frame: 0,             // otevřený krok animace
     playing: false,
-    speed: 1
+    speed: 1,
+    extra: new Set(),     // další vybrané prvky (Ctrl+klik, výběr tažením)
+    marquee: null,        // obdélník výběru při tažení po prázdném hřišti
+    q: "",                // hledání v seznamu hráčů
+    lineups: [],          // sestavy na zápas
+    facr: {},             // FAČR ID → id hráče ze soupisky (učí se z uložených sestav)
+    luRows: [],           // řádky sestavy v otevřeném modalu
+    luId: null
 };
 
 let saveTimer = null;
@@ -107,6 +116,12 @@ const $ = (id) => document.getElementById(id);
 const uid = () => Math.random().toString(36).slice(2, 10);
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const canEdit = () => isAdmin() && !!state.board;
+
+/* výběr: selId = hlavní prvek (má úchyty), extra = další přidané Ctrl+klikem */
+const clearSel = () => { state.selId = null; state.extra.clear(); };
+const selectOnly = (id) => { state.selId = id; state.extra.clear(); };
+const selIds = () => [state.selId, ...state.extra].filter(Boolean);
+const isSel = (id) => !!id && (id === state.selId || state.extra.has(id));
 
 /* -------------------------------------------------------------- databáze ---- */
 
@@ -141,23 +156,38 @@ whenReady(() => {
 
     onSnapshot(col("matches"), (snap) => {
         state.matches = snap.docs.map(d => d.data());
+        playersCache = null;
         renderPlayers();
     }, onDbError);
 
     onSnapshot(query(col("guests"), orderBy("order")), (snap) => {
         state.guests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        playersCache = null;
         renderPlayers();
         renderBoard();
     }, onDbError);
 
     onSnapshot(docIn("meta", "jerseys"), (snap) => {
         state.jerseys = (snap.exists() && snap.data().numbers) || {};
+        playersCache = null;
         renderPlayers();
         renderBoard();
     }, onDbError);
+
+    onSnapshot(col("lineups"), (snap) => {
+        state.lineups = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+            .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+        renderLineupSel();
+        renderPlayers();
+        renderBoard();
+    }, onDbError);
+
+    onSnapshot(docIn("meta", "facr"), (snap) => {
+        state.facr = (snap.exists() && snap.data().map) || {};
+    }, onDbError);
 });
 
-onRoster(() => { renderPlayers(); renderBoard(); });
+onRoster(() => { playersCache = null; renderPlayers(); renderBoard(); });
 
 /* Tabule má kroky animace (frames), každý s vlastními prvky. Starší tabule
    mají jen items – to je pak jediný krok. items ukazuje na otevřený krok. */
@@ -173,6 +203,8 @@ function normalize(b) {
     b.awayColor = b.awayColor || AWAY_COLORS[0];
     b.notes = b.notes || "";
     b.folderId = b.folderId || "";
+    b.tokenScale = Number(b.tokenScale) || 1;
+    b.lineupId = b.lineupId || "";
     return b;
 }
 
@@ -194,6 +226,7 @@ async function flushSave() {
             folderId: b.folderId,
             bg: b.bg, view: b.view, names: b.names, awayColor: b.awayColor,
             notes: b.notes,
+            tokenScale: b.tokenScale, lineupId: b.lineupId,
             items: clone(b.frames[0].items),
             frames: clone(b.frames),
             updatedAt: serverTimestamp(),
@@ -212,17 +245,40 @@ window.addEventListener("pagehide", () => { if (saveTimer) flushSave(); });
 
 /* ------------------------------------------------------------- hráči ---- */
 
+let playersCache = null;
+
+/** Soupiska + hostující hráči s počtem zápasů (drží se v paměti, přepočítá se po změně dat). */
 function allPlayers() {
+    if (playersCache) return playersCache;
     const games = new Map();
     state.matches.forEach(m => (m.lineup || []).forEach(l => games.set(l.id, (games.get(l.id) || 0) + 1)));
-    return [
+    const list = [
         ...roster().map(p => ({ id: p.id, name: p.name, guest: false })),
         ...state.guests.map(g => ({ id: g.id, name: g.name, guest: true }))
     ].map(p => ({ ...p, games: games.get(p.id) || 0, num: state.jerseys[p.id] || "" }))
      .sort((a, b) => b.games - a.games || a.name.localeCompare(b.name, "cs"));
+    playersCache = list;
+    return list;
 }
 
-const playerOf = (id) => allPlayers().find(p => p.id === id);
+/** Hráč podle id – ze soupisky, nebo hráč mimo soupisku uložený v některé sestavě. */
+function playerOf(id) {
+    const p = allPlayers().find(x => x.id === id);
+    if (p) return p;
+    for (const l of state.lineups) {
+        const r = (l.rows || []).find(x => x.key === id);
+        if (r) return { id, name: r.name, guest: false, games: 0, num: "" };
+    }
+    return null;
+}
+
+const lineupOf = (b = state.board) => (b && b.lineupId) ? state.lineups.find(l => l.id === b.lineupId) || null : null;
+
+/** Číslo do kolečka: ze sestavy tabule, jinak číslo dresu ze seznamu. */
+function numberOf(id) {
+    const r = (lineupOf()?.rows || []).find(x => x.key === id);
+    return r ? (r.num || "") : (state.jerseys[id] || "");
+}
 
 function initials(name) {
     return String(name || "").split(/\s+/).filter(Boolean).map(w => w[0]).join("").slice(0, 2).toUpperCase();
@@ -234,33 +290,58 @@ function tokenText(it) {
     if (it.side === "home" && it.pid) {
         const p = playerOf(it.pid);
         const name = p ? p.name : (it.pname || "");
-        return { mark: (p && p.num) || initials(name), name: surname(name) };
+        return { mark: numberOf(it.pid) || initials(name), name: surname(name) };
     }
     return { mark: it.num || "", name: "" };
 }
 
 function renderPlayers() {
     const host = $("playerList");
-    const players = allPlayers();
+    const L = lineupOf();
     const onBoard = new Set((state.board?.items || []).filter(i => i.pid).map(i => i.pid));
     const edit = canEdit();
+    const q = slug(state.q || "");
 
+    /* s vybranou sestavou se nabízí jen ona (základ, pak náhradníci), jinak celá soupiska */
+    let players = L
+        ? (L.rows || []).map(r => {
+            const base = allPlayers().find(p => p.id === r.key);
+            return {
+                id: r.key, name: base ? base.name : r.name, guest: !!base?.guest, games: base?.games ?? 0,
+                num: r.num || "", group: r.role === "sub" ? "sub" : "start", gk: r.role === "gk"
+            };
+        })
+        : allPlayers();
+    if (q) players = players.filter(p => slug(p.name).includes(q) || String(p.num) === state.q.trim());
+
+    $("playersTitle").textContent = L ? `Sestava – ${L.title || "zápas"}` : "Hráči dorostu";
     $("playersHint").textContent = !state.board
         ? "Otevři tabuli a klikáním přidávej hráče."
-        : edit
-            ? "Klik na jméno doplní hráče do volného kolečka (brankář první), když volné není, přidá ho na hřiště. Vybranému kolečku se přiřadí přímo. Číslo dresu se píše vlevo a platí pro všechny tabule."
-            : "Seřazeno podle počtu odehraných zápasů.";
+        : !edit
+            ? (L ? "Hráči ze sestavy na zápas." : "Seřazeno podle počtu odehraných zápasů.")
+            : L
+                ? "Klik na jméno doplní hráče do volného kolečka (brankář první). Vybranému kolečku se přiřadí přímo – a když jméno už má jiné kolečko, vymění se. Čísla jsou ze sestavy."
+                : "Klik na jméno doplní hráče do volného kolečka (brankář první), když volné není, přidá ho na hřiště. Vybranému kolečku se přiřadí přímo. Číslo dresu se píše vlevo a platí pro tabule bez sestavy.";
 
-    host.innerHTML = players.map(p => `
+    let lastGroup = null;
+    host.innerHTML = players.map(p => {
+        let head = "";
+        if (L && p.group !== lastGroup) {
+            head = `<div class="tk-pgroup">${p.group === "sub" ? "Náhradníci" : "Základní sestava"}</div>`;
+            lastGroup = p.group;
+        }
+        const numCell = edit && !L
+            ? `<input class="tk-num" data-num="${esc(p.id)}" value="${esc(p.num)}" maxlength="2" inputmode="numeric" title="Číslo dresu">`
+            : `<span class="tk-num tk-num--ro">${esc(p.num || "–")}</span>`;
+        return `${head}
         <div class="tk-prow ${onBoard.has(p.id) ? "is-on" : ""}">
-            ${edit
-                ? `<input class="tk-num" data-num="${p.id}" value="${esc(p.num)}" maxlength="2" inputmode="numeric" title="Číslo dresu">`
-                : `<span class="tk-num tk-num--ro">${esc(p.num || "–")}</span>`}
-            <button type="button" class="tk-pbtn" data-pick="${p.id}" ${edit ? "" : "disabled"}>
-                <span class="tk-pname">${esc(p.name)}${p.guest ? ` <span class="tag">st. žák</span>` : ""}</span>
+            ${numCell}
+            <button type="button" class="tk-pbtn" data-pick="${esc(p.id)}" ${edit ? "" : "disabled"}>
+                <span class="tk-pname">${esc(p.name)}${p.gk ? ` <span class="tag">brankář</span>` : ""}${p.guest ? ` <span class="tag">st. žák</span>` : ""}</span>
                 <span class="tk-pgames" title="Odehrané zápasy podle sestav v kanadských bodech">${p.games} z.</span>
             </button>
-        </div>`).join("") || `<p class="tk-note">Soupiska je prázdná.</p>`;
+        </div>`;
+    }).join("") || `<p class="tk-note">${q ? "Nikdo takový." : "Seznam je prázdný."}</p>`;
 
     host.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => pickPlayer(b.dataset.pick)));
     host.querySelectorAll("[data-num]").forEach(inp => inp.addEventListener("change", () => saveJersey(inp.dataset.num, inp.value)));
@@ -276,22 +357,27 @@ async function saveJersey(id, value) {
 function pickPlayer(pid) {
     if (!canEdit()) return;
     const b = state.board;
-    const sel = b.items.find(i => i.id === state.selId);
+    const sel = state.extra.size ? null : b.items.find(i => i.id === state.selId);
     const p = playerOf(pid);
     pushUndo();
 
+    /* když jméno už má jiné kolečko, kolečka si jména vymění */
     const assign = (tok) => {
-        b.items.forEach(i => { if (i.pid === pid) { delete i.pid; delete i.pname; } });
+        const other = b.items.find(i => i.pid === pid && i !== tok);
+        if (other) {
+            if (tok.pid) { other.pid = tok.pid; other.pname = tok.pname; }
+            else { delete other.pid; delete other.pname; }
+        }
         tok.pid = pid; tok.pname = p?.name || "";
     };
 
     if (sel && sel.t === "p" && sel.side === "home") {
         if (sel.pid === pid) { delete sel.pid; delete sel.pname; }
         else assign(sel);
-        state.selId = null;
+        clearSel();
     } else {
         const existing = b.items.find(i => i.pid === pid);
-        if (existing) { state.undo.pop(); state.selId = existing.id; renderBoard(); renderPlayers(); return; }
+        if (existing) { state.undo.pop(); selectOnly(existing.id); renderBoard(); renderPlayers(); return; }
         /* po rozestavení se jména doplňují do volných koleček (brankář první) */
         const free = b.items.filter(i => i.t === "p" && i.side === "home" && !i.pid)
             .sort((a, z) => (z.gk ? 1 : 0) - (a.gk ? 1 : 0))[0];
@@ -326,10 +412,13 @@ function renderTree() {
     const admin = isAdmin();
 
     const boardRow = (b) => `
-        <button type="button" class="tk-brow ${b.id === state.currentId ? "is-on" : ""}" data-board="${b.id}">
-            <span class="tk-brow__ic" data-bg="${b.bg === "white" ? "white" : "grass"}"></span>
-            <span class="tk-brow__name">${esc(b.title || "Bez názvu")}</span>
-        </button>`;
+        <div class="tk-brow-wrap">
+            <button type="button" class="tk-brow ${b.id === state.currentId ? "is-on" : ""}" data-board="${b.id}">
+                <span class="tk-brow__ic" data-bg="${b.bg === "white" ? "white" : "grass"}"></span>
+                <span class="tk-brow__name">${esc(b.title || "Bez názvu")}</span>
+            </button>
+            ${admin ? `<button type="button" class="tk-ic tk-brow__del" data-delboard="${b.id}" title="Smazat tabuli">✕</button>` : ""}
+        </div>`;
 
     const folderHtml = groups.map(f => {
         const open = openFolders.has(f.id) || f.boards.some(b => b.id === state.currentId);
@@ -367,6 +456,7 @@ function renderTree() {
         storeOpenFolders();
         renderTree();
     }));
+    host.querySelectorAll("[data-delboard]").forEach(b => b.addEventListener("click", () => removeBoard(b.dataset.delboard)));
     host.querySelectorAll("[data-rename]").forEach(b => b.addEventListener("click", () => renameFolder(b.dataset.rename)));
     host.querySelectorAll("[data-delfolder]").forEach(b => b.addEventListener("click", () => removeFolder(b.dataset.delfolder)));
 }
@@ -448,7 +538,7 @@ async function newBoard() {
     try {
         const ref = await addDoc(col("tactics"), {
             title, folderId, bg: "grass", view: "full", names: true, awayColor: AWAY_COLORS[0],
-            notes: "", items: [], frames: [{ items: [] }],
+            notes: "", items: [], frames: [{ items: [] }], tokenScale: 1, lineupId: "",
             createdAt: serverTimestamp(), createdBy: AdminStore.name,
             updatedAt: serverTimestamp(), updatedBy: AdminStore.name
         });
@@ -464,7 +554,8 @@ async function duplicateBoard() {
         const ref = await addDoc(col("tactics"), {
             title: `${b.title || "Bez názvu"} (kopie)`, folderId: b.folderId,
             bg: b.bg, view: b.view, names: b.names, awayColor: b.awayColor,
-            notes: b.notes, items: clone(b.frames[0].items), frames: clone(b.frames),
+            notes: b.notes, tokenScale: b.tokenScale, lineupId: b.lineupId,
+            items: clone(b.frames[0].items), frames: clone(b.frames),
             createdAt: serverTimestamp(), createdBy: AdminStore.name,
             updatedAt: serverTimestamp(), updatedBy: AdminStore.name
         });
@@ -473,12 +564,13 @@ async function duplicateBoard() {
     } catch (err) { onDbError(err); }
 }
 
-async function removeBoard() {
-    const b = state.board;
-    if (!b || !confirm(`Opravdu smazat tabuli „${b.title || "Bez názvu"}“?`)) return;
-    clearTimeout(saveTimer); saveTimer = null;
-    const id = b.id;
-    closeBoard();
+async function removeBoard(id = state.board?.id) {
+    const b = state.boards.find(x => x.id === id);
+    if (!b || !confirm(`Opravdu smazat tabuli „${b.title || "Bez názvu"}“? Smaže se i se všemi kroky.`)) return;
+    if (id === state.currentId) {
+        clearTimeout(saveTimer); saveTimer = null;
+        closeBoard();
+    }
     try { await deleteDoc(docIn("tactics", id)); toast("Tabule smazána"); }
     catch (err) { onDbError(err); }
 }
@@ -491,7 +583,7 @@ function openBoard(id) {
     stopPlay();
     state.board = normalize(clone(b));
     useFrame(0);
-    state.selId = null;
+    clearSel();
     state.undo = [];
     history.replaceState(null, "", "#" + encodeURIComponent(id));
     if (b.folderId) { openFolders.add(b.folderId); storeOpenFolders(); }
@@ -507,7 +599,7 @@ function closeBoard() {
     setFull(false);
     state.currentId = null;
     state.board = null;
-    state.selId = null;
+    clearSel();
     history.replaceState(null, "", location.pathname + location.search);
     renderBoardAll();
     renderTree();
@@ -530,6 +622,9 @@ function renderBoardAll() {
         document.querySelectorAll("#bgSeg [data-bg]").forEach(x => x.classList.toggle("is-on", x.dataset.bg === b.bg));
         document.querySelectorAll("#viewSeg [data-view]").forEach(x => x.classList.toggle("is-on", x.dataset.view === b.view));
         $("namesChk").checked = b.names;
+        $("scaleRange").value = String(b.tokenScale);
+        $("scaleVal").textContent = `${Math.round(b.tokenScale * 100)} %`;
+        renderLineupSel();
         renderFolderSelect();
         renderSwatches();
     }
@@ -569,15 +664,15 @@ function pushUndo() {
 function undo() {
     if (!canEdit() || !state.undo.length) return;
     setItems(JSON.parse(state.undo.pop()));
-    state.selId = null;
+    clearSel();
     changed();
 }
 
 function deleteSelected() {
     if (!canEdit() || !state.selId) return;
     pushUndo();
-    setItems(state.board.items.filter(i => i.id !== state.selId));
-    state.selId = null;
+    setItems(state.board.items.filter(i => !isSel(i.id)));
+    clearSel();
     changed();
 }
 
@@ -674,7 +769,7 @@ function arrowSvg(a, pal) {
         d = `M${a.x1} ${a.y1} Q${cx} ${cy} ${ex} ${ey}`;
     }
     const dash = a.style === "pass" ? `stroke-dasharray="1.1 0.8"` : "";
-    const sel = a.id === state.selId;
+    const sel = isSel(a.id);
     return `
         <g class="it" data-id="${a.id}">
             <path d="${d}" fill="none" stroke="${pal.halo}" stroke-width="0.62" stroke-linecap="round" opacity=".35"/>
@@ -686,7 +781,8 @@ function arrowSvg(a, pal) {
 
 function itemSvg(it, pal, S) {
     const up = isHalf() ? ` ${UPRIGHT}` : "";
-    const sel = it.id === state.selId;
+    const sel = isSel(it.id);
+    const T = S * (state.board.tokenScale || 1);   // velikost hráčů, míče a kuželů
     const ring = (r) => sel ? `<circle r="${r}" fill="none" stroke="#facc15" stroke-width="0.4"/>` : "";
 
     if (it.t === "p") {
@@ -697,31 +793,31 @@ function itemSvg(it, pal, S) {
         const light = ["#ffffff", "#eab308", "#f2c200", "#facc15"].includes(fill);
         const txt = light ? "#111827" : "#ffffff";
         const { mark, name } = tokenText(it);
-        const r = 2 * S;
-        const fs = (mark.length > 2 ? 1.5 : 2.1) * S;
+        const r = 2 * T;
+        const fs = (mark.length > 2 ? 1.5 : 2.1) * T;
         const showName = state.board.names && name;
         return `
             <g class="it" data-id="${it.id}" transform="translate(${it.x} ${it.y})${up}">
                 ${ring(r + 0.7)}
-                <circle r="${r}" fill="${fill}" stroke="${light ? "#374151" : "#ffffff"}" stroke-width="${0.28 * S}"/>
+                <circle r="${r}" fill="${fill}" stroke="${light ? "#374151" : "#ffffff"}" stroke-width="${0.28 * T}"/>
                 <text y="${fs * 0.36}" font-size="${fs}" font-weight="900" fill="${txt}" text-anchor="middle">${esc(mark)}</text>
-                ${showName ? `<text y="${r + 1.9 * S}" font-size="${1.55 * S}" font-weight="800" fill="${pal.ink}" stroke="${pal.halo}" stroke-width="${0.45 * S}" paint-order="stroke" text-anchor="middle">${esc(name)}</text>` : ""}
+                ${showName ? `<text y="${r + 1.9 * T}" font-size="${1.55 * T}" font-weight="800" fill="${pal.ink}" stroke="${pal.halo}" stroke-width="${0.45 * T}" paint-order="stroke" text-anchor="middle">${esc(name)}</text>` : ""}
             </g>`;
     }
     if (it.t === "ball") {
-        const r = 0.95 * S;
+        const r = 0.95 * T;
         return `
             <g class="it" data-id="${it.id}" transform="translate(${it.x} ${it.y})${up}">
                 ${ring(r + 0.6)}
                 <circle r="${r}" fill="#ffffff" stroke="#111827" stroke-width="0.18"/>
-                <polygon points="0,${-0.38 * S} ${0.36 * S},${-0.12 * S} ${0.22 * S},${0.31 * S} ${-0.22 * S},${0.31 * S} ${-0.36 * S},${-0.12 * S}" fill="#111827"/>
+                <polygon points="0,${-0.38 * T} ${0.36 * T},${-0.12 * T} ${0.22 * T},${0.31 * T} ${-0.22 * T},${0.31 * T} ${-0.36 * T},${-0.12 * T}" fill="#111827"/>
             </g>`;
     }
     if (it.t === "cone") {
-        const h = 1.5 * S;
+        const h = 1.5 * T;
         return `
             <g class="it" data-id="${it.id}" transform="translate(${it.x} ${it.y})${up}">
-                ${ring(1.6 * S)}
+                ${ring(1.6 * T)}
                 <polygon points="0,${-h * 0.62} ${h * 0.55},${h * 0.45} ${-h * 0.55},${h * 0.45}" fill="#f97316" stroke="#ffffff" stroke-width="0.15"/>
             </g>`;
     }
@@ -746,6 +842,7 @@ function itemSvg(it, pal, S) {
 }
 
 function handlesSvg() {
+    if (state.extra.size) return "";
     const it = state.board.items.find(i => i.id === state.selId);
     if (!it || !canEdit()) return "";
     const h = (x, y, k) => `<circle class="hd" data-handle="${k}" cx="${x}" cy="${y}" r="0.9" fill="#ffffff" stroke="#c8102e" stroke-width="0.3"/>`;
@@ -786,6 +883,8 @@ function renderBoard(view) {
             ${list.filter(isArrow).map(draw).join("")}
             ${list.filter(i => i.t !== "zone" && !isArrow(i)).map(draw).join("")}
             ${view ? "" : handlesSvg()}
+            ${state.marquee && !view ? `<rect x="${state.marquee.x}" y="${state.marquee.y}" width="${state.marquee.w}" height="${state.marquee.h}"
+                fill="rgba(250,204,21,.14)" stroke="#facc15" stroke-width="0.25" stroke-dasharray="0.8 0.5"/>` : ""}
         </g>`;
     svg.classList.toggle("is-edit", canEdit() && !state.playing);
 }
@@ -820,18 +919,46 @@ function onDown(e) {
         pushUndo();
         state.drag = { kind: "handle", key: handle.dataset.handle, id: state.selId };
     } else if (tool === "move" || (itemEl && !["run", "pass", "dribble", "zone"].includes(tool))) {
-        if (!itemEl) { state.selId = null; renderBoard(); renderPlayers(); return; }
-        const id = itemEl.dataset.id;
-        const now = Date.now();
-        if (state.lastDown.id === id && now - state.lastDown.t < 380) {
-            state.lastDown = { id: null, t: 0 };
-            editItemText(id);
-            return;
+        const multi = e.ctrlKey || e.metaKey || e.shiftKey;
+        if (!itemEl) {
+            /* tažení po prázdném hřišti = výběr obdélníkem (s Ctrl se k výběru přidává) */
+            if (!multi) clearSel();
+            state.drag = { kind: "marquee", start: [x, y], add: multi };
+            state.marquee = { x, y, w: 0, h: 0 };
+            renderPlayers();
+        } else {
+            const id = itemEl.dataset.id;
+            if (multi) {
+                /* Ctrl+klik přidá prvek do výběru, nebo ho z výběru vyřadí */
+                if (isSel(id)) {
+                    if (id === state.selId) {
+                        const [first] = state.extra;
+                        state.selId = first || null;
+                        if (first) state.extra.delete(first);
+                    } else state.extra.delete(id);
+                    renderBoard(); renderPlayers();
+                    return;
+                }
+                if (!state.selId) state.selId = id; else state.extra.add(id);
+            } else {
+                const now = Date.now();
+                if (state.lastDown.id === id && now - state.lastDown.t < 380) {
+                    state.lastDown = { id: null, t: 0 };
+                    editItemText(id);
+                    return;
+                }
+                state.lastDown = { id, t: now };
+                if (!isSel(id)) selectOnly(id);
+            }
+            pushUndo();
+            const origs = new Map();
+            selIds().forEach(sid => {
+                const o = b.items.find(i => i.id === sid);
+                if (o) origs.set(sid, clone(o));
+            });
+            state.drag = { kind: "move", id, start: [x, y], origs, moved: false, multi, group: origs.size > 1 };
         }
-        state.lastDown = { id, t: now };
-        state.selId = id;
-        pushUndo();
-        state.drag = { kind: "move", id, start: [x, y], orig: clone(b.items.find(i => i.id === id)), moved: false };
+
     } else if (["home", "away", "ball", "cone"].includes(tool)) {
         pushUndo();
         const it = tool === "home" || tool === "away"
@@ -839,7 +966,7 @@ function onDown(e) {
             : { t: tool, id: uid(), x: round(x), y: round(y) };
         if (tool === "away") it.num = String(b.items.filter(i => i.t === "p" && i.side === "away").length + 1);
         b.items.push(it);
-        state.selId = it.id;
+        selectOnly(it.id);
         changed();
         return;
     } else if (tool === "text") {
@@ -849,13 +976,13 @@ function onDown(e) {
         pushUndo();
         const it = { t: tool, id: uid(), style: tool, x1: round(x), y1: round(y), x2: round(x), y2: round(y), color: state.color };
         b.items.push(it);
-        state.selId = it.id;
+        selectOnly(it.id);
         state.drag = { kind: "create", id: it.id };
     } else if (tool === "zone") {
         pushUndo();
         const it = { t: "zone", id: uid(), x: round(x), y: round(y), w: 0, h: 0, color: state.color };
         b.items.push(it);
-        state.selId = it.id;
+        selectOnly(it.id);
         state.drag = { kind: "create", id: it.id };
     }
     svg.setPointerCapture(e.pointerId);
@@ -867,15 +994,24 @@ function onMove(e) {
     const d = state.drag;
     if (!d) return;
     const [x, y] = clampPt(worldPoint(e));
+    if (d.kind === "marquee") {
+        const [sx, sy] = d.start;
+        state.marquee = { x: Math.min(sx, x), y: Math.min(sy, y), w: Math.abs(x - sx), h: Math.abs(y - sy) };
+        renderBoard();
+        return;
+    }
     const it = state.board.items.find(i => i.id === d.id);
     if (!it) return;
 
     if (d.kind === "move") {
         const dx = x - d.start[0], dy = y - d.start[1];
         if (Math.hypot(dx, dy) > 0.25) d.moved = true;
-        const o = d.orig;
-        if ("x1" in o) { it.x1 = round(o.x1 + dx); it.y1 = round(o.y1 + dy); it.x2 = round(o.x2 + dx); it.y2 = round(o.y2 + dy); }
-        else { it.x = round(o.x + dx); it.y = round(o.y + dy); }
+        d.origs.forEach((o, sid) => {
+            const t = state.board.items.find(i => i.id === sid);
+            if (!t) return;
+            if ("x1" in o) { t.x1 = round(o.x1 + dx); t.y1 = round(o.y1 + dy); t.x2 = round(o.x2 + dx); t.y2 = round(o.y2 + dy); }
+            else { t.x = round(o.x + dx); t.y = round(o.y + dy); }
+        });
     } else if (d.kind === "create") {
         if (it.t === "zone") { it.w = round(x - it.x); it.h = round(y - it.y); }
         else { it.x2 = round(x); it.y2 = round(y); }
@@ -896,9 +1032,15 @@ function onUp() {
     if (!d) return;
     state.drag = null;
     const b = state.board;
+    if (d.kind === "marquee") { finishMarquee(d); return; }
     const it = b.items.find(i => i.id === d.id);
 
-    if (d.kind === "move" && !d.moved) { state.undo.pop(); renderBoard(); renderPlayers(); return; }
+    if (d.kind === "move" && !d.moved) {
+        state.undo.pop();
+        if (!d.multi && d.group) selectOnly(d.id);   // klik bez tažení ve skupině = vybrat jen tenhle
+        renderBoard(); renderPlayers();
+        return;
+    }
     if (d.kind === "create" && it) {
         const tiny = it.t === "zone"
             ? Math.abs(it.w) < 1.5 || Math.abs(it.h) < 1.5
@@ -906,7 +1048,7 @@ function onUp() {
         if (tiny) {
             setItems(b.items.filter(i => i.id !== it.id));
             state.undo.pop();
-            state.selId = null;
+            clearSel();
             renderBoard();
             return;
         }
@@ -918,13 +1060,48 @@ function onUp() {
     changed();
 }
 
+/** Konec výběru obdélníkem: vybere prvky, jejichž střed leží uvnitř. */
+function finishMarquee(d) {
+    const m = state.marquee;
+    state.marquee = null;
+    if (m && (m.w > 0.8 || m.h > 0.8)) {
+        const inside = (x, y) => x >= m.x && x <= m.x + m.w && y >= m.y && y <= m.y + m.h;
+        const hit = state.board.items.filter(i => {
+            if (ARROWS.includes(i.t)) { const [mx, my] = qAt(i, 0.5); return inside(mx, my); }
+            if (i.t === "zone") return inside(i.x + i.w / 2, i.y + i.h / 2);
+            return inside(i.x, i.y);
+        }).map(i => i.id);
+        if (!d.add) clearSel();
+        hit.forEach(id => {
+            if (!state.selId) state.selId = id;
+            else if (id !== state.selId) state.extra.add(id);
+        });
+    }
+    renderBoard();
+    renderPlayers();
+}
+
+/** Posun vybraných šipkami na klávesnici (v pohledu Polovina je svět otočený). */
+function nudge(key, step) {
+    const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[key];
+    if (!dir) return;
+    let [dx, dy] = dir.map(v => v * step);
+    if (isHalf()) [dx, dy] = [-dy, dx];
+    pushUndo();
+    state.board.items.filter(i => isSel(i.id)).forEach(i => {
+        if ("x1" in i) { i.x1 = round(i.x1 + dx); i.y1 = round(i.y1 + dy); i.x2 = round(i.x2 + dx); i.y2 = round(i.y2 + dy); }
+        else { i.x = round(i.x + dx); i.y = round(i.y + dy); }
+    });
+    changed();
+}
+
 async function addText(x, y) {
     const text = await ask("Text na tabuli", "Třeba „presink“, „krátce“, „2. tyč“.", "", "Přidat");
     if (!text) return;
     pushUndo();
     const it = { t: "text", id: uid(), x: round(x), y: round(y), text, color: state.color };
     state.board.items.push(it);
-    state.selId = it.id;
+    selectOnly(it.id);
     setTool("move");
     changed();
 }
@@ -995,7 +1172,7 @@ function applyFormation(side) {
         slots = slots.map(([x, y, g]) => [L - x, W - y, g]);
     }
     placeSide(side, slots);
-    state.selId = null;
+    clearSel();
     changed();
     toast(`Rozestavení ${$("formationSel").value} – ${side === "home" ? "náš tým" : "soupeř"}`);
 }
@@ -1021,7 +1198,7 @@ function applyPreset(key) {
         });
         placeSide("away", [...base.away.map(my), ...wall]);
     }
-    state.selId = null;
+    clearSel();
     changed();
 }
 
@@ -1046,9 +1223,9 @@ function renderColors() {
             style="--sw:${c === "auto" ? "linear-gradient(135deg,#fff 50%,#1f2937 50%)" : c}"></button>`).join("");
     $("colors").querySelectorAll("[data-color]").forEach(b => b.addEventListener("click", () => {
         state.color = b.dataset.color;
-        const sel = state.board?.items.find(i => i.id === state.selId);
-        if (sel && canEdit() && ["run", "pass", "dribble", "zone", "text"].includes(sel.t)) {
-            pushUndo(); sel.color = state.color; changed();
+        const sel = (state.board?.items || []).filter(i => isSel(i.id) && ["run", "pass", "dribble", "zone", "text"].includes(i.t));
+        if (sel.length && canEdit()) {
+            pushUndo(); sel.forEach(i => { i.color = state.color; }); changed();
         }
         renderColors();
     }));
@@ -1070,8 +1247,8 @@ function renderSwatches() {
 async function downloadPng() {
     const b = state.board;
     if (!b) return;
-    const keepSel = state.selId;
-    state.selId = null;
+    const keepSel = state.selId, keepExtra = new Set(state.extra);
+    clearSel();
     renderBoard();
     const svg = $("board");
     const vb = svg.viewBox.baseVal;
@@ -1079,7 +1256,7 @@ async function downloadPng() {
     const w = Math.round(vb.width * scale), h = Math.round(vb.height * scale);
     const markup = new XMLSerializer().serializeToString(svg)
         .replace("<svg", `<svg width="${w}" height="${h}"`);
-    state.selId = keepSel;
+    state.selId = keepSel; state.extra = keepExtra;
     renderBoard();
 
     const img = new Image();
@@ -1175,7 +1352,7 @@ async function play() {
     if (b.frames.length < 2) { toast("Pro animaci přidej aspoň 2 kroky"); return; }
     if (saveTimer) flushSave();
     state.playing = true;
-    state.selId = null;
+    clearSel();
     const from = state.frame >= b.frames.length - 1 ? 0 : state.frame;
     useFrame(from);
     renderFrames(); renderBoard();
@@ -1201,7 +1378,7 @@ function stopPlay() {
 function goFrame(k) {
     stopPlay();
     useFrame(k);
-    state.selId = null;
+    clearSel();
     state.undo = [];
     renderBoard(); renderFrames(); renderPlayers();
 }
@@ -1214,7 +1391,7 @@ function addFrame() {
     const items = clone(b.items).filter(i => !ARROWS.includes(i.t));
     b.frames.splice(state.frame + 1, 0, { items });
     useFrame(state.frame + 1);
-    state.selId = null;
+    clearSel();
     state.undo = [];
     renderFrames();
     changed();
@@ -1228,7 +1405,7 @@ function removeFrame() {
     stopPlay();
     b.frames.splice(state.frame, 1);
     useFrame(Math.min(state.frame, b.frames.length - 1));
-    state.selId = null;
+    clearSel();
     state.undo = [];
     renderFrames();
     changed();
@@ -1292,6 +1469,311 @@ function renderFullBtns() {
     $("panelBtn").textContent = $("tk").classList.contains("is-nopanel") ? "☰ Panel" : "Skrýt panel";
 }
 
+/* ------------------------------------------------------------ sestavy ----
+   Sestava na zápas (každý týden jiná): brankář, základ a náhradníci s čísly
+   ze zápisu. Tabule si sestavu vybere – seznam hráčů pak nabízí jen ji
+   a kolečka ukazují čísla ze sestavy. Sestava se dá načíst z obrázku
+   (čtení textu přímo v prohlížeči) nebo z textu zkopírovaného ze zápisu.
+   Řádek: { key, pid, name, num, facr, role: "gk" | "start" | "sub" },
+   key = id hráče ze soupisky, nebo "x-<FAČR ID>" pro hráče mimo soupisku.
+   ------------------------------------------------------------------- */
+
+const lineupLabel = (l) => `${l.date ? czDay(l.date) + " · " : ""}${l.title || "Sestava"}`;
+
+function renderLineupSel() {
+    const sel = $("lineupSel");
+    const b = state.board;
+    sel.innerHTML = `<option value="">— celá soupiska —</option>` +
+        state.lineups.map(l => `<option value="${l.id}">${esc(lineupLabel(l))}</option>`).join("");
+    sel.value = b?.lineupId && state.lineups.some(l => l.id === b.lineupId) ? b.lineupId : "";
+    $("editLineupBtn").disabled = !sel.value;
+    $("fillLineupBtn").disabled = !sel.value;
+}
+
+/** Příští zápas z rozpisu – předvyplní se do nové sestavy. */
+function nextMatch() {
+    const today = new Date().toISOString().slice(0, 10);
+    return ROZPIS.find(m => m.date >= today) || null;
+}
+
+function openLineupModal(id) {
+    const l = id ? state.lineups.find(x => x.id === id) : null;
+    const next = nextMatch();
+    state.luId = l ? l.id : null;
+    state.luRows = l ? clone(l.rows || []) : [];
+    $("luTitle").textContent = l ? "Upravit sestavu" : "Nová sestava";
+    $("luName").value = l ? (l.title || "") : (next?.opponent || "");
+    $("luDate").value = l ? (l.date || "") : (next?.date || "");
+    $("luText").value = "";
+    $("luStatus").textContent = "nebo obrázek vlož sem přes Ctrl+V";
+    $("luPreview").hidden = true;
+    $("luDelete").hidden = !l;
+    $("luErr").classList.remove("is-on");
+    renderLuRows();
+    openOverlay("lineupOverlay");
+}
+
+const nameKey = (n) => slug(n).split("-").filter(Boolean).sort().join(" ");
+/* v zápisu je „Příjmení Jméno“, na webu „Jméno Příjmení“ */
+const swapName = (n) => {
+    const w = n.trim().split(/\s+/);
+    return w.length > 1 ? [w[w.length - 1], ...w.slice(0, -1)].join(" ") : n.trim();
+};
+
+/** Řádky „31 Komínek Štěpán (08030595)“ → řádky sestavy spárované se soupiskou. */
+function parseLineupText(text) {
+    const rows = [];
+    String(text).split(/\r?\n/).forEach(line => {
+        /* mezi číslem a jménem bývají ikonky ze zápisu, které čtení přečte jako „—“, „©“… */
+        const m = line.match(/(\d{1,2})[^\dA-Za-zÀ-ž(]+([A-Za-zÀ-ž][A-Za-zÀ-ž'’.\- ]*?)\s*(?:[(\[{]\s*(\d{6,9})\s*[)\]}]?)?\s*$/);
+        if (!m) return;
+        /* ikonka nalepená na jméno: „ÓPáleník“ → „Páleník“ */
+        const raw = m[2].replace(/\s+/g, " ").trim()
+            .split(" ").map(w => w.replace(/^\p{Lu}(?=\p{Lu}\p{Ll})/u, "")).join(" ");
+        if (raw.split(" ").length < 2) return;
+        rows.push({ num: m[1], raw, facr: m[3] || "" });
+    });
+
+    const used = new Set();
+    const players = allPlayers();
+    return rows.map((r, i) => {
+        /* 1) podle FAČR ID z dřívějších sestav, 2) podle jména, 3) příjmení + první písmeno jména */
+        let pid = r.facr && state.facr[r.facr] && !used.has(state.facr[r.facr]) ? state.facr[r.facr] : "";
+        if (!pid) pid = players.find(p => !used.has(p.id) && nameKey(p.name) === nameKey(r.raw))?.id || "";
+        if (!pid) {
+            const w = slug(r.raw).split("-");
+            const first = (w[w.length - 1] || "")[0];
+            const cands = players.filter(p => !used.has(p.id)).filter(p => {
+                const pw = slug(p.name).split("-");
+                return pw.includes(w[0]) && pw.some(x => x !== w[0] && x[0] === first);
+            });
+            if (cands.length === 1) pid = cands[0].id;
+        }
+        if (pid) used.add(pid);
+        const base = pid ? playerOf(pid) : null;
+        /* v zápisu je brankář první, pak základ, pak náhradníci */
+        return { pid, name: base ? base.name : swapName(r.raw), num: r.num, facr: r.facr, role: i === 0 ? "gk" : i < 11 ? "start" : "sub" };
+    });
+}
+
+function renderLuRows() {
+    const host = $("luRows");
+    const players = allPlayers();
+    const cnt = { gk: 0, start: 0, sub: 0 };
+    state.luRows.forEach(r => { cnt[r.role] = (cnt[r.role] || 0) + 1; });
+
+    host.innerHTML = state.luRows.length ? `
+        <div class="tk-lu-head"><span>Č.</span><span>Hráč</span><span>V sestavě</span><span></span></div>
+        ${state.luRows.map((r, i) => `
+        <div class="tk-lu-row ${r.pid ? "" : "is-free"}">
+            <input class="field" data-lu-num="${i}" value="${esc(r.num)}" maxlength="2" inputmode="numeric" aria-label="Číslo">
+            <div class="tk-lu-who">
+                <select class="field" data-lu-pid="${i}" aria-label="Hráč ze soupisky">
+                    <option value="">— mimo soupisku —</option>
+                    ${players.map(p => `<option value="${esc(p.id)}" ${p.id === r.pid ? "selected" : ""}>${esc(p.name)}${p.guest ? " (st. žák)" : ""}</option>`).join("")}
+                </select>
+                ${r.pid ? "" : `<input class="field" data-lu-name="${i}" value="${esc(r.name)}" placeholder="Jméno Příjmení" aria-label="Jméno">`}
+            </div>
+            <select class="field" data-lu-role="${i}" aria-label="Role">
+                <option value="gk" ${r.role === "gk" ? "selected" : ""}>Brankář</option>
+                <option value="start" ${r.role === "start" ? "selected" : ""}>Základ</option>
+                <option value="sub" ${r.role === "sub" ? "selected" : ""}>Náhradník</option>
+            </select>
+            <button type="button" class="tk-ic" data-lu-del="${i}" title="Odebrat řádek">✕</button>
+        </div>`).join("")}
+        <p class="tk-note">Základ ${cnt.gk + cnt.start}${cnt.gk ? ` (z toho brankář ${cnt.gk})` : " – brankář není označený, vezme se první"}, náhradníci ${cnt.sub}.
+        ${state.luRows.some(r => !r.pid) ? "Řádky se žlutým okrajem nejsou spárované se soupiskou – vyber hráče, nebo nech jméno, jak je." : ""}</p>`
+        : `<p class="tk-note">Zatím žádní hráči. Nahraj obrázek, vlož text, nebo přidej řádek ručně.</p>`;
+
+    host.querySelectorAll("[data-lu-num]").forEach(x => x.addEventListener("input", () => {
+        state.luRows[x.dataset.luNum].num = x.value.replace(/\D/g, "").slice(0, 2);
+    }));
+    host.querySelectorAll("[data-lu-name]").forEach(x => x.addEventListener("input", () => {
+        state.luRows[x.dataset.luName].name = x.value;
+    }));
+    host.querySelectorAll("[data-lu-role]").forEach(x => x.addEventListener("change", () => {
+        state.luRows[x.dataset.luRole].role = x.value;
+        renderLuRows();
+    }));
+    host.querySelectorAll("[data-lu-del]").forEach(x => x.addEventListener("click", () => {
+        state.luRows.splice(Number(x.dataset.luDel), 1);
+        renderLuRows();
+    }));
+    host.querySelectorAll("[data-lu-pid]").forEach(x => x.addEventListener("change", () => {
+        const r = state.luRows[x.dataset.luPid];
+        r.pid = x.value;
+        if (r.pid) r.name = playerOf(r.pid)?.name || r.name;
+        renderLuRows();
+    }));
+}
+
+function loadScript(src) {
+    return new Promise((ok, fail) => {
+        const el = document.createElement("script");
+        el.src = src;
+        el.onload = ok;
+        el.onerror = () => fail(new Error("Nenačetl se skript " + src));
+        document.head.appendChild(el);
+    });
+}
+
+/* screenshot ze zápisu bývá malý – před čtením se zvětší */
+async function upscale(blob) {
+    const bmp = await createImageBitmap(blob);
+    const k = Math.max(1, Math.min(4, 1600 / Math.max(bmp.width, bmp.height)));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * k);
+    c.height = Math.round(bmp.height * k);
+    const g = c.getContext("2d");
+    g.imageSmoothingQuality = "high";
+    g.drawImage(bmp, 0, 0, c.width, c.height);
+    return c;
+}
+
+async function readLineupImage(blob) {
+    const status = $("luStatus");
+    const prev = $("luPreview");
+    prev.src = URL.createObjectURL(blob);
+    prev.hidden = false;
+    try {
+        status.textContent = "Připravuji čtení textu (poprvé to chvíli trvá)…";
+        if (!window.Tesseract) await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js");
+        const img = await upscale(blob);
+        const res = await window.Tesseract.recognize(img, "ces", {
+            logger: m => { if (m.status === "recognizing text") status.textContent = `Čtu obrázek… ${Math.round(m.progress * 100)} %`; }
+        });
+        $("luText").value = res.data.text.trim();
+        const rows = parseLineupText(res.data.text);
+        if (!rows.length) { status.textContent = "Z obrázku se nepodařilo přečíst hráče – zkus ostřejší výřez, nebo vlož text."; return; }
+        state.luRows = rows;
+        renderLuRows();
+        status.textContent = `Přečteno ${rows.length} hráčů – zkontroluj čísla a jména. První je brankář, do 11 základ, zbytek náhradníci.`;
+    } catch (err) {
+        console.error(err);
+        status.textContent = "Čtení obrázku selhalo. Zkopíruj sestavu jako text a dej „Načíst z textu“.";
+    }
+}
+
+async function saveLineup() {
+    const err = $("luErr");
+    const fail = (m) => { err.textContent = m; err.classList.add("is-on"); };
+    const title = $("luName").value.trim();
+    const rows = state.luRows.filter(r => r.pid || String(r.name || "").trim());
+    const pids = rows.filter(r => r.pid).map(r => r.pid);
+    if (!title) return fail("Napiš, na jaký zápas sestava je.");
+    if (!rows.length) return fail("Sestava nemá žádné hráče.");
+    if (new Set(pids).size !== pids.length) return fail("Někdo je v sestavě dvakrát – oprav výběr hráčů.");
+
+    const clean = rows.map(r => ({
+        key: r.pid || ("x-" + (r.facr || slug(r.name))),
+        pid: r.pid || "",
+        name: r.pid ? (playerOf(r.pid)?.name || r.name) : String(r.name).trim(),
+        num: String(r.num || "").replace(/\D/g, "").slice(0, 2),
+        facr: r.facr || "",
+        role: ["gk", "start", "sub"].includes(r.role) ? r.role : "start"
+    }));
+    const data = { title, date: $("luDate").value || "", rows: clean, updatedAt: serverTimestamp(), updatedBy: AdminStore.name };
+    try {
+        let id = state.luId;
+        if (id) await setDoc(docIn("lineups", id), data, { merge: true });
+        else id = (await addDoc(col("lineups"), { ...data, createdAt: serverTimestamp(), createdBy: AdminStore.name })).id;
+
+        /* FAČR ID si web pamatuje – příští sestava se spáruje i u stejných jmen */
+        const learn = {};
+        clean.forEach(r => { if (r.pid && r.facr) learn[r.facr] = r.pid; });
+        if (Object.keys(learn).length) await setDoc(docIn("meta", "facr"), { map: learn }, { merge: true });
+
+        closeOverlays();
+        if (canEdit()) {
+            state.board.lineupId = id;
+            renderLineupSel(); renderPlayers(); renderBoard();
+            scheduleSave();
+        }
+        toast(`Sestava „${title}“ uložena`);
+    } catch (e) {
+        onDbError(e);
+        fail("Uložení se nepovedlo.");
+    }
+}
+
+async function removeLineup() {
+    const l = state.lineups.find(x => x.id === state.luId);
+    if (!l || !confirm(`Smazat sestavu „${lineupLabel(l)}“? Tabule, které ji používají, se přepnou na celou soupisku.`)) return;
+    try {
+        await deleteDoc(docIn("lineups", l.id));
+        closeOverlays();
+        toast("Sestava smazána");
+    } catch (e) { onDbError(e); }
+}
+
+/** Postaví základ: brankáře do branky, ostatní do rozestavení (chybějící kolečka doplní). */
+function fillLineup() {
+    if (!canEdit()) return;
+    const L = lineupOf();
+    if (!L) { toast("Nejdřív vyber sestavu"); return; }
+    const rows = (L.rows || []).filter(r => r.role !== "sub");
+    if (!rows.length) { toast("Sestava nemá základ"); return; }
+    const gkRow = rows.find(r => r.role === "gk") || rows[0];
+    const field = rows.filter(r => r !== gkRow);
+
+    pushUndo();
+    const b = state.board;
+    const home = () => b.items.filter(i => i.t === "p" && i.side === "home");
+    if (home().length < rows.length) {
+        const f = FORMATIONS[$("formationSel").value] || FORMATIONS["4-4-2"];
+        /* v polovině ukazujeme útok – hráče do pole posune dopředu jako rozestavení */
+        placeSide("home", f.map(([x, y], i) => i === 0 ? [x, y, "gk"] : [isHalf() ? 38.3 + 1.1 * x : x, y, ""]));
+    }
+    const toks = home();
+    toks.forEach(t => { delete t.pid; delete t.pname; });
+    const gkTok = toks.find(t => t.gk) || toks[0];
+    gkTok.pid = gkRow.key; gkTok.pname = gkRow.name;
+    toks.filter(t => t !== gkTok).forEach((t, i) => {
+        const r = field[i];
+        if (r) { t.pid = r.key; t.pname = r.name; }
+    });
+    clearSel();
+    changed();
+    toast("Základ postavený – pozice vyměníš: vyber kolečko a klikni na jméno");
+}
+
+function wireLineups() {
+    $("lineupSel").addEventListener("change", (e) => {
+        if (!state.board) return;
+        state.board.lineupId = e.target.value;
+        renderLineupSel(); renderPlayers(); renderBoard();
+        scheduleSave();
+    });
+    $("newLineupBtn").addEventListener("click", () => openLineupModal(null));
+    $("editLineupBtn").addEventListener("click", () => { const id = $("lineupSel").value; if (id) openLineupModal(id); });
+    $("fillLineupBtn").addEventListener("click", fillLineup);
+    $("luParse").addEventListener("click", () => {
+        const rows = parseLineupText($("luText").value);
+        if (!rows.length) { $("luStatus").textContent = "V textu jsem nenašel žádné řádky „číslo jméno“."; return; }
+        state.luRows = rows;
+        renderLuRows();
+        $("luStatus").textContent = `Načteno ${rows.length} hráčů – prvních 11 je základ, zbytek náhradníci.`;
+    });
+    $("luAddRow").addEventListener("click", () => {
+        state.luRows.push({ pid: "", name: "", num: "", facr: "", role: "sub" });
+        renderLuRows();
+    });
+    $("luFile").addEventListener("change", (e) => {
+        const f = e.target.files[0];
+        if (f) readLineupImage(f);
+        e.target.value = "";
+    });
+    $("luSave").addEventListener("click", saveLineup);
+    $("luDelete").addEventListener("click", removeLineup);
+    document.addEventListener("paste", (e) => {
+        if (!$("lineupOverlay").classList.contains("is-open")) return;
+        const img = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+        if (!img) return;
+        e.preventDefault();
+        readLineupImage(img.getAsFile());
+    });
+}
+
 function wire() {
     const svg = $("board");
     svg.addEventListener("pointerdown", onDown);
@@ -1313,15 +1795,16 @@ function wire() {
         else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); }
         else if (e.key === "Escape") {
             if (!state.selId && isFull()) { setFull(false); return; }
-            state.selId = null; setTool("move"); renderBoard(); renderPlayers();
+            clearSel(); setTool("move"); renderBoard(); renderPlayers();
         }
         else if (e.key.toLowerCase() === "v") setTool("move");
+        else if (e.key.startsWith("Arrow") && state.selId && canEdit()) { e.preventDefault(); nudge(e.key, e.shiftKey ? 2 : 0.5); }
     });
 
     $("newBoardBtn").addEventListener("click", newBoard);
     $("newFolderBtn").addEventListener("click", newFolder);
     $("dupBtn").addEventListener("click", duplicateBoard);
-    $("removeBoardBtn").addEventListener("click", removeBoard);
+    $("removeBoardBtn").addEventListener("click", () => removeBoard());
     $("pngBtn").addEventListener("click", downloadPng);
 
     $("boardTitle").addEventListener("input", (e) => {
@@ -1349,6 +1832,15 @@ function wire() {
         renderBoardAll();
         scheduleSave();
     }));
+    $("scaleRange").addEventListener("input", (e) => {
+        if (!state.board) return;
+        state.board.tokenScale = Number(e.target.value) || 1;
+        $("scaleVal").textContent = `${Math.round(state.board.tokenScale * 100)} %`;
+        renderBoard();
+        scheduleSave();
+    });
+    $("playerSearch").addEventListener("input", (e) => { state.q = e.target.value; renderPlayers(); });
+    wireLineups();
     $("namesChk").addEventListener("change", (e) => {
         if (!state.board) return;
         state.board.names = e.target.checked;
