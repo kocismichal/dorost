@@ -1,11 +1,12 @@
 # FK Agro Vnorovy – Dorost
 
 Statický web týmu. Běží na GitHub Pages, data se ukládají do Firebase
-Firestore, takže je vidí všichni živě. Dvě stránky:
+Firestore, takže je vidí všichni živě. Stránky:
 
 - **Pokutníček** (`index.html`) – pokuty hráčů
 - **Kanadské body** (`kanadske-body.html`) – zápasy, góly a asistence
 - **Plakáty** (`plakaty.html`) – plakát A3 na víkend
+- **Taktika** (`taktika.html`) – taktická tabule: rozestavení, rohy, pokyny
 
 Platí pro všechny:
 
@@ -19,14 +20,17 @@ Platí pro všechny:
 index.html               pokutníček
 kanadske-body.html       kanadské bodování
 plakaty.html             plakáty na víkend
+taktika.html             taktická tabule
 assets/css/app.css       styly webu
 assets/css/plakat.css    styly plakátu (zapouzdřené pod #plakatApp)
+assets/css/taktika.css   styly taktické tabule
 assets/js/core.js        sdílené jádro – Firebase, přihlášení, soupiska
 assets/js/app.js         logika pokut
 assets/js/points.js      logika kanadských bodů
 assets/js/rozpis-dorost.js rozpis zápasů dorostu (podzim 2026) pro kanadské body
 assets/js/plakaty.js     logika plakátů
 assets/js/plakat-data.js znaky, soutěže a rozlosování podzimu 2026
+assets/js/taktika.js     logika taktické tabule
 assets/plakat/znaky/     znaky klubů (58 souborů)
 assets/plakat/qr/        QR kód na Instagram
 assets/img/logo.png      logo klubu
@@ -113,7 +117,33 @@ zápasů nasype víc.
 > zvětší logo nebo nadpis nad čarou, posune se čára pod „PROGRAM VÍKENDU“ a
 > přeskládá se celý zbytek plakátu.
 
+## Taktika
+
+Taktická tabule. Prohlížení je veřejné, zakládání a úpravy jen po přihlášení.
+Ukládá se samo, asi vteřinu po poslední změně.
+
+- **Tabule a složky** – vlevo. Složky jsou v kolekci `tacticFolders`, tabule
+  v `tactics`. Smazáním složky se tabule nesmažou, jen se přesunou mezi
+  tabule bez složky.
+- **Hřiště** – zelené / bílá tabule, celé / polovina (branka nahoře). Pohled
+  i barvu si může přepnout i nepřihlášený, jen se mu to neuloží.
+- **Nástroje** – náš hráč, soupeř, míč, kužel, šipky běh / přihrávka /
+  vedení míče (prostředním bodem se dají prohnout), prostor, text.
+  Delete smaže vybrané, Ctrl+Z vrátí.
+- **Rozestavení a standardky** – přesunou hráče, kteří už na tabuli jsou
+  (i s přiřazenými jmény), a chybějící doplní. Takže jde přepnout 4-4-2 na
+  4-3-3 a jména zůstanou.
+- **Hráči dorostu** – soupiska + hostující hráči, seřazení podle počtu
+  odehraných zápasů z kanadských bodů. Klik na jméno ho doplní do volného
+  kolečka (brankář první). Čísla dresů se píšou do políčka vlevo a platí pro
+  všechny tabule (dokument `meta/jerseys`). Bez čísla má kolečko iniciály.
+- **Pokyny** – volný text ke každé tabuli.
+- **Stáhnout obrázek** – PNG tabule, třeba do skupiny týmu.
+
+Souřadnice jsou v metrech hřiště 105 × 68, pohled Polovina jen otočí pravou
+polovinu – při přepínání se tedy nic nepřepočítává.
+
 > **Důležité:** po každé změně v `app.js`, `points.js`, `core.js`,
-> `plakaty.js`, `plakat-data.js`, `app.css` nebo `plakat.css` zvyš číslo `?v=`
-> u odkazů ve všech třech `.html` (a u importů uvnitř skriptů). Bez toho si
+> `plakaty.js`, `plakat-data.js`, `taktika.js`, `app.css`, `plakat.css` nebo
+> `taktika.css` zvyš číslo `?v=` u odkazů ve všech `.html` (a u importů uvnitř skriptů). Bez toho si
 > prohlížeče drží starou verzi a lidem se změna neprojeví.

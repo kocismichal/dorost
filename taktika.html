@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Taktická tabule</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=12">
+<link rel="stylesheet" href="assets/css/taktika.css?v=1">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link" href="plakaty.html">Plakáty</a>
+        <a class="subnav__link is-active" href="taktika.html">Taktika</a>
+    </div>
+</nav>
+
+<main class="wrap">
+
+    <div class="tk">
+
+        <!-- ====================================================== složky -->
+        <aside class="tk-side">
+            <div class="tk-side__head">
+                <h2>Tabule</h2>
+                <div class="tk-side__acts admin-only" hidden>
+                    <button type="button" class="btn btn--primary btn--sm" id="newBoardBtn">+ Tabule</button>
+                    <button type="button" class="btn btn--ghost btn--sm" id="newFolderBtn">+ Složka</button>
+                </div>
+            </div>
+            <div class="tk-tree" id="tree"></div>
+        </aside>
+
+        <!-- ====================================================== tabule -->
+        <section class="tk-main">
+            <div class="tk-empty" id="emptyState">
+                <b>Vyber tabuli vlevo.</b>
+                <span class="admin-only" hidden>Nebo založ novou tlačítkem „+ Tabule“.</span>
+                <span id="emptyLogin">Po přihlášení se dají tabule zakládat a upravovat.</span>
+            </div>
+
+            <div id="boardWrap" hidden>
+                <div class="tk-titlebar">
+                    <input class="tk-title" id="boardTitle" type="text" maxlength="80" placeholder="Název tabule" readonly>
+                    <span class="tk-saved" id="savedState"></span>
+                </div>
+
+                <div class="tk-tools admin-only" id="tools" hidden>
+                    <div class="tk-tools__grp">
+                        <button type="button" class="tk-tool is-on" data-tool="move" title="Vybrat a posouvat (V)">↖ Posun</button>
+                        <button type="button" class="tk-tool" data-tool="home" title="Náš hráč – klikni do hřiště"><i class="tk-dot tk-dot--home"></i> Náš</button>
+                        <button type="button" class="tk-tool" data-tool="away" title="Soupeř – klikni do hřiště"><i class="tk-dot tk-dot--away"></i> Soupeř</button>
+                        <button type="button" class="tk-tool" data-tool="ball" title="Míč">⚽ Míč</button>
+                        <button type="button" class="tk-tool" data-tool="cone" title="Kužel">▲ Kužel</button>
+                    </div>
+                    <div class="tk-tools__grp">
+                        <button type="button" class="tk-tool" data-tool="run" title="Běh bez míče – táhni myší">➝ Běh</button>
+                        <button type="button" class="tk-tool" data-tool="pass" title="Přihrávka – táhni myší">⇢ Přihrávka</button>
+                        <button type="button" class="tk-tool" data-tool="dribble" title="Vedení míče – táhni myší">〰 Vedení</button>
+                        <button type="button" class="tk-tool" data-tool="zone" title="Prostor – táhni myší">▭ Prostor</button>
+                        <button type="button" class="tk-tool" data-tool="text" title="Text – klikni do hřiště">T Text</button>
+                    </div>
+                    <div class="tk-tools__grp">
+                        <span class="tk-colors" id="colors" title="Barva šipek, prostorů a textu"></span>
+                    </div>
+                    <div class="tk-tools__grp tk-tools__grp--end">
+                        <button type="button" class="tk-tool" id="undoBtn" title="Zpět (Ctrl+Z)">↶ Zpět</button>
+                        <button type="button" class="tk-tool" id="delBtn" title="Smazat vybrané (Delete)">✕ Smazat</button>
+                    </div>
+                </div>
+
+                <div class="tk-stage" id="stage">
+                    <svg id="board" class="tk-board" xmlns="http://www.w3.org/2000/svg"></svg>
+                </div>
+                <p class="tk-hint" id="toolHint"></p>
+            </div>
+        </section>
+
+        <!-- ====================================================== panel -->
+        <aside class="tk-panel" id="panel" hidden>
+
+            <div class="tk-box">
+                <div class="tk-box__title">Hřiště</div>
+                <div class="tk-seg" id="bgSeg">
+                    <button type="button" data-bg="grass">Zelené</button>
+                    <button type="button" data-bg="white">Bílá tabule</button>
+                </div>
+                <div class="tk-seg" id="viewSeg">
+                    <button type="button" data-view="full">Celé hřiště</button>
+                    <button type="button" data-view="half">Polovina</button>
+                </div>
+                <label class="tk-check"><input type="checkbox" id="namesChk"> Jména pod hráči</label>
+
+                <div class="admin-only" hidden>
+                    <label class="label" for="awayColor">Barva soupeře</label>
+                    <div class="tk-swatches" id="awayColor"></div>
+
+                    <label class="label" for="folderSel">Složka</label>
+                    <select class="field" id="folderSel"></select>
+                </div>
+            </div>
+
+            <div class="tk-box admin-only" hidden>
+                <div class="tk-box__title">Rozestavit</div>
+                <label class="label" for="formationSel">Naše rozestavení</label>
+                <div class="tk-row">
+                    <select class="field" id="formationSel"></select>
+                    <button type="button" class="btn btn--ghost btn--sm" id="formationHome">Náš tým</button>
+                    <button type="button" class="btn btn--ghost btn--sm" id="formationAway">Soupeř</button>
+                </div>
+                <label class="label">Standardky</label>
+                <div class="tk-presets">
+                    <button type="button" class="btn btn--ghost btn--sm" data-preset="cornerAttL">Roh útok – zleva</button>
+                    <button type="button" class="btn btn--ghost btn--sm" data-preset="cornerAttR">Roh útok – zprava</button>
+                    <button type="button" class="btn btn--ghost btn--sm" data-preset="cornerDefL">Roh obrana – zleva</button>
+                    <button type="button" class="btn btn--ghost btn--sm" data-preset="cornerDefR">Roh obrana – zprava</button>
+                    <button type="button" class="btn btn--ghost btn--sm" data-preset="freeKick">Přímý kop</button>
+                </div>
+                <p class="tk-note">Rozestavení přesune hráče, kteří už na tabuli jsou (i s přiřazenými jmény), chybějící doplní.</p>
+            </div>
+
+            <div class="tk-box">
+                <div class="tk-box__title">Hráči dorostu</div>
+                <p class="tk-note" id="playersHint"></p>
+                <div class="tk-plist" id="playerList"></div>
+            </div>
+
+            <div class="tk-box">
+                <div class="tk-box__title">Pokyny</div>
+                <textarea class="field tk-notes" id="notes" rows="7" placeholder="Taktické pokyny k téhle tabuli…" readonly></textarea>
+            </div>
+
+            <div class="tk-box">
+                <div class="tk-row tk-row--wrap">
+                    <button type="button" class="btn btn--ghost btn--sm" id="pngBtn">Stáhnout obrázek</button>
+                    <button type="button" class="btn btn--ghost btn--sm admin-only" id="dupBtn" hidden>Duplikovat</button>
+                    <button type="button" class="btn btn--ghost btn--sm admin-only tk-danger" id="removeBoardBtn" hidden>Smazat tabuli</button>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · taktická tabule</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ======================================================== zadání textu -->
+<div class="overlay" id="askOverlay">
+    <div class="modal">
+        <h3 id="askTitle"></h3>
+        <p class="hint" id="askHint"></p>
+        <form id="askForm">
+            <input class="field" id="askInput" type="text" maxlength="120">
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary" id="askOk">Uložit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/taktika.js?v=1"></script>
+</body>
+</html>
