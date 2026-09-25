@@ -4,6 +4,7 @@
    jinak se drží stylu zbytku webu (app.css).
    ========================================================================== */
 
+.ph-c-tyden  { --c: #0f3d6e; --c-tint: #e8eef6; }
 .ph-c-guma   { --c: #c8102e; --c-tint: #fdeef0; }
 .ph-c-valec  { --c: #1d5fa8; --c-tint: #e9f1fb; }
 .ph-c-micek  { --c: #16794a; --c-tint: #e6f5ed; }
@@ -158,6 +159,54 @@
     line-height: 1.55;
     color: var(--text-soft);
 }
+
+/* ------------------------------------------------------ tvůj týden --- */
+
+.ph-week {
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+.ph-week li {
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+    border: 1px solid var(--line-soft);
+    border-top: 3px solid var(--line);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-soft);
+}
+.ph-week li.is-key   { border-top-color: var(--c); background: var(--c-tint); }
+.ph-week li.is-match { border-top-color: var(--accent); }
+.ph-week__d {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 900;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--c);
+}
+.ph-week li.is-match .ph-week__d { color: var(--accent); }
+.ph-week b { display: block; font-size: 15px; font-weight: 900; color: var(--text); margin: 4px 0 8px; }
+.ph-week p { margin: 0 0 6px; }
+.ph-week i { font-style: normal; font-weight: 800; color: var(--text); }
+.ph-block a { color: var(--c); font-weight: 700; }
+
+.ph-why {
+    margin: 0 0 16px;
+    padding-left: 22px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-soft);
+    max-width: 110ch;
+}
+.ph-why li { margin-bottom: 10px; }
+.ph-why li::marker { color: var(--c); font-weight: 900; }
+.ph-why b { color: var(--text); }
 
 /* ------------------------------------------------------ cviky (karty) --- */
 

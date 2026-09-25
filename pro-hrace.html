@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/pro-hrace.css?v=1">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=2">
 </head>
 <body>
 
@@ -75,6 +75,8 @@
         </div>
 
         <nav class="ph-chips" aria-label="Obsah">
+            <a href="#tyden">Tvůj týden</a>
+            <a href="#pondeli">Proč pondělní běh</a>
             <a href="#guma">Guma</a>
             <a href="#valec">Válec</a>
             <a href="#micek">Míček</a>
@@ -85,6 +87,104 @@
             <a href="#bolest">Bolest a zranění</a>
             <a href="#ukoly">K nastudování</a>
         </nav>
+    </section>
+
+    <!-- ============================================================ týden -->
+    <section class="section ph-block ph-c-tyden" id="tyden">
+        <div class="ph-block__head">
+            <span class="ph-tag">Nejdůležitější</span>
+            <h2>Tvůj týden</h2>
+            <p>Hraješ za dorost a kdo je na tom dobře, jde ještě na poločas za béčko nebo áčko. To jsou o víkendu klidně <b>dva zápasy</b>, někdy i v jeden den. Tělo to zvládne – ale jen když přes týden dostane to, co potřebuje: správnou zátěž, jídlo a spánek.</p>
+        </div>
+
+        <ol class="ph-week">
+            <li class="is-key">
+                <span class="ph-week__d">Pondělí</span>
+                <b>Kondiční běh 5–6 km, lehce</b>
+                <p><i>Péče:</i> po běhu 10 minut válec. Večer dospat víkend – do postele včas.</p>
+                <p><i>Jídlo:</i> doplnit, co víkend vzal – pořádný oběd s přílohou, po běhu večeře.</p>
+            </li>
+            <li>
+                <span class="ph-week__d">Úterý</span>
+                <b>Trénink na hřišti</b>
+                <p><i>Péče:</i> guma před tréninkem, válec po něm.</p>
+                <p><i>Jídlo:</i> oběd 2,5–3 h předem, svačina hodinu předem, do hodiny po tréninku najíst.</p>
+            </li>
+            <li>
+                <span class="ph-week__d">Středa</span>
+                <b>Volno</b>
+                <p><i>Péče:</i> ne celý den na gauči – procházka, kolo. Večer 5 minut míček.</p>
+                <p><i>Jídlo:</i> normálně, hodně pít.</p>
+            </li>
+            <li>
+                <span class="ph-week__d">Čtvrtek</span>
+                <b>Trénink na hřišti</b>
+                <p><i>Péče:</i> guma před tréninkem, válec po něm.</p>
+                <p><i>Jídlo:</i> stejně jako v úterý.</p>
+            </li>
+            <li>
+                <span class="ph-week__d">Pátek</span>
+                <b>Volno – příprava na zápas</b>
+                <p><i>Péče:</i> večer sbalit tašku, spát 8–10 hodin. Ne noc u her.</p>
+                <p><i>Jídlo:</i> k večeři příloha – těstoviny, rýže, brambory. Dost pít.</p>
+            </li>
+            <li class="is-match">
+                <span class="ph-week__d">Sobota / neděle</span>
+                <b>Zápas – a někdo dva</b>
+                <p>Postup viz <a href="#zapas">Den zápasu</a>. Kdo hraje i za B nebo A, čti níž <a href="#dvazapasy">Dva zápasy za víkend</a>.</p>
+            </li>
+        </ol>
+
+        <div class="ph-grid" id="dvazapasy">
+            <div class="ph-card">
+                <h3>Dva zápasy za víkend</h3>
+                <ul class="ph-list">
+                    <li><b>Hned po prvním zápase</b> najíst a napít – do 30 minut. Bageta, banán, kakao.</li>
+                    <li>Převléct se do suchého a teplého, nezatuhnout.</li>
+                    <li>Večer mezi zápasy pořádná večeře s přílohou a spát včas.</li>
+                    <li>Na druhý zápas se znovu rozcvič – i když máš pocit, že jsi „rozehřátý z včerejška“.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Dva zápasy v jeden den</h3>
+                <p>Na podzim třeba <b>4. 10.</b> (dorost 12:15, béčko 15:00) nebo <b>24. 10.</b> (dorost 11:45, béčko 14:30).</p>
+                <ul class="ph-list">
+                    <li>Mezi zápasy <b>jen lehké jídlo</b>: banán, rohlík s medem, piškoty, iontový nápoj. Žádný řízek v hospodě.</li>
+                    <li>Pít průběžně, po douscích.</li>
+                    <li>Tepláky a mikina, nesedět zpocený.</li>
+                    <li>20 minut před druhým zápasem krátká rozcvička znovu.</li>
+                    <li>Po druhém zápase normální jídlo – a v pondělí na běh. Pro tebe je ještě důležitější než pro ostatní.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ pondělí -->
+    <section class="section ph-block ph-c-tyden" id="pondeli">
+        <div class="ph-block__head">
+            <span class="ph-tag">Pondělí</span>
+            <h2>Proč pondělní běh má smysl</h2>
+            <p>V pondělí jste unavení – to je pravda a je to normální. Jenže <b>únava po zápase není důvod nejít. Je to důvod jít.</b></p>
+        </div>
+
+        <ol class="ph-why">
+            <li><b>Rozběháš víkend.</b> Po zápase jsou svaly ztuhlé a drobně poškozené. Lehký běh je prokrví – kyslík a živiny se do nich dostanou rychleji a opraví je. Kdo pondělí proleží, je ztuhlý ještě v úterý. Kdo lehce vyběhá, je v úterý čerstvý.</li>
+            <li><b>Není to závod.</b> Pondělí je lehké tempo – takové, abys u toho mohl mluvit. Když nemůžeš mluvit, zpomal. Nejde o čas, jde o to být v pohybu 30 minut.</li>
+            <li><b>Kondice = rychlejší nohy v 80. minutě.</b> Vytrvalostní základ z pondělka dělá to, že se mezi sprinty v zápase rychleji vydýcháš. Hodně gólů padá v posledních minutách – když soupeři dojdou síly a tobě ne.</li>
+            <li><b>Cesta do béčka a áčka.</b> Za dospělé chodí ti, kdo zvládnou víc zápasů a víc zátěže než ostatní. Tu si nebuduješ v zápase, ale v pondělí.</li>
+            <li><b>Méně zranění.</b> Unavený, špatně připravený sval se trhá. Pravidelná zátěž přes týden je nejlepší ochrana, jakou máte.</li>
+        </ol>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Jsem unavený</h3>
+                <p>Svalovice a únava po víkendu = <b>přijď</b>. Poběžíš pomaleji a po běhu válec. Za hodinu ti bude líp než na gauči.</p>
+            </div>
+            <div class="ph-card ph-card--warn">
+                <h3>Něco mě bolí</h3>
+                <p><b>Zranění se hlásí před tréninkem, ne místo tréninku.</b> Napiš trenérovi konkrétně <i>co</i>, <i>kde</i> a <i>od kdy</i> bolí (viz <a href="#bolest">Bolest a zranění</a>). A přijď i tak – místo běhu dostaneš jinou práci: guma, válec, cviky, které bolest nezhorší. Zranění se neléčí gaučem.</p>
+            </div>
+        </div>
     </section>
 
     <!-- ============================================================ guma -->
@@ -414,6 +514,8 @@
         </div>
         <ol class="ph-quiz">
             <li>Proč se svaly zlepšují až <i>po</i> tréninku?</li>
+            <li>Proč se v pondělí běhá lehce a proč i po zápase?</li>
+            <li>Co sníš mezi dvěma zápasy v jeden den?</li>
             <li>Kterých 5 cviků s gumou děláme před tréninkem?</li>
             <li>Kde se válcem nikdy nejezdí a jak moc to má bolet?</li>
             <li>Jak dlouho před odpoledním tréninkem máš mít oběd a co na talíři nechceš?</li>
