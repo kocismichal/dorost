@@ -178,10 +178,12 @@ kolem tréninku, pití, spánek, den zápasu s taškou, bolest a zranění, otá
 k nastudování. Každá sekce má barvu přes třídu `ph-c-…` v `pro-hrace.css`.
 Tlačítko **Vytisknout tahák** schová menu a vytiskne jen obsah.
 
-Sekce **Prevence zranění (FIFA 11+)** má přehrávač videí: vlevo YouTube
+Sekce **Prevence zranění (FIFA 11+)**, **guma**, **válec** a **míček** mají přehrávač videí: vlevo YouTube
 (přes youtube-nocookie.com), vpravo seznam cviků. Seznam videí, dávkování
-a české popisy jsou v poli `CVIKY` v `assets/js/pro-hrace.js` – video se
+a české popisy jsou v polích `FIFA`, `GUMA`, `VALEC`, `MICEK` v `assets/js/pro-hrace.js` – video se
 mění prostým přepsáním ID (`yt`). Cviky 7–12 mají tři úrovně.
+Oficiální videa FIFA vkládání na cizí weby blokují – proto souhrny od
+University of Iowa. Nové video vždy vyzkoušet na živé stránce.
 
 > **Důležité:** po každé změně v `app.js`, `points.js`, `core.js`,
 > `plakaty.js`, `plakat-data.js`, `taktika.js`, `pro-hrace.js`, `app.css`,

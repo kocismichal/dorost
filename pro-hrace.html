@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/pro-hrace.css?v=3">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=4">
 </head>
 <body>
 
@@ -214,13 +214,8 @@
         <p class="ph-tip"><b>Jedno pravidlo pro všechny cviky:</b> koleno míří nad špičku a nikdy nepadá dovnitř. Doskok měkce na přední část chodidla s pokrčenými koleny. Právě špatný doskok a „koleno dovnitř“ jsou nejčastější cesta k přetrženému vazu.</p>
 
         <h3 class="ph-sub">Videa ke cvikům</h3>
-        <div class="ph-pl">
-            <div class="ph-pl__main" id="fifaPlayer"></div>
-            <div class="ph-pl__side">
-                <div class="ph-pl__list" id="fifaList"></div>
-            </div>
-        </div>
-        <p class="ph-note ph-src">Videa: oficiální kanál FIFA (souhrny částí) a Ontario Soccer (jednotlivé cviky). Jsou anglicky, ale je z nich jasně vidět, jak cvik vypadá – český popis a dávkování je pod videem.</p>
+        <div class="ph-pl" data-videa="fifa"></div>
+        <p class="ph-note ph-src">Videa: University of Iowa Health Care (souhrny částí) a Ontario Soccer (jednotlivé cviky). Jsou anglicky, ale je z nich jasně vidět, jak cvik vypadá – český popis a dávkování je pod videem.</p>
     </section>
 
     <!-- ============================================================ guma -->
@@ -267,6 +262,9 @@
             <li><b>Výpad s gumou</b><span class="ph-dose">2× 8 na každou nohu</span>
                 <p>Miniband nad koleny. Krok vpřed, koleno přední nohy míří nad špičku, nepadá dovnitř. Stabilita kolena a kotníku.</p></li>
         </ol>
+        <h3 class="ph-sub">Videa</h3>
+        <div class="ph-pl" data-videa="guma"></div>
+        <p class="ph-note ph-src">Videa jsou anglicky od fyzioterapeutů (MedStar Health, Hinge Health aj.) – český popis a dávkování je pod videem.</p>
         <p class="ph-tip"><b>Výzva:</b> kdo zvládne monster walk s nejsilnější gumou čistě a nejdéle? Rozcvička se pak dělá sama.</p>
     </section>
 
@@ -321,6 +319,9 @@
             <li><b>Horní záda</b><span class="ph-dose">1 min</span>
                 <p>Válec pod lopatkami, ruce za hlavou, pánev na zemi. Pomalu se zakláněj přes válec. Jen hrudní část – ne bedra.</p></li>
         </ol>
+        <h3 class="ph-sub">Videa</h3>
+        <div class="ph-pl" data-videa="valec"></div>
+        <p class="ph-note ph-src">Videa: Runner's World a [P]rehab – krátké ukázky, anglicky.</p>
     </section>
 
     <!-- ============================================================ míček -->
@@ -366,6 +367,9 @@
             <li><b>Mezi lopatkami</b><span class="ph-dose">1 min</span>
                 <p>Záda o zeď, míček mezi páteří a lopatkou (ne přímo na páteř). Mírně pokrčuj kolena a posouvej se.</p></li>
         </ol>
+        <h3 class="ph-sub">Videa</h3>
+        <div class="ph-pl" data-videa="micek"></div>
+        <p class="ph-note ph-src">Videa jsou anglicky od fyzioterapeutů – ukázka s lakrosovým míčkem, stejně to jde s tvrdým masážním míčkem.</p>
     </section>
 
     <!-- ============================================================ jídlo -->
@@ -589,6 +593,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/pro-hrace.js?v=2"></script>
+<script type="module" src="assets/js/pro-hrace.js?v=3"></script>
 </body>
 </html>
