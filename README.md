@@ -7,6 +7,7 @@ Firestore, takže je vidí všichni živě. Stránky:
 - **Kanadské body** (`kanadske-body.html`) – zápasy, góly a asistence
 - **Plakáty** (`plakaty.html`) – plakát A3 na víkend
 - **Taktika** (`taktika.html`) – taktická tabule: rozestavení, rohy, pokyny
+- **Pro hráče** (`pro-hrace.html`) – přehled k nastudování: regenerace, guma, válec, míček, jídlo, pití, spánek, den zápasu
 
 Platí pro všechny:
 
@@ -21,9 +22,11 @@ index.html               pokutníček
 kanadske-body.html       kanadské bodování
 plakaty.html             plakáty na víkend
 taktika.html             taktická tabule
+pro-hrace.html           přehled pro hráče (statický text)
 assets/css/app.css       styly webu
 assets/css/plakat.css    styly plakátu (zapouzdřené pod #plakatApp)
 assets/css/taktika.css   styly taktické tabule
+assets/css/pro-hrace.css styly stránky Pro hráče
 assets/js/core.js        sdílené jádro – Firebase, přihlášení, soupiska
 assets/js/app.js         logika pokut
 assets/js/points.js      logika kanadských bodů
@@ -31,6 +34,7 @@ assets/js/rozpis-dorost.js rozpis zápasů dorostu (podzim 2026) pro kanadské b
 assets/js/plakaty.js     logika plakátů
 assets/js/plakat-data.js znaky, soutěže a rozlosování podzimu 2026
 assets/js/taktika.js     logika taktické tabule
+assets/js/pro-hrace.js   hlavička a tisk stránky Pro hráče
 assets/plakat/znaky/     znaky klubů (58 souborů)
 assets/plakat/qr/        QR kód na Instagram
 assets/img/logo.png      logo klubu
@@ -149,7 +153,15 @@ Ukládá se samo, asi vteřinu po poslední změně.
 Souřadnice jsou v metrech hřiště 105 × 68, pohled Polovina jen otočí pravou
 polovinu – při přepínání se tedy nic nepřepočítává.
 
+## Pro hráče
+
+Statická stránka – obsah se mění přímo v `pro-hrace.html`, z databáze nic
+nečte. Sekce: guma, válec, míček (druhy, kdy a jak, konkrétní cviky), jídlo
+kolem tréninku, pití, spánek, den zápasu s taškou, bolest a zranění, otázky
+k nastudování. Každá sekce má barvu přes třídu `ph-c-…` v `pro-hrace.css`.
+Tlačítko **Vytisknout tahák** schová menu a vytiskne jen obsah.
+
 > **Důležité:** po každé změně v `app.js`, `points.js`, `core.js`,
-> `plakaty.js`, `plakat-data.js`, `taktika.js`, `app.css`, `plakat.css` nebo
-> `taktika.css` zvyš číslo `?v=` u odkazů ve všech `.html` (a u importů uvnitř skriptů). Bez toho si
+> `plakaty.js`, `plakat-data.js`, `taktika.js`, `pro-hrace.js`, `app.css`,
+> `plakat.css`, `taktika.css` nebo `pro-hrace.css` zvyš číslo `?v=` u odkazů ve všech `.html` (a u importů uvnitř skriptů). Bez toho si
 > prohlížeče drží starou verzi a lidem se změna neprojeví.

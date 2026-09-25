@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Pro hráče</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=12">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=1">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link" href="plakaty.html">Plakáty</a>
+        <a class="subnav__link" href="taktika.html">Taktika</a>
+        <a class="subnav__link is-active" href="pro-hrace.html">Pro hráče</a>
+    </div>
+</nav>
+
+<main class="wrap ph">
+
+    <!-- ============================================================ úvod -->
+    <section class="section">
+        <div class="section-head section-head--row">
+            <div>
+                <h2>Pro hráče – regenerace, pomůcky, jídlo</h2>
+                <p>Společný přehled pro celý tým. Svaly nesílí na tréninku, ale po něm – trénink je zátěž, tělo se z ní zotaví a příště je o kousek silnější. Kdo neregeneruje, ten se nezlepšuje, jenom se unavuje.</p>
+            </div>
+            <button type="button" class="btn btn--ghost" id="printBtn">Vytisknout tahák</button>
+        </div>
+
+        <div class="ph-trio">
+            <a class="ph-trio__t ph-c-guma" href="#guma">
+                <span class="ph-trio__k">Guma</span>
+                <b>tě zapne</b>
+                <span>před tréninkem, 5 minut</span>
+            </a>
+            <a class="ph-trio__t ph-c-valec" href="#valec">
+                <span class="ph-trio__k">Válec</span>
+                <b>tě opraví</b>
+                <span>po tréninku a doma</span>
+            </a>
+            <a class="ph-trio__t ph-c-micek" href="#micek">
+                <span class="ph-trio__k">Míček</span>
+                <b>ti srovná základnu</b>
+                <span>večer, 2 minuty na nohu</span>
+            </a>
+        </div>
+
+        <nav class="ph-chips" aria-label="Obsah">
+            <a href="#guma">Guma</a>
+            <a href="#valec">Válec</a>
+            <a href="#micek">Míček</a>
+            <a href="#jidlo">Jídlo a trénink</a>
+            <a href="#piti">Pití</a>
+            <a href="#spanek">Spánek</a>
+            <a href="#zapas">Den zápasu</a>
+            <a href="#bolest">Bolest a zranění</a>
+            <a href="#ukoly">K nastudování</a>
+        </nav>
+    </section>
+
+    <!-- ============================================================ guma -->
+    <section class="section ph-block ph-c-guma" id="guma">
+        <div class="ph-block__head">
+            <span class="ph-tag">Před tréninkem</span>
+            <h2>Odporová guma</h2>
+            <p>Guma je o <b>aktivaci a stabilitě</b>. Po šesti hodinách v lavici „spí“ hýždě i svaly mezi lopatkami. Odpor gumy donutí mozek je zapnout – pak při sprintu a odrazu pracují velké svaly a netahá se to přes kolena a bedra. V dorosteneckém věku rostou kosti rychleji než svaly a šlachy, klouby bývají volnější a guma tu nestabilitu pomáhá vyrovnat.</p>
+        </div>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Druhy</h3>
+                <dl class="ph-dl">
+                    <dt>Miniband (krátká smyčka)</dt>
+                    <dd>Kolem kolen nebo kotníků. Aktivace hýždí, stabilita kolen – hlavní guma pro nás.</dd>
+                    <dt>Powerband (dlouhá smyčka)</dt>
+                    <dd>Ramena a lopatky, protažení, asistence u shybů, sprinty s odporem ve dvojici.</dd>
+                    <dt>Textilní vs. latexová</dt>
+                    <dd>Textilní neřeže, neklouže a nepraskne – pro miniband lepší volba. Latexová je levnější a na powerband v pohodě.</dd>
+                </dl>
+            </div>
+            <div class="ph-card">
+                <h3>Kdy a jak</h3>
+                <ul class="ph-list">
+                    <li><b>Před tréninkem a zápasem</b> – 5 minut jako součást rozcvičky, před během.</li>
+                    <li><b>Pomalu a pod kontrolou</b> – guma tě nesmí „střelit“ zpátky. Pohyb tam i zpět stejně plynule.</li>
+                    <li><b>Kolena ven</b> – při dřepu s gumou nad koleny nesmí kolena padat dovnitř. Přesně to guma učí.</li>
+                    <li>Začni slabší gumou. Když zvládneš všechno čistě, přidej sílu.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Rozcvička s gumou – 5 minut</h3>
+        <ol class="ph-ex">
+            <li><b>Monster walk</b><span class="ph-dose">2× 10 kroků na každou stranu</span>
+                <p>Miniband nad koleny, pokrčená kolena, záda rovně. Úkroky do strany, guma stále napnutá, nohy se neskládají k sobě.</p></li>
+            <li><b>Mušle (clamshell)</b><span class="ph-dose">2× 12 na každou nohu</span>
+                <p>Leh na boku, kolena pokrčená, guma nad koleny. Paty u sebe, horní koleno otevírej nahoru, pánev se nepřeklápí dozadu.</p></li>
+            <li><b>Hýžďový most</b><span class="ph-dose">2× 12</span>
+                <p>Leh na zádech, guma nad koleny. Zvedni pánev, nahoře vydrž 2 vteřiny a tlač kolena lehce od sebe.</p></li>
+            <li><b>Rozpažování (pull-apart)</b><span class="ph-dose">2× 15</span>
+                <p>Powerband v natažených rukou před hrudníkem. Roztáhni ho k hrudníku, lopatky k sobě, ramena dole – ne u uší.</p></li>
+            <li><b>Výpad s gumou</b><span class="ph-dose">2× 8 na každou nohu</span>
+                <p>Miniband nad koleny. Krok vpřed, koleno přední nohy míří nad špičku, nepadá dovnitř. Stabilita kolena a kotníku.</p></li>
+        </ol>
+        <p class="ph-tip"><b>Výzva:</b> kdo zvládne monster walk s nejsilnější gumou čistě a nejdéle? Rozcvička se pak dělá sama.</p>
+    </section>
+
+    <!-- ============================================================ válec -->
+    <section class="section ph-block ph-c-valec" id="valec">
+        <div class="ph-block__head">
+            <span class="ph-tag">Po tréninku a doma</span>
+            <h2>Masážní válec (foam roller)</h2>
+            <p>Válec slouží k <b>uvolnění svalů a fascií</b> vlastní vahou. Nejde o to „rozmačkat se“ – tlak dává nervové soustavě signál, že sval může povolit. Výsledek: lepší rozsah pohybu, pocit lehčích nohou a menší ztuhlost druhý den po zápase.</p>
+        </div>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Druhy</h3>
+                <dl class="ph-dl">
+                    <dt>Hladký, středně tvrdý</dt>
+                    <dd>Nejlepší na začátek. Rovnoměrný tlak, dobře se na něm učí technika a dýchání.</dd>
+                    <dt>S mřížkou / výstupky (grid)</dt>
+                    <dd>Plastové jádro, výstupky jako prsty maséra. Pro ty, kdo už jsou zvyklí. <b>Doporučení pro klub: grid, délka cca 33 cm</b> – vydrží, vejde se do tašky, stačí na nohy i záda.</dd>
+                    <dt>Extra tvrdý (černý EPP)</dt>
+                    <dd>Levný a nezničitelný, ale pro nezvyklé moc bolí – a sval, který se bolestí zatíná, se neuvolní.</dd>
+                    <dt>Vibrační</dt>
+                    <dd>Příjemné, ale drahé. Není potřeba.</dd>
+                </dl>
+                <p class="ph-note">Nekupovat úplně levné měkké molitanové válce – po měsíci jsou z nich šišky.</p>
+            </div>
+            <div class="ph-card">
+                <h3>Kdy a jak</h3>
+                <ul class="ph-list">
+                    <li><b>Před tréninkem</b> – krátce a rychleji, 20–30 vteřin na sval. Jen probudit, ne unavit.</li>
+                    <li><b>Po tréninku / doma</b> – pomalu, 1–2 minuty na sval. Na citlivém místě zastav a prodýchej, dokud nepovolí.</li>
+                    <li><b>Bolest max. 6 z 10</b> – „příjemně nepříjemné“. Když zadržuješ dech nebo se kroutíš, je to moc.</li>
+                    <li><b>Dýchej</b> – pomalý výdech pomáhá svalu povolit.</li>
+                    <li><b>Nikdy přes kosti a klouby</b> – ne přes kolena, ne na bedra (spodní část zad).</li>
+                    <li><b>Ne na čerstvé zranění</b> – natažený sval, modřina nebo otok se neválí.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Válec po tréninku – 8 až 10 minut</h3>
+        <ol class="ph-ex">
+            <li><b>Lýtka</b><span class="ph-dose">1 min každá noha</span>
+                <p>Sed, válec pod lýtkem, zvedni se na rukou. Pro větší tlak dej druhou nohu navrch. Zkus i vytočit špičku dovnitř a ven.</p></li>
+            <li><b>Zadní stehno</b><span class="ph-dose">1 min každá noha</span>
+                <p>Sed, válec pod stehnem, jeď od sedací kosti ke koleni (koleno samotné vynech).</p></li>
+            <li><b>Přední stehno</b><span class="ph-dose">1 min každá noha</span>
+                <p>Vzpor na předloktích, válec pod stehny. Od kyčle nad koleno, zpevněné břicho, nepropadat v bedrech.</p></li>
+            <li><b>Vnitřní stehno (třísla)</b><span class="ph-dose">1 min každá noha</span>
+                <p>Na břiše, noha pokrčená do strany, válec pod vnitřní stranou stehna. U fotbalistů hodně důležité.</p></li>
+            <li><b>Hýždě</b><span class="ph-dose">1 min každá strana</span>
+                <p>Sed na válci, kotník přes druhé koleno (čtyřka), nakloň se na stranu pokrčené nohy.</p></li>
+            <li><b>Horní záda</b><span class="ph-dose">1 min</span>
+                <p>Válec pod lopatkami, ruce za hlavou, pánev na zemi. Pomalu se zakláněj přes válec. Jen hrudní část – ne bedra.</p></li>
+        </ol>
+    </section>
+
+    <!-- ============================================================ míček -->
+    <section class="section ph-block ph-c-micek" id="micek">
+        <div class="ph-block__head">
+            <span class="ph-tag">Kdykoli – večer, ráno</span>
+            <h2>Míček na chodidla a detaily</h2>
+            <p>Míček se dostane tam, kam válec ne. <b>Chodidlo je základna celého těla</b> – nese každý krok, sprint i odraz. Ztuhlá chodidla a lýtka se propisují do kotníků i kolen. Míček zabere v tašce minimum místa, takže jede i na venkovní zápasy.</p>
+        </div>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Druhy</h3>
+                <dl class="ph-dl">
+                    <dt>Lakrosový míček</dt>
+                    <dd>Tvrdý a hladký, nejlepší poměr cena/užitek. Chodidla, hýždě, lopatky.</dd>
+                    <dt>Ježek (s bodlinami)</dt>
+                    <dd>Víc stimuluje kůži a nervová zakončení na plosce, do hloubky jde méně. Dobrý na probuzení chodidel ráno.</dd>
+                    <dt>Dvojitý míček (duoball)</dt>
+                    <dd>Dvě spojené koule – na svaly podél páteře, páteř jde do mezery mezi nimi.</dd>
+                </dl>
+            </div>
+            <div class="ph-card">
+                <h3>Kdy a jak</h3>
+                <ul class="ph-list">
+                    <li><b>Večer u televize</b> nebo ráno po probuzení – 2 minuty na každou nohu.</li>
+                    <li>Vestoje nebo vsedě přejížděj chodidlo od paty k prstům a krouživě do stran.</li>
+                    <li>Hledej <b>citlivá místa</b>, na nich zastav a prodýchej.</li>
+                    <li>Vestoje dávkuješ tlak tím, kolik váhy dáš na nohu. Začni vsedě.</li>
+                    <li>Efekt poznáš hned – projdi se a porovnej obě nohy.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Míček – 5 minut večer</h3>
+        <ol class="ph-ex">
+            <li><b>Chodidlo</b><span class="ph-dose">2 min každá noha</span>
+                <p>Podélně od paty ke špičce, pak napříč, nakonec kroužky. Na citlivém místě 20–30 vteřin.</p></li>
+            <li><b>Lýtko</b><span class="ph-dose">1 min každá noha</span>
+                <p>Sed, míček pod lýtkem, druhá noha navrch. Pomalu nahoru a dolů, vytáčej špičku do stran.</p></li>
+            <li><b>Hýždě</b><span class="ph-dose">1 min každá strana</span>
+                <p>Opři se zády o zeď nebo si sedni, míček pod hýždí. Malé kroužky.</p></li>
+            <li><b>Mezi lopatkami</b><span class="ph-dose">1 min</span>
+                <p>Záda o zeď, míček mezi páteří a lopatkou (ne přímo na páteř). Mírně pokrčuj kolena a posouvej se.</p></li>
+        </ol>
+    </section>
+
+    <!-- ============================================================ jídlo -->
+    <section class="section ph-block ph-c-jidlo" id="jidlo">
+        <div class="ph-block__head">
+            <span class="ph-tag">Palivo</span>
+            <h2>Jídlo a trénink</h2>
+            <p>Jídlo je součást přípravy na výkon. Tělo potřebuje čas, aby krev ze žaludku (trávení) mohla jít do svalů (výkon). Kdo hodí do sebe kebab čtvrt hodiny před tréninkem, ten trénink zahodil – tělo bojuje s jídlem, ne se soupeřem.</p>
+        </div>
+
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card">
+                <h3>Trénink v 9:00 – snídaně</h3>
+                <p class="ph-time"><b>7:00–7:30</b> ideál</p>
+                <ul class="ph-list">
+                    <li>Ovesná kaše s banánem nebo borůvkami a trochou medu.</li>
+                    <li>Chleba nebo toast se šunkou, sýrem, vajíčkem.</li>
+                    <li>Lívance, palačinky (ne v tuně oleje).</li>
+                </ul>
+                <p class="ph-time"><b>8:15</b> když zaspíš</p>
+                <ul class="ph-list">
+                    <li>Banán, jogurt s cornflakes, rýžový chlebíček s medem, smoothie.</li>
+                    <li>Žádná vajíčka se slaninou – při prvním sprintu budou skákat.</li>
+                </ul>
+                <p class="ph-note">Hned po probuzení 3–5 dl vody. <b>Nikdy nalačno</b> – po 20 minutách budeš bez šťávy.</p>
+            </div>
+            <div class="ph-card">
+                <h3>Trénink ve 14:00 – oběd</h3>
+                <p class="ph-time"><b>11:00–11:30</b> ideál (2,5–3 h předem)</p>
+                <ul class="ph-list">
+                    <li><b>Jíst:</b> těstoviny, rýže, brambory, kuskus + kuřecí, krůtí, ryba. Málo tuku.</li>
+                    <li><b>Vynechat:</b> smažené (řízek, hranolky, smažák), smetanové omáčky, svíčková, guláš, velká mísa luštěnin nebo syrové zeleniny.</li>
+                </ul>
+                <p class="ph-time"><b>Škola do 13:00?</b></p>
+                <ul class="ph-list">
+                    <li>V 11:00 větší svačina (bageta se šunkou, banán, jogurt).</li>
+                    <li>Ve 13:00 už jen něco malého, pořádný oběd až po tréninku.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Poslední záchrana a po tréninku</h3>
+                <p class="ph-time"><b>30–60 min</b> před startem</p>
+                <ul class="ph-list">
+                    <li>Banán, ovocná kapsička, pár piškotů, rohlík s medem nebo džemem, hroznový cukr.</li>
+                </ul>
+                <p class="ph-time"><b>Do hodiny</b> po tréninku</p>
+                <ul class="ph-list">
+                    <li>Sacharidy + bílkoviny: bageta se šunkou nebo sýrem, kakao / mléko, jogurt nebo tvaroh s banánem.</li>
+                    <li>Pak normální večeře. Ne rovnou z hřiště do fastfoodu.</li>
+                </ul>
+                <p class="ph-note"><b>Energetické nápoje ne.</b> Kofein ve velké dávce do dorostu nepatří a spánek po nich stojí za nic.</p>
+            </div>
+        </div>
+        <p class="ph-tip"><b>Žaludek jako kotel:</b> těstoviny s kuřecím jsou suché dřevo – hned hoří a dávají energii. Smažák s tatarkou je mokrý pařez – jen čoudí.</p>
+    </section>
+
+    <!-- ============================================================ pití -->
+    <section class="section ph-block ph-c-piti" id="piti">
+        <div class="ph-block__head">
+            <span class="ph-tag">Každý den</span>
+            <h2>Pití</h2>
+            <p>Už malá ztráta vody zhorší rozhodování, přesnost i vytrvalost. Kdo přijde na trénink „vyschlý“, dožene to až druhý den.</p>
+        </div>
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card">
+                <h3>Během dne</h3>
+                <ul class="ph-list">
+                    <li>Láhev s sebou do školy a pít průběžně, ne všechno najednou.</li>
+                    <li><b>Test barvy moči:</b> světle žlutá = v pořádku, tmavá = piješ málo.</li>
+                    <li>Základ je voda. Slazené limonády jen výjimečně.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Kolem tréninku</h3>
+                <ul class="ph-list">
+                    <li><b>2 hodiny předem</b> cca 0,5 l.</li>
+                    <li><b>Během</b> po douscích v každé pauze.</li>
+                    <li><b>Po tréninku</b> dopít, co jsi vypotil – ideálně s jídlem.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>V horku</h3>
+                <ul class="ph-list">
+                    <li>Pít víc a častěji, i když nemáš žízeň.</li>
+                    <li>Při dlouhém tréninku nebo turnaji se hodí iontový nápoj nebo voda + něco slaného.</li>
+                    <li>Bolest hlavy, točení hlavy, zimnice v horku = hned říct trenérovi.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ spánek -->
+    <section class="section ph-block ph-c-spanek" id="spanek">
+        <div class="ph-block__head">
+            <span class="ph-tag">Nejlepší regenerace zdarma</span>
+            <h2>Spánek</h2>
+            <p>Žádný válec ani doplněk nenahradí spánek. Ve spánku tělo opravuje svaly a v tvém věku i roste. Kdo dlouhodobě spí málo, je pomalejší, víc se zraňuje a hůř se učí nové věci – na hřišti i ve škole.</p>
+        </div>
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Kolik</h3>
+                <p class="ph-big">8–10 hodin</p>
+                <p>Doporučení pro věk 13–18 let. Chodit spát a vstávat přibližně ve stejnou dobu – i o víkendu.</p>
+            </div>
+            <div class="ph-card">
+                <h3>Jak spát líp</h3>
+                <ul class="ph-list">
+                    <li><b>Mobil hodinu před spaním pryč</b> – světlo z displeje i scrollování drží mozek vzhůru.</li>
+                    <li>Tma, chladnější pokoj, žádná televize u postele.</li>
+                    <li>Večer po tréninku najíst, ale ne těžce těsně před spaním.</li>
+                    <li>Kofein (energetiky, kola, káva) odpoledne a večer ne.</li>
+                    <li>Po večerním zápase se hůř usíná – pomůže sprcha, jídlo a klid, ne hraní na mobilu do dvou.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ zápas -->
+    <section class="section ph-block ph-c-zapas" id="zapas">
+        <div class="ph-block__head">
+            <span class="ph-tag">Víkend</span>
+            <h2>Den zápasu</h2>
+        </div>
+        <ol class="ph-timeline">
+            <li><b>Den předem</b><span>Normální jídlo s přílohou (těstoviny, rýže, brambory), dost pít, sbalit tašku večer, spát včas.</span></li>
+            <li><b>3–4 h před výkopem</b><span>Poslední pořádné jídlo. Jen to, co znáš – v den zápasu se nic nového nezkouší.</span></li>
+            <li><b>1 h před</b><span>Jen malá svačina, pokud máš hlad (banán, piškoty). Upíjet vodu.</span></li>
+            <li><b>Rozcvička</b><span>Guma (5 min) → běžecká abeceda → míč. Válec jen krátce, pokud vůbec.</span></li>
+            <li><b>Poločas</b><span>Pár doušků, případně kousek banánu.</span></li>
+            <li><b>Po zápase</b><span>Vyklusat a protáhnout, do hodiny najíst (sacharidy + bílkoviny), napít se. Večer válec a míček.</span></li>
+            <li><b>Den po</b><span>Lehký pohyb (procházka, kolo, plavání) a válec. Lepší než proležet den na gauči.</span></li>
+        </ol>
+
+        <h3 class="ph-sub">Co mít v tašce</h3>
+        <ul class="ph-check">
+            <li>Láhev s vodou (plná)</li>
+            <li>Svačina na potom – bageta, banán, kakao</li>
+            <li>Míček na chodidla</li>
+            <li>Miniband</li>
+            <li>Náhradní ponožky a tričko</li>
+            <li>Chrániče, kopačky, turfy podle povrchu</li>
+            <li>Mikina / bunda na po zápase</li>
+            <li>Ručník a sprcháč</li>
+        </ul>
+    </section>
+
+    <!-- ============================================================ bolest -->
+    <section class="section ph-block ph-c-bolest" id="bolest">
+        <div class="ph-block__head">
+            <span class="ph-tag">Důležité</span>
+            <h2>Bolest a zranění</h2>
+            <p>Únava a svalovice po tréninku jsou v pořádku. Bolest, která se vrací nebo zhoršuje, v pořádku není – to se nepřechází ani „nerozválí“.</p>
+        </div>
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Normální</h3>
+                <ul class="ph-list">
+                    <li>Svalovice 1–2 dny po náročném tréninku, rozlitá po celém svalu.</li>
+                    <li>Po rozcvičení se zlepší.</li>
+                    <li>Pomůže lehký pohyb, válec, spánek, jídlo.</li>
+                </ul>
+            </div>
+            <div class="ph-card ph-card--warn">
+                <h3>Říct trenérovi</h3>
+                <ul class="ph-list">
+                    <li>Ostrá bolest na jednom místě, zvlášť v kloubu nebo na kosti.</li>
+                    <li>Bolest, která se během tréninku zhoršuje nebo tě nutí kulhat.</li>
+                    <li>Otok, modřina, „lupnutí“ při pohybu.</li>
+                    <li>Bolest pod kolenem nebo na patě, která se vrací po každém tréninku – v růstu to je časté (úpony šlach na rostoucí kosti) a řeší se úpravou zátěže, ne přecházením.</li>
+                    <li>Jakýkoli úder do hlavy s bolestí hlavy, motáním nebo zvracením – <b>hned konec hry</b>.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ úkoly -->
+    <section class="section ph-block ph-c-ukoly" id="ukoly">
+        <div class="ph-block__head">
+            <span class="ph-tag">K nastudování</span>
+            <h2>Co by měl umět každý z vás</h2>
+            <p>Projděte si stránku a na tréninku se budeme ptát. Kdo odpoví, má u trenéra plus.</p>
+        </div>
+        <ol class="ph-quiz">
+            <li>Proč se svaly zlepšují až <i>po</i> tréninku?</li>
+            <li>Kterých 5 cviků s gumou děláme před tréninkem?</li>
+            <li>Kde se válcem nikdy nejezdí a jak moc to má bolet?</li>
+            <li>Jak dlouho před odpoledním tréninkem máš mít oběd a co na talíři nechceš?</li>
+            <li>Co sníš, když máš do tréninku jen 45 minut?</li>
+            <li>Jak poznáš, že piješ málo?</li>
+            <li>Kolik hodin bys měl spát a co udělat s mobilem před spaním?</li>
+            <li>Kdy bolest musíš hlásit trenérovi?</li>
+        </ol>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · pro hráče</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/pro-hrace.js?v=1"></script>
+</body>
+</html>

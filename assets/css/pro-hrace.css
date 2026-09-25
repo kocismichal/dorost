@@ -1,0 +1,279 @@
+/* ==========================================================================
+   FK AGRO VNOROVY – PRO HRÁČE
+   Přehled regenerace, pomůcek a jídla. Každý blok má vlastní barvu (--c),
+   jinak se drží stylu zbytku webu (app.css).
+   ========================================================================== */
+
+.ph-c-guma   { --c: #c8102e; --c-tint: #fdeef0; }
+.ph-c-valec  { --c: #1d5fa8; --c-tint: #e9f1fb; }
+.ph-c-micek  { --c: #16794a; --c-tint: #e6f5ed; }
+.ph-c-jidlo  { --c: #b45309; --c-tint: #fdf3e7; }
+.ph-c-piti   { --c: #0e7490; --c-tint: #e5f5f8; }
+.ph-c-spanek { --c: #4338ca; --c-tint: #eeedfc; }
+.ph-c-zapas  { --c: #14171a; --c-tint: #eceeef; }
+.ph-c-bolest { --c: #b91c1c; --c-tint: #fdecec; }
+.ph-c-ukoly  { --c: #7c3aed; --c-tint: #f3edfd; }
+
+.ph section[id] { scroll-margin-top: 16px; }
+
+/* ------------------------------------------------------------ trojice --- */
+
+.ph-trio {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+.ph-trio__t {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 5px solid var(--c);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    color: var(--text);
+    text-decoration: none;
+    transition: box-shadow .15s, transform .15s;
+}
+.ph-trio__t:hover { box-shadow: var(--shadow-up); transform: translateY(-2px); }
+.ph-trio__k {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--c);
+}
+.ph-trio__t b { font-size: 22px; font-weight: 900; }
+.ph-trio__t span:last-child { font-size: 13.5px; color: var(--muted); }
+
+/* ------------------------------------------------------------- obsah --- */
+
+.ph-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+}
+.ph-chips a {
+    padding: 7px 13px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-soft);
+    text-decoration: none;
+}
+.ph-chips a:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ------------------------------------------------------------- bloky --- */
+
+.ph-block {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--c);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 24px 26px 26px;
+}
+.ph-block__head { margin-bottom: 18px; }
+.ph-block__head h2 {
+    font-size: 23px;
+    font-weight: 900;
+    margin: 6px 0 8px;
+}
+.ph-block__head p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-soft);
+    max-width: 95ch;
+}
+.ph-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--c-tint);
+    color: var(--c);
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.ph-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+.ph-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.ph-card {
+    background: var(--bg-soft);
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--text-soft);
+}
+.ph-card p { margin: 0 0 8px; }
+.ph-card h3 {
+    margin: 0 0 10px;
+    font-size: 15px;
+    font-weight: 900;
+    color: var(--c);
+}
+.ph-card--warn { background: var(--c-tint); border-color: transparent; }
+
+.ph-list { margin: 0 0 10px; padding-left: 18px; }
+.ph-list li { margin-bottom: 6px; }
+.ph-list li::marker { color: var(--c); }
+.ph-list b, .ph-dl dt, .ph-time b { color: var(--text); }
+
+.ph-dl { margin: 0; }
+.ph-dl dt { font-weight: 800; margin-top: 10px; }
+.ph-dl dt:first-child { margin-top: 0; }
+.ph-dl dd { margin: 2px 0 0; }
+
+.ph-time { margin: 12px 0 6px !important; font-size: 13px; color: var(--muted); }
+.ph-time:first-of-type { margin-top: 0 !important; }
+.ph-note { font-size: 13.5px; color: var(--muted); margin-top: 10px !important; }
+.ph-big { font-size: 34px; font-weight: 900; color: var(--c); margin: 0 0 6px !important; }
+
+.ph-sub {
+    margin: 24px 0 12px;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.ph-tip {
+    margin: 16px 0 0;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    background: var(--c-tint);
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--text-soft);
+}
+
+/* ------------------------------------------------------ cviky (karty) --- */
+
+.ph-ex {
+    list-style: none;
+    counter-reset: ex;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+.ph-ex li {
+    counter-increment: ex;
+    position: relative;
+    padding: 14px 16px 14px 54px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+}
+.ph-ex li::before {
+    content: counter(ex);
+    position: absolute;
+    left: 14px; top: 14px;
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--c);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 900;
+}
+.ph-ex b { display: block; font-size: 15px; font-weight: 900; }
+.ph-dose {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: var(--c-tint);
+    color: var(--c);
+    font-size: 12px;
+    font-weight: 800;
+}
+.ph-ex p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--text-soft); }
+
+/* ------------------------------------------------------ den zápasu --- */
+
+.ph-timeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+.ph-timeline li {
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+    border: 1px solid var(--line-soft);
+    border-top: 3px solid var(--c);
+}
+.ph-timeline b { display: block; font-size: 14.5px; font-weight: 900; margin-bottom: 4px; }
+.ph-timeline span { font-size: 13.5px; line-height: 1.5; color: var(--text-soft); }
+
+.ph-check {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 8px 16px;
+    font-size: 14.5px;
+}
+.ph-check li { display: flex; align-items: center; gap: 10px; }
+.ph-check li::before {
+    content: "";
+    flex: none;
+    width: 16px; height: 16px;
+    border: 2px solid var(--c);
+    border-radius: 4px;
+}
+
+/* ------------------------------------------------------ k nastudování --- */
+
+.ph-quiz {
+    margin: 0;
+    padding-left: 22px;
+    columns: 2 340px;
+    column-gap: 40px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+.ph-quiz li { margin-bottom: 8px; break-inside: avoid; }
+.ph-quiz li::marker { color: var(--c); font-weight: 900; }
+
+/* ------------------------------------------------------------ mobil --- */
+
+@media (max-width: 900px) {
+    .ph-grid--3 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 700px) {
+    .ph-trio, .ph-grid { grid-template-columns: minmax(0, 1fr); }
+    .ph-block { padding: 18px 16px 20px; border-left-width: 4px; }
+    .ph-block__head h2 { font-size: 20px; }
+}
+
+/* ------------------------------------------------------------ tisk --- */
+
+@media print {
+    .appbar, .subnav, .foot, .ph-chips, #printBtn, .toast, .overlay { display: none !important; }
+    body { background: #fff; }
+    main { padding: 0; }
+    .wrap { max-width: none; padding: 0; }
+    .ph-block { box-shadow: none; break-inside: auto; padding: 12px 14px; margin-bottom: 14px; }
+    .ph-card, .ph-ex li, .ph-timeline li { break-inside: avoid; }
+    .ph-trio__t { box-shadow: none; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
