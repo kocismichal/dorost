@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/taktika.css?v=3">
+<link rel="stylesheet" href="assets/css/taktika.css?v=4">
 </head>
 <body>
 
@@ -118,7 +118,12 @@
         <!-- ====================================================== panel -->
         <aside class="tk-panel" id="panel" hidden>
 
-            <div class="tk-box">
+            <div class="tk-seg tk-tabs" id="panelTabs" role="tablist">
+                <button type="button" data-ptab="pitch" role="tab">Hřiště</button>
+                <button type="button" data-ptab="players" role="tab">Hráči</button>
+            </div>
+
+            <div data-pane="pitch" class="tk-box">
                 <div class="tk-box__title">Hřiště</div>
                 <div class="tk-seg" id="bgSeg">
                     <button type="button" data-bg="grass">Zelené</button>
@@ -141,7 +146,7 @@
                 </div>
             </div>
 
-            <div class="tk-box admin-only" hidden>
+            <div data-pane="pitch" class="tk-box admin-only" hidden>
                 <div class="tk-box__title">Rozestavit</div>
                 <label class="label" for="formationSel">Naše rozestavení</label>
                 <div class="tk-row">
@@ -160,7 +165,14 @@
                 <p class="tk-note">Rozestavení přesune hráče, kteří už na tabuli jsou (i s přiřazenými jmény), chybějící doplní.</p>
             </div>
 
-            <div class="tk-box">
+            <div data-pane="players" class="tk-box">
+                <div class="tk-box__title" id="playersTitle">Hráči dorostu</div>
+                <input class="field tk-search" id="playerSearch" type="search" placeholder="Hledat hráče nebo číslo…" autocomplete="off">
+                <p class="tk-note" id="playersHint"></p>
+                <div class="tk-plist" id="playerList"></div>
+            </div>
+
+            <div data-pane="players" class="tk-box">
                 <div class="tk-box__title">Sestava na zápas</div>
                 <select class="field" id="lineupSel" aria-label="Sestava na zápas"></select>
                 <div class="tk-row tk-row--wrap admin-only" hidden>
@@ -169,13 +181,6 @@
                     <button type="button" class="btn btn--primary btn--sm" id="fillLineupBtn">Postavit základ</button>
                 </div>
                 <p class="tk-note">Sestavu nahraješ z obrázku zápisu nebo z textu. S vybranou sestavou se nabízí jen její hráči s jejich čísly.</p>
-            </div>
-
-            <div class="tk-box">
-                <div class="tk-box__title" id="playersTitle">Hráči dorostu</div>
-                <input class="field tk-search" id="playerSearch" type="search" placeholder="Hledat hráče nebo číslo…" autocomplete="off">
-                <p class="tk-note" id="playersHint"></p>
-                <div class="tk-plist" id="playerList"></div>
             </div>
         </aside>
 
@@ -256,6 +261,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/taktika.js?v=3"></script>
+<script type="module" src="assets/js/taktika.js?v=4"></script>
 </body>
 </html>

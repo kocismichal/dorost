@@ -1774,6 +1774,22 @@ function wireLineups() {
     });
 }
 
+/* záložky pravého panelu: Hřiště (nastavení + rozestavení) / Hráči (seznam + sestava);
+   poslední volba se pamatuje v prohlížeči */
+function loadPanelTab() {
+    try { return localStorage.getItem("taktikaPanelTab") === "pitch" ? "pitch" : "players"; }
+    catch { return "players"; }
+}
+
+function setPanelTab(tab) {
+    $("panel").dataset.tab = tab;
+    document.querySelectorAll("[data-ptab]").forEach(x => {
+        x.classList.toggle("is-on", x.dataset.ptab === tab);
+        x.setAttribute("aria-selected", String(x.dataset.ptab === tab));
+    });
+    try { localStorage.setItem("taktikaPanelTab", tab); } catch { /* nevadí */ }
+}
+
 function wire() {
     const svg = $("board");
     svg.addEventListener("pointerdown", onDown);
@@ -1840,6 +1856,8 @@ function wire() {
         scheduleSave();
     });
     $("playerSearch").addEventListener("input", (e) => { state.q = e.target.value; renderPlayers(); });
+    document.querySelectorAll("[data-ptab]").forEach(x => x.addEventListener("click", () => setPanelTab(x.dataset.ptab)));
+    setPanelTab(loadPanelTab());
     wireLineups();
     $("namesChk").addEventListener("change", (e) => {
         if (!state.board) return;

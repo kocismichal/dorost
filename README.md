@@ -157,6 +157,9 @@ Ukládá se samo, asi vteřinu po poslední změně.
   rozestavení. FAČR ID spárovaných hráčů se ukládá do `meta/facr`, takže
   příště se spárují i hráči se stejným jménem.
 - **Hledání hráčů** – pole nad seznamem, hledá podle jména i čísla.
+- **Panel vpravo má dvě záložky** – *Hřiště* (vzhled hřiště, rozestavení,
+  standardky) a *Hráči* (seznam hráčů, pod ním sestava na zápas). Poslední
+  záložka se pamatuje v prohlížeči.
 - **Celá obrazovka** – tabule přes celé okno (a fullscreen prohlížeče, kde to
   jde). Panel vpravo jde schovat, Esc režim zavře.
 - **Animace po krocích** – „+ Krok“ zkopíruje postavení (bez šipek), hráče

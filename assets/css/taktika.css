@@ -353,3 +353,12 @@ body.tk-lock { overflow: hidden; }
     .tk-lu-head, .tk-lu-row { grid-template-columns: 48px minmax(0, 1fr) 30px; }
     .tk-lu-row select[data-lu-role] { grid-column: 2; }
 }
+
+/* ------------------------------------------------- záložky panelu ---- */
+
+.tk-tabs { margin-bottom: 0; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 4px; border-radius: 12px; }
+.tk-tabs button { min-height: 38px; font-size: 13.5px; }
+.tk-tabs button.is-on { background: var(--ink); color: #fff; box-shadow: none; }
+.tk-panel[data-tab="pitch"] [data-pane="players"],
+.tk-panel[data-tab="players"] [data-pane="pitch"] { display: none; }
+@media (max-width: 1180px) { .tk-tabs { grid-column: 1 / -1; } }
