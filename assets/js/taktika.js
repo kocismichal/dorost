@@ -23,6 +23,7 @@ import {
 /* ------------------------------------------------------------ nastavení ---- */
 
 const L = 105, W = 68;
+const ARROWS = ["run", "pass", "dribble"];
 
 /* barvy šipek, prostorů a textu; "auto" = bílá na trávě, tmavá na tabuli */
 const COLORS = [
@@ -85,7 +86,10 @@ const state = {
     color: "auto",
     undo: [],
     drag: null,
-    lastDown: { id: null, t: 0 }
+    lastDown: { id: null, t: 0 },
+    frame: 0,             // otevřený krok animace
+    playing: false,
+    speed: 1
 };
 
 let saveTimer = null;
@@ -126,7 +130,11 @@ whenReady(() => {
         } else {
             const remote = state.boards.find(b => b.id === state.currentId);
             if (!remote) { closeBoard(); toast("Tabule byla smazána"); }
-            else if (!saveTimer && !state.drag) { state.board = normalize(clone(remote)); renderBoardAll(); }
+            else if (!saveTimer && !state.drag && !state.playing) {
+                state.board = normalize(clone(remote));
+                useFrame(state.frame);
+                renderBoardAll();
+            }
         }
         renderTree();
     }, onDbError);
@@ -151,8 +159,14 @@ whenReady(() => {
 
 onRoster(() => { renderPlayers(); renderBoard(); });
 
+/* Tabule má kroky animace (frames), každý s vlastními prvky. Starší tabule
+   mají jen items – to je pak jediný krok. items ukazuje na otevřený krok. */
 function normalize(b) {
     b.items = Array.isArray(b.items) ? b.items : [];
+    b.frames = Array.isArray(b.frames) && b.frames.length
+        ? b.frames.map(f => ({ items: Array.isArray(f.items) ? f.items : [] }))
+        : [{ items: b.items }];
+    b.items = b.frames[0].items;
     b.bg = b.bg === "white" ? "white" : "grass";
     b.view = b.view === "half" ? "half" : "full";
     b.names = b.names !== false;
@@ -180,7 +194,8 @@ async function flushSave() {
             folderId: b.folderId,
             bg: b.bg, view: b.view, names: b.names, awayColor: b.awayColor,
             notes: b.notes,
-            items: clone(b.items),
+            items: clone(b.frames[0].items),
+            frames: clone(b.frames),
             updatedAt: serverTimestamp(),
             updatedBy: AdminStore.name
         }, { merge: true });
@@ -433,7 +448,7 @@ async function newBoard() {
     try {
         const ref = await addDoc(col("tactics"), {
             title, folderId, bg: "grass", view: "full", names: true, awayColor: AWAY_COLORS[0],
-            notes: "", items: [],
+            notes: "", items: [], frames: [{ items: [] }],
             createdAt: serverTimestamp(), createdBy: AdminStore.name,
             updatedAt: serverTimestamp(), updatedBy: AdminStore.name
         });
@@ -449,7 +464,7 @@ async function duplicateBoard() {
         const ref = await addDoc(col("tactics"), {
             title: `${b.title || "Bez názvu"} (kopie)`, folderId: b.folderId,
             bg: b.bg, view: b.view, names: b.names, awayColor: b.awayColor,
-            notes: b.notes, items: clone(b.items),
+            notes: b.notes, items: clone(b.frames[0].items), frames: clone(b.frames),
             createdAt: serverTimestamp(), createdBy: AdminStore.name,
             updatedAt: serverTimestamp(), updatedBy: AdminStore.name
         });
@@ -473,7 +488,9 @@ function openBoard(id) {
     const b = state.boards.find(x => x.id === id);
     if (!b) return;
     state.currentId = id;
+    stopPlay();
     state.board = normalize(clone(b));
+    useFrame(0);
     state.selId = null;
     state.undo = [];
     history.replaceState(null, "", "#" + encodeURIComponent(id));
@@ -486,6 +503,8 @@ function openBoard(id) {
 }
 
 function closeBoard() {
+    stopPlay();
+    setFull(false);
     state.currentId = null;
     state.board = null;
     state.selId = null;
@@ -517,6 +536,7 @@ function renderBoardAll() {
     renderColors();
     renderBoard();
     renderPlayers();
+    renderFrames();
     updateToolUI();
 }
 
@@ -527,6 +547,19 @@ function changed() {
     scheduleSave();
 }
 
+/** Nahradí prvky otevřeného kroku (items i frames musí ukazovat na totéž pole). */
+function setItems(arr) {
+    state.board.items = arr;
+    state.board.frames[state.frame].items = arr;
+}
+
+function useFrame(k) {
+    const b = state.board;
+    if (!b) return;
+    state.frame = Math.max(0, Math.min(b.frames.length - 1, k));
+    b.items = b.frames[state.frame].items;
+}
+
 function pushUndo() {
     if (!state.board) return;
     state.undo.push(JSON.stringify(state.board.items));
@@ -535,7 +568,7 @@ function pushUndo() {
 
 function undo() {
     if (!canEdit() || !state.undo.length) return;
-    state.board.items = JSON.parse(state.undo.pop());
+    setItems(JSON.parse(state.undo.pop()));
     state.selId = null;
     changed();
 }
@@ -543,7 +576,7 @@ function undo() {
 function deleteSelected() {
     if (!canEdit() || !state.selId) return;
     pushUndo();
-    state.board.items = state.board.items.filter(i => i.id !== state.selId);
+    setItems(state.board.items.filter(i => i.id !== state.selId));
     state.selId = null;
     changed();
 }
@@ -724,7 +757,8 @@ function handlesSvg() {
     return "";
 }
 
-function renderBoard() {
+/** Překreslí tabuli. view = mezisnímek animace (prvky s průhledností _o). */
+function renderBoard(view) {
     const svg = $("board");
     const b = state.board;
     if (!b) { svg.innerHTML = ""; return; }
@@ -733,21 +767,27 @@ function renderBoard() {
     const S = half ? 0.85 : 1;
     svg.setAttribute("viewBox", half ? "-4 -4 76 57.5" : "-4 -4 113 76");
     svg.dataset.view = b.view;
+    $("stage").style.background = pal.surround;
 
-    const arrows = b.items.filter(i => ["run", "pass", "dribble"].includes(i.t));
-    const zones = b.items.filter(i => i.t === "zone");
-    const rest = b.items.filter(i => !["run", "pass", "dribble", "zone"].includes(i.t));
+    const list = view || b.items;
+    const isArrow = (i) => ARROWS.includes(i.t);
+    const draw = (i) => {
+        const html = isArrow(i) ? arrowSvg(i, pal) : itemSvg(i, pal, S);
+        return i._o != null && i._o < 1 ? `<g opacity="${Math.max(0, i._o).toFixed(3)}">${html}</g>` : html;
+    };
 
+    /* v polovině se ořízne druhá půlka – na úzkém displeji by jinak byla vidět pod čarou */
     svg.innerHTML = `
+        <defs><clipPath id="halfClip"><rect x="51" y="-10" width="70" height="90"/></clipPath></defs>
         <rect x="-50" y="-50" width="250" height="200" fill="${pal.surround}"/>
-        <g id="world" ${half ? `transform="${WORLD_T}"` : ""} font-family="Inter, Arial, sans-serif">
+        <g id="world" ${half ? `transform="${WORLD_T}" clip-path="url(#halfClip)"` : ""} font-family="Inter, Arial, sans-serif">
             ${pitchSvg(pal)}
-            ${zones.map(z => itemSvg(z, pal, S)).join("")}
-            ${arrows.map(a => arrowSvg(a, pal)).join("")}
-            ${rest.map(i => itemSvg(i, pal, S)).join("")}
-            ${handlesSvg()}
+            ${list.filter(i => i.t === "zone").map(draw).join("")}
+            ${list.filter(isArrow).map(draw).join("")}
+            ${list.filter(i => i.t !== "zone" && !isArrow(i)).map(draw).join("")}
+            ${view ? "" : handlesSvg()}
         </g>`;
-    svg.classList.toggle("is-edit", canEdit());
+    svg.classList.toggle("is-edit", canEdit() && !state.playing);
 }
 
 /* ----------------------------------------------------------- ovládání ---- */
@@ -768,7 +808,7 @@ function clampPt([x, y]) {
 const round = (v) => Math.round(v * 10) / 10;
 
 function onDown(e) {
-    if (!canEdit() || e.button > 0) return;
+    if (!canEdit() || state.playing || e.button > 0) return;
     const svg = $("board");
     const [x, y] = clampPt(worldPoint(e));
     const handle = e.target.closest("[data-handle]");
@@ -864,7 +904,7 @@ function onUp() {
             ? Math.abs(it.w) < 1.5 || Math.abs(it.h) < 1.5
             : Math.hypot(it.x2 - it.x1, it.y2 - it.y1) < 1.5;
         if (tiny) {
-            b.items = b.items.filter(i => i.id !== it.id);
+            setItems(b.items.filter(i => i.id !== it.id));
             state.undo.pop();
             state.selId = null;
             renderBoard();
@@ -1061,6 +1101,197 @@ async function downloadPng() {
     }
 }
 
+/* ------------------------------------------------------------ animace ----
+   Krok = celé postavení. Přehrávání plynule posouvá prvky se stejným id
+   z kroku do kroku. Když hráč nebo míč začíná u šipky a končí u jejího
+   konce, jede po ní (i po prohnuté). Šipky kroku jsou vidět během pohybu
+   a na konci zmizí, nové prvky se objeví postupně.
+   ------------------------------------------------------------------- */
+
+const NUM_KEYS = ["x", "y", "w", "h", "x1", "y1", "x2", "y2", "bx", "by"];
+const ease = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+function blend(A, B, t) {
+    const e = ease(t);
+    const byId = new Map(A.map(i => [i.id, i]));
+    const inB = new Set(B.map(i => i.id));
+    const arrowsA = A.filter(i => ARROWS.includes(i.t));
+    const out = [];
+
+    B.forEach(b => {
+        const a = byId.get(b.id);
+        if (a && a.t === b.t) {
+            const m = { ...b };
+            NUM_KEYS.forEach(k => { if (k in a && k in b) m[k] = a[k] + (b[k] - a[k]) * e; });
+            if ("x" in a && !ARROWS.includes(b.t) && (a.x !== b.x || a.y !== b.y)) {
+                const path = arrowsA.find(r =>
+                    Math.hypot(r.x1 - a.x, r.y1 - a.y) < 3.5 && Math.hypot(r.x2 - b.x, r.y2 - b.y) < 3.5);
+                if (path) {
+                    const [px, py] = qAt(path, e);
+                    m.x = px + (a.x - path.x1) * (1 - e) + (b.x - path.x2) * e;
+                    m.y = py + (a.y - path.y1) * (1 - e) + (b.y - path.y2) * e;
+                }
+            }
+            out.push(m);
+        } else {
+            out.push({ ...b, _o: ARROWS.includes(b.t) ? Math.max(0, (t - 0.75) / 0.25) : e });
+        }
+    });
+    A.forEach(a => {
+        if (inB.has(a.id)) return;
+        out.push({ ...a, _o: ARROWS.includes(a.t) ? (t < 0.8 ? 1 : (1 - t) / 0.2) : 1 - e });
+    });
+    return out;
+}
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+/* další snímek přes requestAnimationFrame, s pojistkou časovačem – když
+   prohlížeč vykreslování přiškrtí, animace nezamrzne */
+function nextFrame(cb) {
+    let fired = false;
+    const go = () => { if (!fired) { fired = true; cb(performance.now()); } };
+    requestAnimationFrame(go);
+    setTimeout(go, 40);
+}
+
+function tween(A, B, dur) {
+    return new Promise(done => {
+        const t0 = performance.now();
+        const step = (now) => {
+            if (!state.playing) return done();
+            const t = Math.min(1, (now - t0) / dur);
+            renderBoard(blend(A, B, t));
+            t < 1 ? nextFrame(step) : done();
+        };
+        nextFrame(step);
+    });
+}
+
+async function play() {
+    const b = state.board;
+    if (!b) return;
+    if (state.playing) { stopPlay(); return; }
+    if (b.frames.length < 2) { toast("Pro animaci přidej aspoň 2 kroky"); return; }
+    if (saveTimer) flushSave();
+    state.playing = true;
+    state.selId = null;
+    const from = state.frame >= b.frames.length - 1 ? 0 : state.frame;
+    useFrame(from);
+    renderFrames(); renderBoard();
+    await sleep(450 / state.speed);
+    for (let i = from; i < b.frames.length - 1 && state.playing; i++) {
+        await tween(b.frames[i].items, b.frames[i + 1].items, 1500 / state.speed);
+        if (!state.playing) break;
+        useFrame(i + 1);
+        renderFrames(); renderBoard();
+        if (i < b.frames.length - 2) await sleep(500 / state.speed);
+    }
+    state.playing = false;
+    renderFrames(); renderBoard();
+}
+
+function stopPlay() {
+    if (!state.playing) return;
+    state.playing = false;
+    renderFrames();
+    renderBoard();
+}
+
+function goFrame(k) {
+    stopPlay();
+    useFrame(k);
+    state.selId = null;
+    state.undo = [];
+    renderBoard(); renderFrames(); renderPlayers();
+}
+
+/** Nový krok za otevřeným – kopie postavení bez šipek (ty patří k minulému pohybu). */
+function addFrame() {
+    if (!canEdit()) return;
+    stopPlay();
+    const b = state.board;
+    const items = clone(b.items).filter(i => !ARROWS.includes(i.t));
+    b.frames.splice(state.frame + 1, 0, { items });
+    useFrame(state.frame + 1);
+    state.selId = null;
+    state.undo = [];
+    renderFrames();
+    changed();
+    toast(`Krok ${state.frame + 1} – posuň hráče a míč, kam se mají dostat`);
+}
+
+function removeFrame() {
+    const b = state.board;
+    if (!canEdit() || b.frames.length < 2) return;
+    if (!confirm(`Smazat krok ${state.frame + 1}?`)) return;
+    stopPlay();
+    b.frames.splice(state.frame, 1);
+    useFrame(Math.min(state.frame, b.frames.length - 1));
+    state.selId = null;
+    state.undo = [];
+    renderFrames();
+    changed();
+}
+
+function renderFrames() {
+    const host = $("frames");
+    const b = state.board;
+    if (!b) { host.innerHTML = ""; return; }
+    const edit = isAdmin();
+    const n = b.frames.length;
+    host.hidden = !edit && n < 2;
+    host.innerHTML = `
+        <button type="button" class="tk-play ${state.playing ? "is-on" : ""}" id="playBtn" ${n < 2 ? "disabled" : ""}>
+            ${state.playing ? "■ Zastavit" : "▶ Přehrát"}</button>
+        <div class="tk-steps">
+            ${b.frames.map((_, i) => `
+                <button type="button" class="tk-step ${i === state.frame ? "is-on" : ""}" data-frame="${i}">${i + 1}</button>`).join("")}
+            ${edit ? `<button type="button" class="tk-step tk-step--add" id="addFrameBtn" title="Přidat další krok">+ Krok</button>` : ""}
+        </div>
+        ${edit && n > 1 ? `<button type="button" class="tk-ic" id="delFrameBtn" title="Smazat otevřený krok">✕</button>` : ""}
+        <select class="tk-speed" id="speedSel" title="Rychlost přehrávání">
+            <option value="0.6">Pomalu</option><option value="1">Normálně</option><option value="1.7">Rychle</option>
+        </select>
+        <span class="tk-frames__hint">${n < 2
+            ? (edit ? "Animace: „+ Krok“ zkopíruje postavení, posuň hráče a míč a dej Přehrát." : "")
+            : `Krok ${state.frame + 1} z ${n}`}</span>`;
+    $("speedSel").value = String(state.speed);
+    $("speedSel").addEventListener("change", (e) => { state.speed = Number(e.target.value); });
+    $("playBtn").addEventListener("click", play);
+    host.querySelectorAll("[data-frame]").forEach(x => x.addEventListener("click", () => goFrame(Number(x.dataset.frame))));
+    $("addFrameBtn")?.addEventListener("click", addFrame);
+    $("delFrameBtn")?.addEventListener("click", removeFrame);
+}
+
+/* ------------------------------------------------- celá obrazovka ----
+   Tabule přes celé okno (CSS) a k tomu opravdový fullscreen prohlížeče,
+   kde to jde. Fullscreen dostává celý dokument, aby byly vidět i modaly. */
+
+const isFull = () => $("tk").classList.contains("is-full");
+
+function setFull(on) {
+    const tk = $("tk");
+    if (on === isFull()) return;
+    tk.classList.toggle("is-full", on);
+    document.body.classList.toggle("tk-lock", on);
+    if (on) {
+        tk.classList.toggle("is-nopanel", window.innerWidth < 900);
+        document.documentElement.requestFullscreen?.().catch(() => { /* iPhone to neumí – stačí CSS */ });
+    } else if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+    }
+    renderFullBtns();
+    renderBoard();
+}
+
+function renderFullBtns() {
+    const full = isFull();
+    $("fullBtn").textContent = full ? "✕ Zavřít" : "⛶ Celá obrazovka";
+    $("panelBtn").hidden = !full;
+    $("panelBtn").textContent = $("tk").classList.contains("is-nopanel") ? "☰ Panel" : "Skrýt panel";
+}
+
 function wire() {
     const svg = $("board");
     svg.addEventListener("pointerdown", onDown);
@@ -1070,6 +1301,9 @@ function wire() {
 
     document.querySelectorAll("[data-tool]").forEach(b => b.addEventListener("click", () => setTool(b.dataset.tool)));
     $("undoBtn").addEventListener("click", undo);
+    $("fullBtn").addEventListener("click", () => setFull(!isFull()));
+    $("panelBtn").addEventListener("click", () => { $("tk").classList.toggle("is-nopanel"); renderFullBtns(); });
+    document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && isFull()) setFull(false); });
     $("delBtn").addEventListener("click", deleteSelected);
 
     document.addEventListener("keydown", (e) => {
@@ -1077,7 +1311,10 @@ function wire() {
         if (typing || document.querySelector(".overlay.is-open")) return;
         if ((e.key === "Delete" || e.key === "Backspace") && state.selId) { e.preventDefault(); deleteSelected(); }
         else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); }
-        else if (e.key === "Escape") { state.selId = null; setTool("move"); renderBoard(); renderPlayers(); }
+        else if (e.key === "Escape") {
+            if (!state.selId && isFull()) { setFull(false); return; }
+            state.selId = null; setTool("move"); renderBoard(); renderPlayers();
+        }
         else if (e.key.toLowerCase() === "v") setTool("move");
     });
 

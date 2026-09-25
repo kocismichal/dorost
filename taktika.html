@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/taktika.css?v=1">
+<link rel="stylesheet" href="assets/css/taktika.css?v=2">
 </head>
 <body>
 
@@ -45,7 +45,7 @@
 
 <main class="wrap">
 
-    <div class="tk">
+    <div class="tk" id="tk">
 
         <!-- ====================================================== složky -->
         <aside class="tk-side">
@@ -71,6 +71,8 @@
                 <div class="tk-titlebar">
                     <input class="tk-title" id="boardTitle" type="text" maxlength="80" placeholder="Název tabule" readonly>
                     <span class="tk-saved" id="savedState"></span>
+                    <button type="button" class="btn btn--ghost btn--sm" id="panelBtn" hidden>Skrýt panel</button>
+                    <button type="button" class="btn btn--primary btn--sm" id="fullBtn">⛶ Celá obrazovka</button>
                 </div>
 
                 <div class="tk-tools admin-only" id="tools" hidden>
@@ -100,6 +102,7 @@
                 <div class="tk-stage" id="stage">
                     <svg id="board" class="tk-board" xmlns="http://www.w3.org/2000/svg"></svg>
                 </div>
+                <div class="tk-frames" id="frames"></div>
                 <p class="tk-hint" id="toolHint"></p>
             </div>
         </section>
@@ -208,6 +211,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/taktika.js?v=1"></script>
+<script type="module" src="assets/js/taktika.js?v=2"></script>
 </body>
 </html>

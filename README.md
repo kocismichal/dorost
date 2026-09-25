@@ -139,6 +139,12 @@ Ukládá se samo, asi vteřinu po poslední změně.
   všechny tabule (dokument `meta/jerseys`). Bez čísla má kolečko iniciály.
 - **Pokyny** – volný text ke každé tabuli.
 - **Stáhnout obrázek** – PNG tabule, třeba do skupiny týmu.
+- **Celá obrazovka** – tabule přes celé okno (a fullscreen prohlížeče, kde to
+  jde). Panel vpravo jde schovat, Esc režim zavře.
+- **Animace po krocích** – „+ Krok“ zkopíruje postavení (bez šipek), hráče
+  a míč posuneš a „Přehrát“ je plynule přesune. Když prvek začíná u šipky
+  a končí u jejího konce, jede po ní (i po prohnuté). Kroky jsou v poli
+  `frames` dokumentu tabule, `items` drží kopii prvního kroku.
 
 Souřadnice jsou v metrech hřiště 105 × 68, pohled Polovina jen otočí pravou
 polovinu – při přepínání se tedy nic nepřepočítává.
