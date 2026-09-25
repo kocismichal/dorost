@@ -178,6 +178,11 @@ kolem tréninku, pití, spánek, den zápasu s taškou, bolest a zranění, otá
 k nastudování. Každá sekce má barvu přes třídu `ph-c-…` v `pro-hrace.css`.
 Tlačítko **Vytisknout tahák** schová menu a vytiskne jen obsah.
 
+Sekce **Prevence zranění (FIFA 11+)** má přehrávač videí: vlevo YouTube
+(přes youtube-nocookie.com), vpravo seznam cviků. Seznam videí, dávkování
+a české popisy jsou v poli `CVIKY` v `assets/js/pro-hrace.js` – video se
+mění prostým přepsáním ID (`yt`). Cviky 7–12 mají tři úrovně.
+
 > **Důležité:** po každé změně v `app.js`, `points.js`, `core.js`,
 > `plakaty.js`, `plakat-data.js`, `taktika.js`, `pro-hrace.js`, `app.css`,
 > `plakat.css`, `taktika.css` nebo `pro-hrace.css` zvyš číslo `?v=` u odkazů ve všech `.html` (a u importů uvnitř skriptů). Bez toho si

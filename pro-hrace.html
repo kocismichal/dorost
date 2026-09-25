@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/pro-hrace.css?v=2">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=3">
 </head>
 <body>
 
@@ -77,6 +77,7 @@
         <nav class="ph-chips" aria-label="Obsah">
             <a href="#tyden">Tvůj týden</a>
             <a href="#pondeli">Proč pondělní běh</a>
+            <a href="#prevence">Prevence zranění</a>
             <a href="#guma">Guma</a>
             <a href="#valec">Válec</a>
             <a href="#micek">Míček</a>
@@ -185,6 +186,41 @@
                 <p><b>Zranění se hlásí před tréninkem, ne místo tréninku.</b> Napiš trenérovi konkrétně <i>co</i>, <i>kde</i> a <i>od kdy</i> bolí (viz <a href="#bolest">Bolest a zranění</a>). A přijď i tak – místo běhu dostaneš jinou práci: guma, válec, cviky, které bolest nezhorší. Zranění se neléčí gaučem.</p>
             </div>
         </div>
+    </section>
+
+    <!-- ============================================================ prevence -->
+    <section class="section ph-block ph-c-prevence" id="prevence">
+        <div class="ph-block__head">
+            <span class="ph-tag">Rozcvička proti zraněním</span>
+            <h2>Prevence zranění – FIFA 11+</h2>
+            <p>Oficiální rozcvička od FIFA, kterou sestavili sportovní lékaři. Trvá asi 20 minut a nepotřebuje nic kromě kuželů a míče. Studie u mladých fotbalistů ukazují, že týmy, které ji dělají <b>aspoň 2× týdně</b>, mají zhruba o třetinu až polovinu méně zranění – hlavně kolen, kotníků a zadních stehen. Proto ji děláme v úterý a ve čtvrtek místo běžné rozcvičky.</p>
+        </div>
+
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card">
+                <h3>1. Běh a zahřátí · 8 min</h3>
+                <p>Šest běžeckých cviků mezi kužely – pomalé tempo, otevírání a zavírání kyčlí, kontakt se spoluhráčem.</p>
+            </div>
+            <div class="ph-card">
+                <h3>2. Síla, rovnováha, skoky · 10 min</h3>
+                <p>Plank, boční plank, nordický ohyb, stoj na jedné noze, dřepy a skoky. Každý cvik má <b>3 úrovně</b> – začínáme na 1, výš až když ji zvládneš čistě.</p>
+            </div>
+            <div class="ph-card">
+                <h3>3. Běh · 2 min</h3>
+                <p>Rychlý běh přes hřiště, běh s odrazy a ostré změny směru. Po tom už jdeš na trénink nebo do zápasu připravený.</p>
+            </div>
+        </div>
+
+        <p class="ph-tip"><b>Jedno pravidlo pro všechny cviky:</b> koleno míří nad špičku a nikdy nepadá dovnitř. Doskok měkce na přední část chodidla s pokrčenými koleny. Právě špatný doskok a „koleno dovnitř“ jsou nejčastější cesta k přetrženému vazu.</p>
+
+        <h3 class="ph-sub">Videa ke cvikům</h3>
+        <div class="ph-pl">
+            <div class="ph-pl__main" id="fifaPlayer"></div>
+            <div class="ph-pl__side">
+                <div class="ph-pl__list" id="fifaList"></div>
+            </div>
+        </div>
+        <p class="ph-note ph-src">Videa: oficiální kanál FIFA (souhrny částí) a Ontario Soccer (jednotlivé cviky). Jsou anglicky, ale je z nich jasně vidět, jak cvik vypadá – český popis a dávkování je pod videem.</p>
     </section>
 
     <!-- ============================================================ guma -->
@@ -523,6 +559,8 @@
             <li>Jak poznáš, že piješ málo?</li>
             <li>Kolik hodin bys měl spát a co udělat s mobilem před spaním?</li>
             <li>Kdy bolest musíš hlásit trenérovi?</li>
+            <li>Z jakých tří částí je rozcvička FIFA 11+ a kolikrát týdně ji dělat?</li>
+            <li>Kam míří koleno při doskoku a proč?</li>
         </ol>
     </section>
 
@@ -551,6 +589,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/pro-hrace.js?v=1"></script>
+<script type="module" src="assets/js/pro-hrace.js?v=2"></script>
 </body>
 </html>
