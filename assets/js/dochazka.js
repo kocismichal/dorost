@@ -79,7 +79,12 @@ function stav(u, idHrace) {
    ------------------------------------------------------------------- */
 
 const ODP_TEXT = { G: "jde", N: "nejde", M: "možná", "": "bez odpovědi" };
-const hist = (u, idHrace) => (historie && historie.udalosti && historie.udalosti[u.id] && historie.udalosti[u.id][idHrace]) || [];
+/* Týmuj občas zapíše odpověď a komentář jako dva záznamy ve stejnou chvíli –
+   stejné po sobě jdoucí záznamy (čas do minuty, odpověď, kdo) se sloučí, platí poslední. */
+function hist(u, idHrace) {
+    const z = (historie && historie.udalosti && historie.udalosti[u.id] && historie.udalosti[u.id][idHrace]) || [];
+    return z.filter((x, i) => { const d = z[i + 1]; return !(d && d[0].slice(0, 16) === x[0].slice(0, 16) && d[1] === x[1] && d[2] === x[2]); });
+}
 const maHistorii = (u) => !!(historie && historie.udalosti && historie.udalosti[u.id]);
 const casZaznamu = (c) => `${+c.slice(8, 10)}. ${+c.slice(5, 7)}. ${c.slice(11, 16)}`;
 
