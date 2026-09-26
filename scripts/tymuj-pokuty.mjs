@@ -40,6 +40,8 @@ const vse = async (c) => { let out = [], t = ""; do { const r = await fetch(`${b
 
 const hraciPokut = (await vse("players")).map(d => ({ id: d.name.split("/").pop(), name: d.fields.name.stringValue }));
 const zapsane = new Set((await vse("fines")).map(d => d.fields.autoKey && d.fields.autoKey.stringValue).filter(Boolean));
+// pokuty, které trenér na webu zrušil – ty se už nikdy nezapisují
+const zrusene = new Set((await vse("pokutyZrusene")).map(d => d.fields.autoKey && d.fields.autoKey.stringValue).filter(Boolean));
 
 // jméno z Týmuj → hráč pokutníčku (bez diakritiky, případně příjmení + první písmeno)
 const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -49,13 +51,14 @@ const najdi = (j) => hraciPokut.find(p => norm(p.name) === norm(j))
     || hraciPokut.filter(p => prijmeni(p.name) === prijmeni(j)).length === 1 && hraciPokut.find(p => prijmeni(p.name) === prijmeni(j))
     || null;
 
-let zapsano = 0, uz = 0;
+let zapsano = 0, uz = 0, zruseno = 0;
 const chybi = new Set(), souhrn = {};
 for (const p of pokuty) {
     const hp = najdi(p.jmeno);
     if (!hp) { chybi.add(p.jmeno); continue; }
     const autoKey = `${p.klic}|${hp.id}`;
     if (zapsane.has(autoKey)) { uz++; continue; }
+    if (zrusene.has(autoKey)) { zruseno++; continue; }
     souhrn[hp.name] = (souhrn[hp.name] || 0) + p.amount;
     if (!NAHLED) {
         const r = await fetch(`${base}/fines`, { method: "POST", headers: h, body: JSON.stringify({ fields: {
@@ -70,5 +73,5 @@ for (const p of pokuty) {
 }
 
 console.table(souhrn);
-console.log(`${NAHLED ? "K zápisu" : "Zapsáno"}: ${zapsano}, už bylo zapsané: ${uz}.`);
+console.log(`${NAHLED ? "K zápisu" : "Zapsáno"}: ${zapsano}, už bylo zapsané: ${uz}, trenér zrušil: ${zruseno}.`);
 if (chybi.size) console.log(`::warning::Hráči z Týmuj, kteří nejsou v pokutníčku: ${[...chybi].join(", ")}`);

@@ -5,7 +5,7 @@
    Navíc přehrávače videí (seznam cviků vpravo, video vlevo).
    ========================================================================== */
 
-import { whenReady, setStatus, initAuth, esc } from "./core.js?v=9";
+import { whenReady, setStatus, initAuth, esc } from "./core.js?v=10";
 
 initAuth();
 whenReady(() => setStatus("online"));

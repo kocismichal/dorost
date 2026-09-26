@@ -271,3 +271,31 @@ export function toast(msg) {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove("is-on"), 2600);
 }
+
+/* ------------------------------------------------ pokuty z docházky ----
+   Pokuty, které AI zapisuje z docházky Týmuj, mají autoKey. Když je trenér
+   zruší, pokuta se smaže a zároveň se zapíše do kolekce pokutyZrusene
+   (dokument = autoKey, obsahuje i původní pokutu). Pondělní zápis pokut
+   zrušené přeskakuje, takže se už nikdy nevrátí – dokud ji někdo neobnoví.
+   ------------------------------------------------------------------- */
+
+export async function zrusPokutuZDochazky(id, pokuta) {
+    const { createdAt, ...zbytek } = pokuta;
+    const b = writeBatch(db);
+    b.delete(docIn("fines", id));
+    b.set(docIn("pokutyZrusene", pokuta.autoKey), {
+        ...zbytek,
+        puvodniCas: createdAt || null,
+        zrusil: AdminStore.name || "?",
+        zruseno: new Date()
+    });
+    await b.commit();
+}
+
+export async function obnovPokutuZDochazky(zrusena) {
+    const { zrusil, zruseno, puvodniCas, id, ...pokuta } = zrusena;
+    const b = writeBatch(db);
+    b.set(doc(col("fines")), { ...pokuta, createdAt: puvodniCas || new Date() });
+    b.delete(docIn("pokutyZrusene", zrusena.autoKey));
+    await b.commit();
+}

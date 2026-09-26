@@ -139,6 +139,12 @@ Jiný týden: Actions → Pokuty z docházky → Run workflow → pondělí týd
 Na stránce Docházka jsou zapsané pokuty vidět u událostí, v týdnech, měsících,
 přehledu sezóny (sloupec Pokuty) i v kartě hráče – čtou se přímo z kolekce
 `fines` (jen zápisy s `autoKey`), takže smazaná pokuta zmizí i tam.
+**Zrušení pokuty:** přihlášený ji zruší v kartě hráče nebo v detailu události
+(× u štítku → potvrdit) – nebo smazáním v pokutníčku. Pokuta se smaže a
+zapíše do kolekce `pokutyZrusene` (dokument = autoKey, i s původními daty),
+takže ji pondělní zápis už nikdy nevrátí. Zrušená se v kartě ukazuje
+přeškrtnutě a tlačítkem ↺ jde obnovit (`zrusPokutuZDochazky` /
+`obnovPokutuZDochazky` v `core.js`).
 
 **Token do Týmuj** je v secretu repozitáře `TYMUJ_TOKEN` (nikdy ne v kódu).
 Platí **60 dní**, pak synchronizace začne hlásit chybu 401. Výměna:

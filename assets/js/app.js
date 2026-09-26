@@ -12,8 +12,8 @@ import {
     col, docIn, whenReady, onDbError, setStatus,
     roster, playerById, saveDefaultRoster, nextRosterOrder, slug,
     AdminStore, isAdmin, initAuth, updateAuthUI,
-    esc, money, czDateTime, closeOverlays, openOverlay, toast
-} from "./core.js?v=9";
+    esc, money, czDateTime, closeOverlays, openOverlay, toast, zrusPokutuZDochazky
+} from "./core.js?v=10";
 
 /* --------------------------------------------------------- druhy pokut ---
    perMinute: při kliknutí se zeptá na počet minut, částka = amount * minuty
@@ -303,7 +303,15 @@ async function onDeleteFine(id) {
     if (!isAdmin()) return;
     if (!confirm("Opravdu smazat tento záznam?")) return;
     try {
-        await deleteDoc(docIn("fines", id));
+        // pokuta z docházky (má autoKey) se zapamatuje jako zrušená, aby ji
+        // pondělní zápis nevrátil
+        const f = state.fines.find(x => x.id === id);
+        if (f && f.autoKey) {
+            const { id: _, ...data } = f;
+            await zrusPokutuZDochazky(id, data);
+        } else {
+            await deleteDoc(docIn("fines", id));
+        }
         toast("Záznam smazán");
     } catch (err) {
         console.error(err);

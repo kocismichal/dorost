@@ -336,3 +336,37 @@ th.dz-num { text-align: right; }
 .dz-kk.is-fine { background: #f1f2f4; }
 .dz-ktydny { display: flex; flex-wrap: wrap; gap: 6px; }
 .dz-ktydny .dz-fine { font-size: 12px; padding: 3px 8px; }
+
+/* ------------------------------------------- rušení pokut z docházky --- */
+
+.dz-fine { vertical-align: middle; }
+.dz-fine__x {
+    margin-left: 4px;
+    padding: 0 3px;
+    border: 0;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, .2);
+    color: inherit;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.3;
+    cursor: pointer;
+}
+.dz-fine__x:hover { background: var(--accent); color: #fff; }
+.dz-fine.is-minus .dz-fine__x { background: rgba(0, 0, 0, .06); }
+.dz-fine.is-off { background: var(--bg-soft); color: var(--dim); border: 1px dashed var(--line); }
+.dz-fine.is-off s { color: var(--muted); }
+.dz-fine--ask { background: var(--accent-tint); color: var(--accent); font-size: 11.5px; padding: 3px 6px; white-space: normal; }
+.dz-fine--ask button {
+    margin-left: 6px;
+    padding: 2px 7px;
+    border: 1px solid var(--accent);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+}
+.dz-fine--ask button[data-zrusit-ano] { background: var(--accent); color: #fff; }
+.dz-ktyden { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; }
