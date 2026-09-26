@@ -21,6 +21,7 @@ let data = null;          // poslední data z databáze
 let meta = {};            // aktualizovano, chyba, chybaKdy
 let pohled = "sezona";    // sezona | tydny
 let vse = false;          // v týdnech ukázat i áčko, béčko a přáteláky
+let tyden = null;         // zobrazený týden (pondělí YYYY-MM-DD), null = poslední
 const otevreni = new Set();   // rozbalení hráči v přehledu sezóny
 
 const el = (id) => document.getElementById(id);
@@ -70,7 +71,31 @@ function stav(u, idHrace) {
     return { k: "z", kom };
 }
 
-/* ---------------------------------------------------------- statistiky --- */
+/* ---------------------------------------------------------- statistiky ---
+   Dvě docházky:
+   - tréninky dorostu = kolik tréninků dorostu hráč odchodil
+   - tréninkové jednotky = trénink s áčkem se počítá místo tréninku dorostu
+     (domluva s hráči). Počítá se po týdnech: dorost + áčko, ale nejvýš
+     tolik, kolik měl dorost ten týden tréninků – navíc se nenasbírá.
+   ------------------------------------------------------------------- */
+
+/** Tréninkové jednotky hráče za dané události: { a: odchozeno, b: z kolika }. */
+function jednotky(udalosti, idHrace) {
+    const tydny = new Map();
+    for (const u of udalosti) {
+        if (u.zruseno) continue;
+        const st = stav(u, idHrace).k;
+        if (st === "x") continue;
+        const k = pondeli(u.zacatek);
+        if (!tydny.has(k)) tydny.set(k, { dor: 0, byl: 0, a: 0 });
+        const t = tydny.get(k);
+        if (jeTrenink(u)) { t.dor++; if (st === "g") t.byl++; }
+        else if (u.druh === "T_A" && st === "g") t.a++;
+    }
+    let a = 0, b = 0;
+    for (const t of tydny.values()) { a += Math.min(t.byl + t.a, t.dor); b += t.dor; }
+    return { a, b };
+}
 
 function statistiky() {
     const udalosti = data.udalosti;
@@ -99,6 +124,8 @@ function statistiky() {
             else s.nezapsano++;
         }
         s.pct = procento(s.byl, s.pozvan);
+        s.jedn = jednotky(udalosti, h.id).a;
+        s.jednPct = procento(s.jedn, s.pozvan);
         s.pozdejsi = s.prvni && s.prvni.slice(0, 10) > hranice ? s.prvni : null;
         return s;
     }).filter(s => s.pozvan > 0 || s.prvni);
@@ -122,12 +149,14 @@ function vykresliKpi(stat) {
     const prumerHracu = tr.length ? tr.reduce((a, u) => a + Object.values(u.ucast).filter(z => z[0] === "G").length, 0) / tr.length : 0;
     const pozvan = stat.reduce((a, s) => a + s.pozvan, 0);
     const byl = stat.reduce((a, s) => a + s.byl, 0);
+    const jedn = stat.reduce((a, s) => a + s.jedn, 0);
     const zapasy = data.udalosti.filter(u => u.druh === "Z_D" && !u.zruseno).length;
-    const k = (cislo, popis) => `<div class="dz-kpi"><b>${cislo}</b><span>${popis}</span></div>`;
+    const k = (cislo, popis, tip = "") => `<div class="dz-kpi"${tip ? ` title="${tip}"` : ""}><b>${cislo}</b><span>${popis}</span></div>`;
     el("dzKpis").innerHTML =
         k(tr.length, "tréninků dorostu") +
         k(prumerHracu.toLocaleString("cs-CZ", { maximumFractionDigits: 1 }), "hráčů v průměru na tréninku") +
-        k(procento(byl, pozvan) + " %", "celková docházka") +
+        k(procento(jedn, pozvan) + " %", "tréninkové jednotky", "Trénink s áčkem se počítá místo tréninku dorostu") +
+        k(procento(byl, pozvan) + " %", "tréninky dorostu") +
         k(zapasy, "zápasů dorostu");
 }
 
@@ -137,12 +166,12 @@ function bunkaDne(s, druh) {
 }
 
 function vykresliSezonu() {
-    const stat = statistiky().sort((a, b) => b.pct - a.pct || b.byl - a.byl || prijmeni(a.h.jmeno).localeCompare(prijmeni(b.h.jmeno), "cs"));
+    const stat = statistiky().sort((a, b) => b.jednPct - a.jednPct || b.pct - a.pct || b.byl - a.byl || prijmeni(a.h.jmeno).localeCompare(prijmeni(b.h.jmeno), "cs"));
     vykresliKpi(stat);
     const admin = isAdmin();
+    const metr = (pct) => `<td class="dz-pct"><div class="dz-meter"><i class="${pct >= 70 ? "hi" : pct >= 45 ? "mid" : "lo"}" style="width:${pct}%"></i></div><b>${pct} %</b></td>`;
 
     const radky = stat.map((s, i) => {
-        const tridaPct = s.pct >= 70 ? "hi" : s.pct >= 45 ? "mid" : "lo";
         const stitky = [
             s.pozdejsi ? `<span class="tag">od ${datum(s.pozdejsi)}</span>` : "",
             s.h.dlouhodobaOmluva ? `<span class="tag tag--warn" title="${esc(s.h.dlouhodobaOmluva.pozn || "")}">dlouhodobě omluven</span>` : ""
@@ -151,7 +180,7 @@ function vykresliSezonu() {
         let detail = "";
         if (otevreny) {
             const chybel = data.udalosti.filter(jeTrenink).map(u => ({ u, st: stav(u, s.h.id) })).filter(x => x.st.k !== "g" && x.st.k !== "x").reverse();
-            detail = `<tr class="dz-detail"><td></td><td colspan="13">${chybel.length ? `<ul class="dz-miss">${chybel.map(({ u, st }) => `
+            detail = `<tr class="dz-detail"><td></td><td colspan="15">${chybel.length ? `<ul class="dz-miss">${chybel.map(({ u, st }) => `
                 <li class="is-${st.k}"><b>${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)}</b> ${esc(u.nazev)}
                     <span>${st.k === "o" ? (admin ? "omluva: " + esc(st.kom) : "omluven") : st.k === "n" ? "bez omluvy" : "nezapsáno"}</span></li>`).join("")}</ul>`
                 : "<p>Na žádném tréninku nechyběl. 👏</p>"}
@@ -160,13 +189,15 @@ function vykresliSezonu() {
         return `<tr class="dz-row${otevreny ? " is-open" : ""}" data-hrac="${esc(s.h.id)}">
             <td class="ptable__rank">${i + 1}.</td>
             <td class="dz-name"><span class="dz-caret">▸</span>${esc(s.h.jmeno)}${stitky}</td>
-            <td class="dz-pct"><div class="dz-meter"><i class="${tridaPct}" style="width:${s.pct}%"></i></div><b>${s.pct} %</b></td>
+            ${metr(s.jednPct)}
+            <td class="dz-num"><b>${s.jedn}</b><small>/${s.pozvan}</small></td>
+            ${metr(s.pct)}
             <td class="dz-num"><b>${s.byl}</b><small>/${s.pozvan}</small></td>
             ${bunkaDne(s, "T_PO")}${bunkaDne(s, "T_UT")}${bunkaDne(s, "T_CT")}
+            <td class="dz-num dz-a">${s.sA || ""}</td>
             <td class="dz-num dz-o">${s.omluven || ""}</td>
             <td class="dz-num dz-n">${s.bezOmluvy || ""}</td>
             <td class="dz-num dz-z">${s.nezapsano || ""}</td>
-            <td class="dz-num">${s.sA || ""}</td>
             <td class="dz-num">${s.Z_D || ""}</td><td class="dz-num">${s.Z_B || ""}</td><td class="dz-num">${s.Z_A || ""}</td>
         </tr>${detail}`;
     }).join("");
@@ -175,76 +206,83 @@ function vykresliSezonu() {
         <div class="table-card"><div class="archive__scroll">
             <table class="ptable dz-table">
                 <thead>
-                    <tr class="dz-grp"><th colspan="4"></th><th colspan="3">Tréninky podle dne</th><th colspan="3">Chyběl na tréninku</th><th></th><th colspan="3">Zápasy</th></tr>
-                    <tr><th>#</th><th>Hráč</th><th>Docházka</th><th class="dz-num">Byl</th>
-                        <th class="dz-num">Po</th><th class="dz-num">Út</th><th class="dz-num">Čt</th>
+                    <tr class="dz-grp"><th colspan="2"></th><th colspan="2" class="dz-grp--main">Tréninkové jednotky</th><th colspan="2">Tréninky dorostu</th><th colspan="4">Podle dne</th><th colspan="3">Chyběl na tréninku dorostu</th><th colspan="3">Zápasy</th></tr>
+                    <tr><th>#</th><th>Hráč</th>
+                        <th title="Trénink s áčkem se počítá místo tréninku dorostu (nejvýš tolik, kolik měl dorost ten týden tréninků)">Docházka</th><th class="dz-num">Jedn.</th>
+                        <th>Docházka</th><th class="dz-num">Byl</th>
+                        <th class="dz-num">Po</th><th class="dz-num">Út</th><th class="dz-num">Čt</th><th class="dz-num" title="Tréninky s áčkem">S áčkem</th>
                         <th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th><th class="dz-num" title="V Týmuj bez odpovědi nebo „možná“">Nezaps.</th>
-                        <th class="dz-num" title="Tréninky s áčkem">S áčkem</th>
                         <th class="dz-num">D</th><th class="dz-num">B</th><th class="dz-num">A</th></tr>
                 </thead>
                 <tbody>${radky}</tbody>
             </table>
         </div></div>`;
-    el("dzNote").textContent = "Klikni na hráče – rozbalí se tréninky, na kterých chyběl, i s omluvou. Docházka = tréninky dorostu (Po, Út, Čt a jiné), tréninky s áčkem a zápasy se počítají zvlášť.";
+    el("dzNote").textContent = "Řazeno podle tréninkových jednotek: trénink s áčkem se počítá místo tréninku dorostu, po týdnech a nejvýš tolik, kolik měl dorost ten týden tréninků. Tréninky dorostu = jen tréninky dorostu (Po, Út, Čt a jiné). Klikni na hráče – rozbalí se tréninky, na kterých chyběl, i s omluvou.";
 }
 
 function vykresliTydny() {
     vykresliKpi(statistiky());
     const admin = isAdmin();
-    const vybrane = data.udalosti.filter(u => vse ? true : (DRUHY[u.druh].trenink || u.druh === "Z_D"));
-    const tydny = new Map();
-    for (const u of vybrane) {
-        const k = pondeli(u.zacatek);
-        if (!tydny.has(k)) tydny.set(k, []);
-        tydny.get(k).push(u);
-    }
-    const klice = [...tydny.keys()].sort().reverse();
-    const hraci = [...data.hraci].sort((a, b) => prijmeni(a.jmeno).localeCompare(prijmeni(b.jmeno), "cs"));
 
-    el("dzView").innerHTML = klice.map(k => {
-        const ud = tydny.get(k).sort((a, b) => a.zacatek.localeCompare(b.zacatek));
-        const tr = ud.filter(jeTrenink);
-        const vTymu = hraci.filter(h => ud.some(u => u.ucast[h.id]));
-        const prumer = tr.length ? tr.reduce((a, u) => a + Object.values(u.ucast).filter(z => z[0] === "G").length, 0) / tr.length : 0;
-        const konec = plusDni(k, 6);
+    // všechny týdny sezóny, nejnovější první – zobrazuje se vždy jen jeden
+    const klice = [...new Set(data.udalosti.map(u => pondeli(u.zacatek)))].sort().reverse();
+    if (!klice.length) { el("dzView").innerHTML = `<p class="dz-empty">Zatím žádné události.</p>`; return; }
+    if (!tyden || !klice.includes(tyden)) tyden = klice[0];
+    const idx = klice.indexOf(tyden);
+    const k = tyden, konec = plusDni(k, 6);
 
-        const hlavicky = ud.map(u => {
-            const pritomno = Object.values(u.ucast).filter(z => z[0] === "G").length;
-            const d = DRUHY[u.druh];
-            return `<th class="dz-ev dz-ev--${u.druh}${u.zruseno ? " is-off" : ""}${d.trenink ? "" : " is-extra"}" title="${esc(u.nazev)} · ${cas(u.zacatek)}">
-                <span class="dz-ev__d">${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)}</span>
-                <span class="dz-ev__n">${esc(d.kratce)}${u.druh.startsWith("Z_") ? " · " + esc(u.nazev.replace(/^[ABD]\s*-\s*/, "")) : ""}</span>
-                <span class="dz-ev__c">${u.zruseno ? "zrušeno" : pritomno + " přít."}</span></th>`;
+    const vTydnu = data.udalosti.filter(u => pondeli(u.zacatek) === k);
+    const ud = vTydnu.filter(u => vse || DRUHY[u.druh].trenink || u.druh === "Z_D")
+        .sort((a, b) => a.zacatek.localeCompare(b.zacatek));
+    const tr = ud.filter(jeTrenink);
+    const hraci = [...data.hraci].sort((a, b) => prijmeni(a.jmeno).localeCompare(prijmeni(b.jmeno), "cs"))
+        .filter(h => vTydnu.some(u => u.ucast[h.id]));
+    const prumer = tr.length ? tr.reduce((a, u) => a + Object.values(u.ucast).filter(z => z[0] === "G").length, 0) / tr.length : 0;
+
+    const hlavicky = ud.map(u => {
+        const pritomno = Object.values(u.ucast).filter(z => z[0] === "G").length;
+        const d = DRUHY[u.druh];
+        return `<th class="dz-ev dz-ev--${u.druh}${u.zruseno ? " is-off" : ""}${d.trenink ? "" : " is-extra"}" title="${esc(u.nazev)} · ${cas(u.zacatek)}">
+            <span class="dz-ev__d">${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)}</span>
+            <span class="dz-ev__n">${esc(d.kratce)}${u.druh.startsWith("Z_") ? " · " + esc(u.nazev.replace(/^[ABD]\s*-\s*/, "")) : ""}</span>
+            <span class="dz-ev__c">${u.zruseno ? "zrušeno" : pritomno + " přít."}</span></th>`;
+    }).join("");
+
+    const radky = hraci.map(h => {
+        let a = 0, b = 0;
+        for (const u of vTydnu) { if (!jeTrenink(u)) continue; const st = stav(u, h.id).k; if (st === "x") continue; b++; if (st === "g") a++; }
+        const j = jednotky(vTydnu, h.id);
+        const bunky = ud.map(u => {
+            const st = stav(u, h.id);
+            if (u.zruseno) return `<td class="dz-c is-off"></td>`;
+            const ikona = { g: "✓", n: "✗", o: "✗", z: "?", x: "" }[st.k];
+            const omluva = st.k === "o"
+                ? `<span class="dz-om" title="${admin ? esc(st.kom) : "omluven"}">${admin ? esc(st.kom.length > 28 ? st.kom.slice(0, 27) + "…" : st.kom) : "omluven"}</span>` : "";
+            return `<td class="dz-c is-${st.k}"><i>${ikona}</i>${omluva}</td>`;
         }).join("");
+        const pomer = (x, y, cls = "") => `<td class="dz-num dz-week${cls}">${y ? `<b>${x}</b><small>/${y}</small>` : "–"}</td>`;
+        return `<tr><td class="dz-name">${esc(h.jmeno)}</td>${bunky}${pomer(j.a, j.b, j.a > a ? " dz-week--a" : "")}${pomer(a, b)}</tr>`;
+    }).join("");
 
-        const radky = vTymu.map(h => {
-            let a = 0, b = 0;
-            const bunky = ud.map(u => {
-                const st = stav(u, h.id);
-                if (jeTrenink(u) && st.k !== "x") { b++; if (st.k === "g") a++; }
-                if (u.zruseno) return `<td class="dz-c is-off"></td>`;
-                const ikona = { g: "✓", n: "✗", o: "✗", z: "?", x: "" }[st.k];
-                const omluva = st.k === "o"
-                    ? `<span class="dz-om" title="${admin ? esc(st.kom) : "omluven"}">${admin ? esc(st.kom.length > 28 ? st.kom.slice(0, 27) + "…" : st.kom) : "omluven"}</span>` : "";
-                return `<td class="dz-c is-${st.k}"><i>${ikona}</i>${omluva}</td>`;
-            }).join("");
-            return `<tr><td class="dz-name">${esc(h.jmeno)}</td>${bunky}<td class="dz-num dz-week">${b ? `<b>${a}</b><small>/${b}</small>` : "–"}</td></tr>`;
-        }).join("");
+    const volby = klice.map(x => `<option value="${x}"${x === k ? " selected" : ""}>${datum(x)} – ${datumRok(plusDni(x, 6))}</option>`).join("");
 
-        return `<div class="dz-weekcard">
-            <div class="dz-weekcard__head">
-                <h3>${datum(k)} – ${datumRok(konec)}</h3>
-                <span>${tr.length ? `${tr.length} ${tr.length === 1 ? "trénink" : tr.length < 5 ? "tréninky" : "tréninků"} · průměrně ${prumer.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })} hráčů` : "bez tréninku dorostu"}</span>
+    el("dzView").innerHTML = `<div class="dz-weekcard">
+        <div class="dz-weekcard__head">
+            <div class="dz-weeknav">
+                <button type="button" class="btn btn--ghost" data-tyden="${klice[idx + 1] || ""}"${idx + 1 < klice.length ? "" : " disabled"} title="Předchozí týden">◀</button>
+                <select class="field" id="dzTyden" aria-label="Týden">${volby}</select>
+                <button type="button" class="btn btn--ghost" data-tyden="${klice[idx - 1] || ""}"${idx > 0 ? "" : " disabled"} title="Další týden">▶</button>
             </div>
-            <div class="archive__scroll">
-                <table class="ptable dz-wtable">
-                    <thead><tr><th>Hráč</th>${hlavicky}<th class="dz-num">Tréninky</th></tr></thead>
-                    <tbody>${radky}</tbody>
-                </table>
-            </div>
-        </div>`;
-    }).join("") || `<p class="dz-empty">Zatím žádné události.</p>`;
-    el("dzNote").innerHTML = `✓ byl · ✗ chyběl · <span class="dz-om">omluven</span> chyběl s omluvou · ? nezapsáno. Prázdné políčko = hráč tehdy ještě nebyl v týmu.${admin ? "" : " Text omluv vidí jen přihlášený."}`;
+            <span>${tr.length ? `${tr.length} ${tr.length === 1 ? "trénink" : tr.length < 5 ? "tréninky" : "tréninků"} dorostu · průměrně ${prumer.toLocaleString("cs-CZ", { maximumFractionDigits: 1 })} hráčů` : "bez tréninku dorostu"}</span>
+        </div>
+        <div class="archive__scroll">
+            <table class="ptable dz-wtable">
+                <thead><tr><th>Hráč</th>${hlavicky}<th class="dz-num" title="Tréninkové jednotky – trénink s áčkem se počítá místo tréninku dorostu">Jednotky</th><th class="dz-num">Dorost</th></tr></thead>
+                <tbody>${radky}</tbody>
+            </table>
+        </div>
+    </div>`;
+    el("dzNote").innerHTML = `✓ byl · ✗ chyběl · <span class="dz-om">omluven</span> chyběl s omluvou · ? nezapsáno. Prázdné políčko = hráč tehdy ještě nebyl v týmu. <b>Jednotky</b> = tréninky dorostu + tréninky s áčkem (nejvýš tolik, kolik měl dorost ten týden tréninků).${admin ? "" : " Text omluv vidí jen přihlášený."}`;
 }
 
 function vykresli() {
@@ -268,7 +306,12 @@ document.querySelectorAll(".dz-seg button").forEach(b => b.addEventListener("cli
     vykresli();
 }));
 el("dzAll").addEventListener("change", (e) => { vse = e.target.checked; vykresli(); });
+el("dzView").addEventListener("change", (e) => {
+    if (e.target.id === "dzTyden") { tyden = e.target.value; vykresli(); }
+});
 el("dzView").addEventListener("click", (e) => {
+    const t = e.target.closest("[data-tyden]");
+    if (t) { if (t.dataset.tyden) { tyden = t.dataset.tyden; vykresli(); } return; }
     const r = e.target.closest(".dz-row");
     if (!r) return;
     const id = r.dataset.hrac;

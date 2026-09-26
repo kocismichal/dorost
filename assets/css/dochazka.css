@@ -22,7 +22,7 @@
 
 .dz-kpis {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 12px;
     margin-bottom: 18px;
 }
@@ -171,3 +171,13 @@ th.dz-num { text-align: right; }
     .dz-sync { align-items: flex-start; }
     .dz-sync__err { text-align: left; }
 }
+
+/* --------------------------------------- jednotky a přepínání týdnů --- */
+
+.dz-table .dz-grp th.dz-grp--main { color: var(--accent); }
+.dz-a { color: #3b5bdb !important; font-weight: 800 !important; }
+.dz-weeknav { display: flex; align-items: center; gap: 8px; }
+.dz-weeknav select { width: auto; min-width: 190px; margin: 0; font-weight: 800; }
+.dz-weeknav .btn { min-width: 42px; padding-inline: 10px; }
+.dz-weeknav .btn:disabled { opacity: .35; cursor: default; }
+.dz-week--a b { color: #3b5bdb; }
