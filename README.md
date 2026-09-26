@@ -5,6 +5,7 @@ Firestore, takže je vidí všichni živě. Stránky:
 
 - **Pokutníček** (`index.html`) – pokuty hráčů
 - **Kanadské body** (`kanadske-body.html`) – zápasy, góly a asistence
+- **Docházka** (`dochazka.html`) – docházka dorostu, automaticky z Týmuj
 - **Plakáty** (`plakaty.html`) – plakát A3 na víkend
 - **Taktika** (`taktika.html`) – taktická tabule: rozestavení, rohy, pokyny
 - **Pro hráče** (`pro-hrace*.html`) – přehled k nastudování, 5 podstránek: přehled, rozcvička a prevence, regenerace, jídlo a pití, otázky
@@ -20,6 +21,7 @@ Platí pro všechny:
 ```
 index.html               pokutníček
 kanadske-body.html       kanadské bodování
+dochazka.html            docházka dorostu z Týmuj
 plakaty.html             plakáty na víkend
 taktika.html             taktická tabule
 pro-hrace.html           Pro hráče – přehled (týden, pondělí, den zápasu, bolest)
@@ -31,6 +33,11 @@ assets/css/app.css       styly webu
 assets/css/plakat.css    styly plakátu (zapouzdřené pod #plakatApp)
 assets/css/taktika.css   styly taktické tabule
 assets/css/pro-hrace.css styly stránky Pro hráče
+assets/js/dochazka.js    zobrazení docházky
+assets/js/tymuj.js       stažení docházky z Týmuj + zápis do databáze (sdílí web i synchronizace)
+assets/css/dochazka.css  styly docházky
+scripts/tymuj-sync.mjs   synchronizace Týmuj → databáze (Node, pouští GitHub Actions)
+.github/workflows/tymuj-sync.yml  plán synchronizace
 assets/js/core.js        sdílené jádro – Firebase, přihlášení, soupiska
 assets/js/app.js         logika pokut
 assets/js/points.js      logika kanadských bodů
@@ -99,6 +106,44 @@ z našeho pohledu.
 štítkem *st. žák*, do pokutníčku nezasahují.
 
 Smazání zápasu smaže i jeho branky, aby body nezůstaly viset v tabulce.
+
+## Docházka
+
+Docházka dorostu se bere **automaticky z Týmuj** (app.tymuj.cz). Co trenér
+v Týmuj opraví na skutečnou docházku, to platí i tady. Stránka data jen čte.
+
+**Jak to běží:** GitHub Actions (`.github/workflows/tymuj-sync.yml`) spouští
+3× denně `scripts/tymuj-sync.mjs`. Ten přes API Týmuj stáhne hráče
+podskupiny **DOROST** a všechny odehrané události od začátku sezóny
+(`TYMUJ.odData` v `assets/js/tymuj.js`) a uloží je jako jeden dokument
+`dochazka/dorost` (pole `data` = JSON). Když synchronizace selže, zapíše
+do dokumentu pole `chyba` a stránka ji ukáže u data aktualizace.
+Ručně jde pustit v GitHubu: **Actions → Docházka z Týmuj → Run workflow**.
+
+**Token do Týmuj** je v secretu repozitáře `TYMUJ_TOKEN` (nikdy ne v kódu).
+Platí **60 dní**, pak synchronizace začne hlásit chybu 401. Výměna:
+
+1. Na app.tymuj.cz (přihlášený) otevři F12 → Console a napiš
+   `copy(decodeURIComponent(document.cookie.match(/userToken=([^;]+)/)[1]))`
+   – token je ve schránce (Chrome se může zeptat, jestli povolit vkládání:
+   napiš `allow pasting`).
+2. GitHub → repo dorost → Settings → Secrets and variables → Actions →
+   `TYMUJ_TOKEN` → Update, vlož, ulož. (Nebo v terminálu
+   `gh secret set TYMUJ_TOKEN -R kocismichal/dorost` a vložit.)
+3. Actions → Docházka z Týmuj → Run workflow.
+
+**Co se počítá:**
+- *Tréninky dorostu* = Po (kondice), Út, Čt a jiné tréninky dorostu.
+  Tréninky s áčkem, přáteláky a zápasy D/B/A se počítají zvlášť. Druh se
+  pozná z názvu a dne události (`druhUdalosti` v `tymuj.js`) – při nových
+  názvech událostí v Týmuj zkontrolovat, kam spadnou.
+- Hráči se počítají jen události, na které byl v Týmuj pozvaný – kdo přišel
+  později, má procenta od svého příchodu (na stránce štítek „od …“).
+- *Omluven* = v Týmuj „nejdu“ s komentářem, *bez omluvy* = „nejdu“ bez
+  komentáře, *nezapsáno* = bez odpovědi nebo „možná“.
+- Text omluv vidí jen přihlášený. Je to jen skrytí v prohlížeči – v databázi
+  jsou data čitelná stejně jako zbytek webu, do omluv v Týmuj tedy nepsat nic
+  citlivého.
 
 ## Plakáty
 
@@ -199,6 +244,6 @@ Oficiální videa FIFA vkládání na cizí weby blokují – proto souhrny od
 University of Iowa. Nové video vždy vyzkoušet na živé stránce.
 
 > **Důležité:** po každé změně v `app.js`, `points.js`, `core.js`,
-> `plakaty.js`, `plakat-data.js`, `taktika.js`, `pro-hrace.js`, `app.css`,
-> `plakat.css`, `taktika.css` nebo `pro-hrace.css` zvyš číslo `?v=` u odkazů ve všech `.html` (a u importů uvnitř skriptů). Bez toho si
+> `plakaty.js`, `plakat-data.js`, `taktika.js`, `pro-hrace.js`, `dochazka.js`,
+> `tymuj.js`, `app.css`, `plakat.css`, `taktika.css`, `pro-hrace.css` nebo `dochazka.css` zvyš číslo `?v=` u odkazů ve všech `.html` (a u importů uvnitř skriptů). Bez toho si
 > prohlížeče drží starou verzi a lidem se změna neprojeví.
