@@ -174,7 +174,7 @@ polovinu – při přepínání se tedy nic nepřepočítává.
 
 Statická stránka – obsah se mění přímo v `pro-hrace.html`, z databáze nic
 nečte. Sekce: guma, válec, míček (druhy, kdy a jak, konkrétní cviky), jídlo
-kolem tréninku, pití, spánek, den zápasu s taškou, bolest a zranění, otázky
+kolem tréninku, strava a doplňky (výkop × čas jídla), pití, spánek, den zápasu s taškou, bolest a zranění, otázky
 k nastudování. Každá sekce má barvu přes třídu `ph-c-…` v `pro-hrace.css`.
 Tlačítko **Vytisknout tahák** schová menu a vytiskne jen obsah.
 

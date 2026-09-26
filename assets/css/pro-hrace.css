@@ -410,3 +410,30 @@
     .ph-trio__t { box-shadow: none; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* ------------------------------------------------------ strava --- */
+
+.ph-block > .ph-grid + .ph-grid,
+.ph-block > .ph-tip + .ph-grid { margin-top: 14px; }
+.ph-card--wide { margin-top: 14px; }
+.ph-list--cols { columns: 2 320px; column-gap: 32px; }
+.ph-list--cols li { break-inside: avoid; }
+
+.ph-tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
+.ph-table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.5; }
+.ph-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--c-tint);
+    color: var(--c);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.ph-table td { padding: 11px 14px; border-top: 1px solid var(--line-soft); color: var(--text-soft); vertical-align: top; }
+.ph-table td b { color: var(--text); font-size: 15px; white-space: nowrap; }
+@media (max-width: 700px) {
+    .ph-table { font-size: 13px; min-width: 560px; }
+}
