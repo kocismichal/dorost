@@ -19,9 +19,10 @@ import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-f
 
 let data = null;          // poslední data z databáze
 let meta = {};            // aktualizovano, chyba, chybaKdy
-let pohled = "sezona";    // sezona | tydny
+let pohled = "sezona";    // sezona | mesice | tydny
 let vse = false;          // v týdnech ukázat i áčko, béčko a přáteláky
 let tyden = null;         // zobrazený týden (pondělí YYYY-MM-DD), null = poslední
+let mesic = null;         // zobrazený měsíc (YYYY-MM), null = poslední
 const otevreni = new Set();   // rozbalení hráči v přehledu sezóny
 
 const el = (id) => document.getElementById(id);
@@ -285,6 +286,86 @@ function vykresliTydny() {
     el("dzNote").innerHTML = `✓ byl · ✗ chyběl · <span class="dz-om">omluven</span> chyběl s omluvou · ? nezapsáno. Prázdné políčko = hráč tehdy ještě nebyl v týmu. <b>Jednotky</b> = tréninky dorostu + tréninky s áčkem (nejvýš tolik, kolik měl dorost ten týden tréninků).${admin ? "" : " Text omluv vidí jen přihlášený."}`;
 }
 
+const MESICE = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"];
+const nazevMesice = (ym) => MESICE[+ym.slice(5, 7) - 1] + " " + ym.slice(0, 4);
+
+/* Měsíc: pořadí podle počtu tréninkových jednotek – podklad pro odměny.
+   Jednotky se počítají jen z událostí toho měsíce (týden přes přelom
+   měsíce se rozdělí). */
+function vykresliMesice() {
+    vykresliKpi(statistiky());
+    const admin = isAdmin();
+    const klice = [...new Set(data.udalosti.map(u => u.zacatek.slice(0, 7)))].sort().reverse();
+    if (!klice.length) { el("dzView").innerHTML = `<p class="dz-empty">Zatím žádné události.</p>`; return; }
+    if (!mesic || !klice.includes(mesic)) mesic = klice[0];
+    const idx = klice.indexOf(mesic);
+    const probiha = mesic === new Date().toISOString().slice(0, 7);
+
+    const vMesici = data.udalosti.filter(u => u.zacatek.slice(0, 7) === mesic);
+    const tr = vMesici.filter(jeTrenink).sort((a, b) => a.zacatek.localeCompare(b.zacatek));
+
+    const radky = data.hraci.filter(h => vMesici.some(u => u.ucast[h.id])).map(h => {
+        const s = { h, byl: 0, pozvan: 0, sA: 0, omluven: 0, bezOmluvy: 0, tecky: [] };
+        for (const u of tr) {
+            const st = stav(u, h.id);
+            s.tecky.push({ u, st });
+            if (st.k === "x") continue;
+            s.pozvan++;
+            if (st.k === "g") s.byl++; else if (st.k === "o") s.omluven++; else if (st.k === "n") s.bezOmluvy++;
+        }
+        s.sA = vMesici.filter(u => u.druh === "T_A" && !u.zruseno && stav(u, h.id).k === "g").length;
+        s.jedn = jednotky(vMesici, h.id).a;
+        return s;
+    }).sort((a, b) => b.jedn - a.jedn || b.byl - a.byl || prijmeni(a.h.jmeno).localeCompare(prijmeni(b.h.jmeno), "cs"));
+
+    // pořadí se sdílenými místy (stejný počet = stejné místo)
+    let misto = 0, minule = null;
+    const medaile = ["🥇", "🥈", "🥉"];
+    const html = radky.map((s, i) => {
+        const klic = s.jedn + "/" + s.byl;
+        if (klic !== minule) { misto = i + 1; minule = klic; }
+        const top = misto <= 3 && s.jedn > 0;
+        const pct = procento(s.jedn, s.pozvan);
+        const tecky = s.tecky.map(({ u, st }) => {
+            const co = { g: "byl", n: "chyběl bez omluvy", o: "omluven" + (admin && st.kom ? ": " + st.kom : ""), z: "nezapsáno", x: "ještě nebyl v týmu" }[st.k];
+            return `<i class="is-${st.k}" title="${esc(`${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)} ${u.nazev} – ${co}`)}"></i>`;
+        }).join("");
+        return `<tr class="${top ? "dz-top" : ""}">
+            <td class="ptable__rank">${top ? medaile[misto - 1] : misto + "."}</td>
+            <td class="dz-name">${esc(s.h.jmeno)}</td>
+            <td class="dz-num dz-big"><b>${s.jedn}</b><small>/${s.pozvan}</small></td>
+            <td class="dz-pct"><div class="dz-meter"><i class="${pct >= 70 ? "hi" : pct >= 45 ? "mid" : "lo"}" style="width:${pct}%"></i></div><b>${pct} %</b></td>
+            <td class="dz-num"><b>${s.byl}</b><small>/${s.pozvan}</small></td>
+            <td class="dz-num dz-a">${s.sA || ""}</td>
+            <td class="dz-num dz-o">${s.omluven || ""}</td>
+            <td class="dz-num dz-n">${s.bezOmluvy || ""}</td>
+            <td class="dz-dots">${tecky}</td>
+        </tr>`;
+    }).join("");
+
+    const volby = klice.map(x => `<option value="${x}"${x === mesic ? " selected" : ""}>${nazevMesice(x)}</option>`).join("");
+    el("dzView").innerHTML = `<div class="dz-weekcard">
+        <div class="dz-weekcard__head">
+            <div class="dz-weeknav">
+                <button type="button" class="btn btn--ghost" data-mesic="${klice[idx + 1] || ""}"${idx + 1 < klice.length ? "" : " disabled"} title="Předchozí měsíc">◀</button>
+                <select class="field" id="dzMesic" aria-label="Měsíc">${volby}</select>
+                <button type="button" class="btn btn--ghost" data-mesic="${klice[idx - 1] || ""}"${idx > 0 ? "" : " disabled"} title="Další měsíc">▶</button>
+            </div>
+            <span>${tr.length} ${tr.length === 1 ? "trénink" : tr.length >= 2 && tr.length <= 4 ? "tréninky" : "tréninků"} dorostu${probiha ? " · měsíc ještě běží" : ""}</span>
+        </div>
+        <div class="archive__scroll">
+            <table class="ptable dz-table dz-mtable">
+                <thead><tr><th>#</th><th>Hráč</th>
+                    <th class="dz-num" title="Tréninkové jednotky – trénink s áčkem se počítá místo tréninku dorostu">Jednotky</th><th></th>
+                    <th class="dz-num">Dorost</th><th class="dz-num">S áčkem</th><th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th>
+                    <th>Tréninky dorostu v měsíci</th></tr></thead>
+                <tbody>${html}</tbody>
+            </table>
+        </div>
+    </div>`;
+    el("dzNote").innerHTML = `Pořadí podle počtu tréninkových jednotek v měsíci (trénink s áčkem se počítá místo tréninku dorostu, v každém týdnu nejvýš tolik, kolik měl dorost tréninků), při shodě rozhoduje víc tréninků dorostu. Tečky: <i class="dz-dot is-g"></i> byl · <i class="dz-dot is-o"></i> omluven · <i class="dz-dot is-n"></i> chyběl · <i class="dz-dot is-z"></i> nezapsáno – najetím myší se ukáže trénink.`;
+}
+
 function vykresli() {
     vykresliSync();
     el("dzAllWrap").hidden = pohled !== "tydny";
@@ -295,7 +376,7 @@ function vykresli() {
         return;
     }
     el("dzOd").textContent = datumRok(data.od);
-    pohled === "sezona" ? vykresliSezonu() : vykresliTydny();
+    if (pohled === "sezona") vykresliSezonu(); else if (pohled === "mesice") vykresliMesice(); else vykresliTydny();
 }
 
 /* ------------------------------------------------------------- ovládání --- */
@@ -308,8 +389,11 @@ document.querySelectorAll(".dz-seg button").forEach(b => b.addEventListener("cli
 el("dzAll").addEventListener("change", (e) => { vse = e.target.checked; vykresli(); });
 el("dzView").addEventListener("change", (e) => {
     if (e.target.id === "dzTyden") { tyden = e.target.value; vykresli(); }
+    if (e.target.id === "dzMesic") { mesic = e.target.value; vykresli(); }
 });
 el("dzView").addEventListener("click", (e) => {
+    const m = e.target.closest("[data-mesic]");
+    if (m) { if (m.dataset.mesic) { mesic = m.dataset.mesic; vykresli(); } return; }
     const t = e.target.closest("[data-tyden]");
     if (t) { if (t.dataset.tyden) { tyden = t.dataset.tyden; vykresli(); } return; }
     const r = e.target.closest(".dz-row");

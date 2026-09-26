@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/dochazka.css?v=2">
+<link rel="stylesheet" href="assets/css/dochazka.css?v=3">
 </head>
 <body>
 
@@ -61,6 +61,7 @@
         <div class="dz-bar">
             <div class="dz-seg" role="tablist">
                 <button type="button" class="is-on" data-view="sezona">Přehled sezóny</button>
+                <button type="button" data-view="mesice">Po měsících</button>
                 <button type="button" data-view="tydny">Po týdnech</button>
             </div>
             <label class="dz-check" id="dzAllWrap" hidden><input type="checkbox" id="dzAll"> i áčko, béčko a přáteláky</label>
@@ -97,6 +98,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/dochazka.js?v=2"></script>
+<script type="module" src="assets/js/dochazka.js?v=3"></script>
 </body>
 </html>
