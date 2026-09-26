@@ -136,6 +136,9 @@ komentáře), Splnění tréninkového týdne (dorost + áčko ≥ 3 → −50 K
 tréninky dorostu, bez hráčů v `POKUTY_VYNECHAT` (`tymuj.js`). Každý zápis
 má `autoKey`, nic se nezapíše dvakrát; ručně smazaná pokuta se nevrátí.
 Jiný týden: Actions → Pokuty z docházky → Run workflow → pondělí týdne.
+Na stránce Docházka jsou zapsané pokuty vidět u událostí, v týdnech, měsících,
+přehledu sezóny (sloupec Pokuty) i v kartě hráče – čtou se přímo z kolekce
+`fines` (jen zápisy s `autoKey`), takže smazaná pokuta zmizí i tam.
 
 **Token do Týmuj** je v secretu repozitáře `TYMUJ_TOKEN` (nikdy ne v kódu).
 Platí **60 dní**, pak synchronizace začne hlásit chybu 401. Výměna:

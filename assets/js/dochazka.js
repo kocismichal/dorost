@@ -9,7 +9,7 @@
    ========================================================================== */
 
 import {
-    docIn, whenReady, onDbError, setStatus, initAuth, isAdmin, esc
+    docIn, col, whenReady, onDbError, setStatus, initAuth, isAdmin, esc, roster, onRoster
 } from "./core.js?v=9";
 import { DRUHY, DOCHAZKA_KOLEKCE, DOCHAZKA_DOKUMENT, HISTORIE_DOKUMENT, prihlasenVcas } from "./tymuj.js?v=2";
 
@@ -20,6 +20,7 @@ import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-f
 let data = null;          // poslední data z databáze
 let meta = {};            // aktualizovano, chyba, chybaKdy
 let historie = null;      // časy odpovědí z Týmuj (dokument dochazka/historie)
+let pokutyZDochazky = [];  // pokuty z pokutníčku zapsané z docházky (mají autoKey)
 let pohled = "sezona";    // sezona | mesice | tydny
 let vse = false;          // v týdnech ukázat i áčko, béčko a přáteláky
 let tyden = null;         // zobrazený týden (pondělí YYYY-MM-DD), null = poslední
@@ -106,6 +107,62 @@ function historieHtml(u, idHrace, admin) {
     const z = hist(u, idHrace);
     if (!z.length) return maHistorii(u) ? `<span class="dz-h dz-h--none">bez odpovědi</span>` : "";
     return z.map(([c, o, kdo, kom]) => `<span class="dz-h dz-h--${o || "x"}"><b>${casZaznamu(c)}</b> ${ODP_TEXT[o] || esc(o)}${kdo ? ` <em>(${esc(kdo)})</em>` : ""}${kom && admin ? ` – „${esc(kom)}“` : ""}</span>`).join("");
+}
+
+/* ------------------------------------------------ pokuty z docházky ---
+   Čte se přímo kolekce pokut – ukazuje se jen to, co v pokutníčku opravdu je
+   (smazaná pokuta zmizí i tady). Pokuta se k události a hráči váže přes
+   autoKey („neprihlasen|událost|hráč“, „duvod|událost|hráč“, „tyden|pondělí|hráč“),
+   hráč pokutníčku se s hráčem z Týmuj páruje podle jména.
+   ------------------------------------------------------------------- */
+
+const POKUTA_KRATCE = { neprihlasen: "nepřihlášen do 12:00", duvod_nepritomnosti: "neudán důvod", trenink_tyden: "tréninkový týden" };
+let pokutyIndex = { udalost: {}, tyden: {} };
+
+function prepocitejPokuty() {
+    pokutyIndex = { udalost: {}, tyden: {} };
+    if (!data) return;
+    const norm = t => String(t).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+    const prij = t => norm(t).split(" ").pop();
+    const naTymuj = {};
+    for (const p of roster()) {
+        const h = data.hraci.find(h => norm(h.jmeno) === norm(p.name))
+            || data.hraci.find(h => prij(h.jmeno) === prij(p.name) && norm(h.jmeno)[0] === norm(p.name)[0])
+            || (/romaniuk/i.test(p.name) && data.hraci.find(h => /romaniuk/i.test(h.jmeno)));
+        if (h) naTymuj[p.id] = h.id;
+    }
+    for (const f of pokutyZDochazky) {
+        const [typ, kde, pid] = f.autoKey.split("|");
+        const hid = naTymuj[pid];
+        if (!hid) continue;
+        const cil = typ === "tyden" ? pokutyIndex.tyden : pokutyIndex.udalost;
+        ((cil[kde] ??= {})[hid] ??= []).push(f);
+    }
+}
+
+const pokutyUdalosti = (u, hid) => (pokutyIndex.udalost[u.id] && pokutyIndex.udalost[u.id][hid]) || [];
+const pokutaTydne = (pondeliK, hid) => (pokutyIndex.tyden[pondeliK] && pokutyIndex.tyden[pondeliK][hid]) || [];
+const castka = (n) => (n > 0 ? "+" : n < 0 ? "−" : "") + Math.abs(n) + " Kč";
+
+/** Štítky pokut (u události nebo týdne). */
+function stitkyPokut(seznam) {
+    return seznam.map(f => `<span class="dz-fine${f.amount < 0 ? " is-minus" : ""}" title="Pokutníček: ${esc(f.label)} ${castka(f.amount)}">${castka(f.amount)}</span>`).join("");
+}
+
+/** Součet pokut z docházky hráče za dané události (+ tréninkové týdny, které do nich spadají). */
+function soucetPokut(udalosti, hid, mesicK = null) {
+    let s = 0, n = 0;
+    const tydny = new Set();
+    for (const u of udalosti) {
+        for (const f of pokutyUdalosti(u, hid)) { s += f.amount; n++; }
+        tydny.add(pondeli(u.zacatek));
+    }
+    // týdenní odečet patří do měsíce, ve kterém týden končí (neděle)
+    for (const t of tydny) {
+        if (mesicK && plusDni(t, 6).slice(0, 7) !== mesicK) continue;
+        for (const f of pokutaTydne(t, hid)) { s += f.amount; n++; }
+    }
+    return { s, n };
 }
 
 /* ---------------------------------------------------------- statistiky ---
@@ -197,6 +254,10 @@ function bunkaDne(s, druh) {
     return `<td class="dz-num">${b ? `${a}<small>/${b}</small>` : "–"}</td>`;
 }
 
+function bunkaPokut({ s, n }) {
+    return `<td class="dz-num dz-pok${s > 0 ? " is-plus" : s < 0 ? " is-minus" : ""}" title="${n} zápisů v pokutníčku">${n ? castka(s) : ""}</td>`;
+}
+
 function vykresliSezonu() {
     const stat = statistiky().sort((a, b) => b.jednPct - a.jednPct || b.pct - a.pct || b.byl - a.byl || prijmeni(a.h.jmeno).localeCompare(prijmeni(b.h.jmeno), "cs"));
     vykresliKpi(stat);
@@ -221,6 +282,7 @@ function vykresliSezonu() {
             <td class="dz-num dz-n">${s.bezOmluvy || ""}</td>
             <td class="dz-num dz-z">${s.nezapsano || ""}</td>
             <td class="dz-num">${s.Z_D || ""}</td><td class="dz-num">${s.Z_B || ""}</td><td class="dz-num">${s.Z_A || ""}</td>
+            ${bunkaPokut(soucetPokut(data.udalosti, s.h.id))}
         </tr>`;
     }).join("");
 
@@ -228,13 +290,14 @@ function vykresliSezonu() {
         <div class="table-card"><div class="archive__scroll">
             <table class="ptable dz-table">
                 <thead>
-                    <tr class="dz-grp"><th colspan="2"></th><th colspan="2" class="dz-grp--main">Tréninkové jednotky</th><th colspan="2">Tréninky dorostu</th><th colspan="4">Podle dne</th><th colspan="3">Chyběl na tréninku dorostu</th><th colspan="3">Zápasy</th></tr>
+                    <tr class="dz-grp"><th colspan="2"></th><th colspan="2" class="dz-grp--main">Tréninkové jednotky</th><th colspan="2">Tréninky dorostu</th><th colspan="4">Podle dne</th><th colspan="3">Chyběl na tréninku dorostu</th><th colspan="3">Zápasy</th><th></th></tr>
                     <tr><th>#</th><th>Hráč</th>
                         <th title="Tréninky dorostu + tréninky s áčkem, v poměru k počtu tréninků dorostu – může být přes 100 %">Docházka</th><th class="dz-num">Jedn.</th>
                         <th>Docházka</th><th class="dz-num">Byl</th>
                         <th class="dz-num">Po</th><th class="dz-num">Út</th><th class="dz-num">Čt</th><th class="dz-num" title="Tréninky s áčkem">S áčkem</th>
                         <th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th><th class="dz-num" title="V Týmuj bez odpovědi nebo „možná“">Nezaps.</th>
-                        <th class="dz-num">D</th><th class="dz-num">B</th><th class="dz-num">A</th></tr>
+                        <th class="dz-num">D</th><th class="dz-num">B</th><th class="dz-num">A</th>
+                        <th class="dz-num" title="Pokuty zapsané do pokutníčku z docházky (nepřihlášen, neudán důvod, tréninkový týden)">Pokuty</th></tr>
                 </thead>
                 <tbody>${radky}</tbody>
             </table>
@@ -281,10 +344,10 @@ function vykresliTydny() {
             const omluva = st.k === "o"
                 ? `<span class="dz-om" title="${admin ? esc(st.kom) : "omluven"}">${admin ? esc(st.kom.length > 28 ? st.kom.slice(0, 27) + "…" : st.kom) : "omluven"}</span>` : "";
             const pozd = pozde(u, h.id) ? `<span class="dz-late" title="Nepřihlášen do 12:00">po 12</span>` : "";
-            return `<td class="dz-c is-${st.k}" title="${esc(historieText(u, h.id, admin))}"><i>${ikona}</i>${omluva}${pozd}</td>`;
+            return `<td class="dz-c is-${st.k}" title="${esc(historieText(u, h.id, admin))}"><i>${ikona}</i>${omluva}${pozd}${stitkyPokut(pokutyUdalosti(u, h.id))}</td>`;
         }).join("");
         const pomer = (x, y, cls = "") => `<td class="dz-num dz-week${cls}">${y ? `<b>${x}</b><small>/${y}</small>` : "–"}</td>`;
-        return `<tr><td class="dz-name"><span class="dz-link" data-hrac="${esc(h.id)}">${esc(h.jmeno)}</span></td>${bunky}${pomer(j.a, j.b, j.a > a ? " dz-week--a" : "")}${pomer(a, b)}</tr>`;
+        return `<tr><td class="dz-name"><span class="dz-link" data-hrac="${esc(h.id)}">${esc(h.jmeno)}</span></td>${bunky}${pomer(j.a, j.b, j.a > a ? " dz-week--a" : "")}${pomer(a, b)}${bunkaPokut(soucetPokut(vTydnu, h.id))}</tr>`;
     }).join("");
 
     const volby = klice.map(x => `<option value="${x}"${x === k ? " selected" : ""}>${datum(x)} – ${datumRok(plusDni(x, 6))}</option>`).join("");
@@ -300,7 +363,7 @@ function vykresliTydny() {
         </div>
         <div class="archive__scroll">
             <table class="ptable dz-wtable">
-                <thead><tr><th>Hráč</th>${hlavicky}<th class="dz-num" title="Tréninkové jednotky – trénink s áčkem se počítá místo tréninku dorostu">Jednotky</th><th class="dz-num">Dorost</th></tr></thead>
+                <thead><tr><th>Hráč</th>${hlavicky}<th class="dz-num" title="Tréninkové jednotky – trénink s áčkem se počítá místo tréninku dorostu">Jednotky</th><th class="dz-num">Dorost</th><th class="dz-num" title="Pokuty z docházky za týden včetně odečtu za tréninkový týden">Pokuty</th></tr></thead>
                 <tbody>${radky}</tbody>
             </table>
         </div>
@@ -359,6 +422,7 @@ function vykresliMesice() {
             <td class="dz-num dz-a">${s.sA || ""}</td>
             <td class="dz-num dz-o">${s.omluven || ""}</td>
             <td class="dz-num dz-n">${s.bezOmluvy || ""}</td>
+            ${bunkaPokut(soucetPokut(vMesici, s.h.id, mesic))}
             <td class="dz-dots">${tecky}</td>
         </tr>`;
     }).join("");
@@ -377,7 +441,7 @@ function vykresliMesice() {
             <table class="ptable dz-table dz-mtable">
                 <thead><tr><th>#</th><th>Hráč</th>
                     <th class="dz-num" title="Tréninkové jednotky – trénink s áčkem se počítá místo tréninku dorostu">Jednotky</th><th></th>
-                    <th class="dz-num">Dorost</th><th class="dz-num">S áčkem</th><th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th>
+                    <th class="dz-num">Dorost</th><th class="dz-num">S áčkem</th><th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th><th class="dz-num">Pokuty</th>
                     <th>Tréninky dorostu v měsíci</th></tr></thead>
                 <tbody>${html}</tbody>
             </table>
@@ -458,6 +522,7 @@ function vykresliKartu() {
             ${kpi(s.sA ?? 0, "tréninků s áčkem")}
             ${kpi(`${s.Z_D ?? 0} / ${s.Z_B ?? 0} / ${s.Z_A ?? 0}`, "zápasy D / B / A")}
             ${kpi(`${s.omluven ?? 0} · ${s.bezOmluvy ?? 0} · ${s.nezapsano ?? 0}`, "omluven · bez omluvy · nezapsáno")}
+            ${(() => { const p = soucetPokut(moje, h.id); return kpi(p.n ? castka(p.s) : "0 Kč", `pokuty z docházky (${p.n}×)`, p.s > 0 ? " is-fine" : ""); })()}
         </div>
 
         <h4 class="dz-karta__h">Po měsících</h4>
@@ -488,9 +553,15 @@ function vykresliKartu() {
                     <i>${{ g: "✓", n: "✗", o: "✗", z: "?" }[st.k]}</i>
                     <span class="dz-kitem__d">${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)}</span>
                     <span class="dz-kitem__n">${esc(u.nazev)}<small>${esc(DRUHY[u.druh].nazev)}</small></span>
-                    <span class="dz-kitem__s">${STAV_TEXT[st.k]}${st.k === "o" ? (admin ? ": " + esc(st.kom) : "") : ""}${pozde(u, h.id) ? ` <span class="dz-late">po 12</span>` : ""}</span>
+                    <span class="dz-kitem__s">${STAV_TEXT[st.k]}${st.k === "o" ? (admin ? ": " + esc(st.kom) : "") : ""}${pozde(u, h.id) ? ` <span class="dz-late">po 12</span>` : ""}${stitkyPokut(pokutyUdalosti(u, h.id))}</span>
                     <span class="dz-kitem__h">${historieHtml(u, h.id, admin)}</span>
                 </div>`).join("") || `<p class="dz-empty">Nic neodpovídá filtru.</p>`}
+        </div>
+        ${(() => {
+            const t = Object.keys(pokutyIndex.tyden).sort().reverse().filter(k => pokutaTydne(k, h.id).length);
+            return t.length ? `<h4 class="dz-karta__h">Splněné tréninkové týdny</h4><div class="dz-ktydny">${t.map(k => `<span class="dz-fine is-minus" title="${esc(pokutaTydne(k, h.id)[0].note || "")}">${datum(k)} – ${datum(plusDni(k, 6))} · ${castka(pokutaTydne(k, h.id).reduce((a, f) => a + f.amount, 0))}</span>`).join("")}</div>` : "";
+        })()}
+        <div>
         </div>
         ${admin ? "" : `<p class="dz-hint">Text omluv vidí jen přihlášený.</p>`}`;
 }
@@ -531,6 +602,7 @@ function vykresliUdalost() {
             <div class="dz-kk"><b>${pocty.n}</b><span>bez omluvy</span></div>
             <div class="dz-kk"><b>${pocty.z}</b><span>nezapsáno</span></div>
             ${jeTrenink(u) && maHistorii(u) ? `<div class="dz-kk"><b>${pozdePocet}</b><span>nepřihlášeno do 12:00</span></div>` : ""}
+            ${(() => { const v = hraci.flatMap(x => pokutyUdalosti(u, x.h.id)); return v.length ? `<div class="dz-kk is-fine"><b>${castka(v.reduce((a, f) => a + f.amount, 0))}</b><span>pokuty z docházky (${v.length}×)</span></div>` : ""; })()}
         </div>
         <h4 class="dz-karta__h">Odpovědi a jejich změny</h4>
         ${maHistorii(u) ? "" : `<p class="dz-hint">Časy odpovědí se ještě nestáhly – doplní je příští synchronizace.</p>`}
@@ -539,7 +611,7 @@ function vykresliUdalost() {
                 <div class="dz-kitem is-${st.k === "x" ? "z" : st.k}">
                     <i>${{ g: "✓", n: "✗", o: "✗", z: "?", x: "" }[st.k]}</i>
                     <span class="dz-kitem__d"><span class="dz-link" data-hrac="${esc(h.id)}">${esc(h.jmeno)}</span></span>
-                    <span class="dz-kitem__s">${STAV_TEXT[st.k] || ""}${st.k === "o" ? (admin ? ": " + esc(st.kom) : "") : ""}${pozde(u, h.id) ? ` <span class="dz-late">po 12</span>` : ""}</span>
+                    <span class="dz-kitem__s">${STAV_TEXT[st.k] || ""}${st.k === "o" ? (admin ? ": " + esc(st.kom) : "") : ""}${pozde(u, h.id) ? ` <span class="dz-late">po 12</span>` : ""}${stitkyPokut(pokutyUdalosti(u, h.id))}</span>
                     <span class="dz-kitem__h">${historieHtml(u, h.id, admin)}</span>
                 </div>`).join("")}
         </div>
@@ -611,10 +683,22 @@ whenReady(() => {
             chybaKdy: d.chybaKdy && d.chybaKdy.toDate ? d.chybaKdy.toDate() : null
         };
         try { data = d.data ? JSON.parse(d.data) : null; } catch { data = null; }
+        prepocitejPokuty();
         vykresli();
     }, onDbError);
+    onSnapshot(col("fines"), (snap) => {
+        pokutyZDochazky = snap.docs.map(d => d.data()).filter(f => f.autoKey);
+        prepocitejPokuty();
+        if (data) vykresli();
+    }, onDbError);
+    onDocHistorie();
+});
+
+onRoster(() => { prepocitejPokuty(); if (data) vykresli(); });
+
+function onDocHistorie() {
     onSnapshot(docIn(DOCHAZKA_KOLEKCE, HISTORIE_DOKUMENT), (snap) => {
         try { historie = snap.exists() && snap.data().data ? JSON.parse(snap.data().data) : null; } catch { historie = null; }
         if (data) vykresli();
     }, onDbError);
-});
+}

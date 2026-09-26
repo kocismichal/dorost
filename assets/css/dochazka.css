@@ -314,3 +314,25 @@ th.dz-num { text-align: right; }
     .dz-kitem { grid-template-columns: 26px 64px minmax(0, 1fr); }
     .dz-kitem__h { grid-column: 2 / -1; }
 }
+
+/* ------------------------------------------------ pokuty z docházky --- */
+
+.dz-fine {
+    display: inline-block;
+    margin: 2px 2px 0;
+    padding: 0 5px;
+    border-radius: 4px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.dz-fine.is-minus { background: var(--ok-tint); color: var(--ok-dark); }
+.dz-c .dz-fine { display: block; width: max-content; margin: 2px auto 0; }
+.dz-pok { font-weight: 800 !important; }
+.dz-pok.is-plus { color: var(--text) !important; }
+.dz-pok.is-minus { color: var(--ok) !important; }
+.dz-kk.is-fine { background: #f1f2f4; }
+.dz-ktydny { display: flex; flex-wrap: wrap; gap: 6px; }
+.dz-ktydny .dz-fine { font-size: 12px; padding: 3px 8px; }
