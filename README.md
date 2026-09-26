@@ -37,7 +37,10 @@ assets/js/dochazka.js    zobrazení docházky
 assets/js/tymuj.js       stažení docházky z Týmuj + zápis do databáze (sdílí web i synchronizace)
 assets/css/dochazka.css  styly docházky
 scripts/tymuj-sync.mjs   synchronizace Týmuj → databáze (Node, pouští GitHub Actions)
-.github/workflows/tymuj-sync.yml  plán synchronizace
+scripts/tymuj-pokuty.mjs pondělní zápis pokut z docházky do pokutníčku
+scripts/spolecne.mjs     konfigurace Firebase a token pro skripty
+.github/workflows/tymuj-sync.yml    plán synchronizace (3× denně)
+.github/workflows/tymuj-pokuty.yml  pokuty z docházky (každé pondělí)
 assets/js/core.js        sdílené jádro – Firebase, přihlášení, soupiska
 assets/js/app.js         logika pokut
 assets/js/points.js      logika kanadských bodů
@@ -119,6 +122,20 @@ podskupiny **DOROST** a všechny odehrané události od začátku sezóny
 `dochazka/dorost` (pole `data` = JSON). Když synchronizace selže, zapíše
 do dokumentu pole `chyba` a stránka ji ukáže u data aktualizace.
 Ručně jde pustit v GitHubu: **Actions → Docházka z Týmuj → Run workflow**.
+
+**Historie odpovědí:** synchronizace stahuje i časy odpovědí a kdo je zadal
+(dokument `dochazka/historie`; znovu jen události z posledních 14 dní).
+Na stránce: najetí na políčko v týdnu = všechny změny, klik na sloupec =
+detail události, v kartě hráče u každé události. Štítek **po 12** = hráč se
+do 12:00 v den tréninku nepřihlásil.
+
+**Pokuty z docházky** (`tymuj-pokuty.yml`, každé pondělí ráno za uplynulý
+týden, zapisuje jako „AI“): Nepřihlášen do 12:00 (žádná odpověď jde/nejde/
+možná do 12:00 v den tréninku), Neudán důvod (výsledně „nejde“ bez
+komentáře), Splnění tréninkového týdne (dorost + áčko ≥ 3 → −50 Kč). Jen
+tréninky dorostu, bez hráčů v `POKUTY_VYNECHAT` (`tymuj.js`). Každý zápis
+má `autoKey`, nic se nezapíše dvakrát; ručně smazaná pokuta se nevrátí.
+Jiný týden: Actions → Pokuty z docházky → Run workflow → pondělí týdne.
 
 **Token do Týmuj** je v secretu repozitáře `TYMUJ_TOKEN` (nikdy ne v kódu).
 Platí **60 dní**, pak synchronizace začne hlásit chybu 401. Výměna:

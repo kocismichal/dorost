@@ -11,7 +11,7 @@
 import {
     docIn, whenReady, onDbError, setStatus, initAuth, isAdmin, esc
 } from "./core.js?v=9";
-import { DRUHY, DOCHAZKA_KOLEKCE, DOCHAZKA_DOKUMENT } from "./tymuj.js?v=1";
+import { DRUHY, DOCHAZKA_KOLEKCE, DOCHAZKA_DOKUMENT, HISTORIE_DOKUMENT, prihlasenVcas } from "./tymuj.js?v=2";
 
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -19,6 +19,7 @@ import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-f
 
 let data = null;          // poslední data z databáze
 let meta = {};            // aktualizovano, chyba, chybaKdy
+let historie = null;      // časy odpovědí z Týmuj (dokument dochazka/historie)
 let pohled = "sezona";    // sezona | mesice | tydny
 let vse = false;          // v týdnech ukázat i áčko, béčko a přáteláky
 let tyden = null;         // zobrazený týden (pondělí YYYY-MM-DD), null = poslední
@@ -70,6 +71,36 @@ function stav(u, idHrace) {
     if (odp === "G") return { k: "g", kom };
     if (odp === "N") return { k: kom ? "o" : "n", kom };
     return { k: "z", kom };
+}
+
+/* ------------------------------------------------- historie odpovědí ---
+   Záznam = [čas "2026-08-25T13:46:08", odpověď G/N/M, kdo zadal ("" = hráč
+   sám), komentář]. Komentáře (omluvy) vidí jen přihlášený.
+   ------------------------------------------------------------------- */
+
+const ODP_TEXT = { G: "jde", N: "nejde", M: "možná", "": "bez odpovědi" };
+const hist = (u, idHrace) => (historie && historie.udalosti && historie.udalosti[u.id] && historie.udalosti[u.id][idHrace]) || [];
+const maHistorii = (u) => !!(historie && historie.udalosti && historie.udalosti[u.id]);
+const casZaznamu = (c) => `${+c.slice(8, 10)}. ${+c.slice(5, 7)}. ${c.slice(11, 16)}`;
+
+/** Přihlásil se pozdě (po 12:00 v den tréninku)? Jen tréninky dorostu a jen když historii máme. */
+function pozde(u, idHrace) {
+    if (!jeTrenink(u) || !maHistorii(u) || !u.ucast[idHrace]) return false;
+    return !prihlasenVcas(hist(u, idHrace), u.zacatek.slice(0, 10));
+}
+
+/** Historie jako text (do title) – jeden řádek na změnu. */
+function historieText(u, idHrace, admin) {
+    const z = hist(u, idHrace);
+    if (!z.length) return maHistorii(u) ? "Bez odpovědi v Týmuj" : "";
+    return z.map(([c, o, kdo, kom]) => `${casZaznamu(c)}  ${ODP_TEXT[o] || o}${kdo ? " – zadal " + kdo : ""}${kom && admin ? " – „" + kom + "“" : ""}`).join("\n");
+}
+
+/** Historie jako HTML (karta hráče a detail události). */
+function historieHtml(u, idHrace, admin) {
+    const z = hist(u, idHrace);
+    if (!z.length) return maHistorii(u) ? `<span class="dz-h dz-h--none">bez odpovědi</span>` : "";
+    return z.map(([c, o, kdo, kom]) => `<span class="dz-h dz-h--${o || "x"}"><b>${casZaznamu(c)}</b> ${ODP_TEXT[o] || esc(o)}${kdo ? ` <em>(${esc(kdo)})</em>` : ""}${kom && admin ? ` – „${esc(kom)}“` : ""}</span>`).join("");
 }
 
 /* ---------------------------------------------------------- statistiky ---
@@ -228,7 +259,7 @@ function vykresliTydny() {
     const hlavicky = ud.map(u => {
         const pritomno = Object.values(u.ucast).filter(z => z[0] === "G").length;
         const d = DRUHY[u.druh];
-        return `<th class="dz-ev dz-ev--${u.druh}${u.zruseno ? " is-off" : ""}${d.trenink ? "" : " is-extra"}" title="${esc(u.nazev)} · ${cas(u.zacatek)}">
+        return `<th class="dz-ev dz-ev--${u.druh}${u.zruseno ? " is-off" : ""}${d.trenink ? "" : " is-extra"}" data-udalost="${u.id}" title="${esc(u.nazev)} · ${cas(u.zacatek)} – klikni pro detail a časy odpovědí">
             <span class="dz-ev__d">${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)}</span>
             <span class="dz-ev__n">${esc(d.kratce)}${u.druh.startsWith("Z_") ? " · " + esc(u.nazev.replace(/^[ABD]\s*-\s*/, "")) : ""}</span>
             <span class="dz-ev__c">${u.zruseno ? "zrušeno" : pritomno + " přít."}</span></th>`;
@@ -244,7 +275,8 @@ function vykresliTydny() {
             const ikona = { g: "✓", n: "✗", o: "✗", z: "?", x: "" }[st.k];
             const omluva = st.k === "o"
                 ? `<span class="dz-om" title="${admin ? esc(st.kom) : "omluven"}">${admin ? esc(st.kom.length > 28 ? st.kom.slice(0, 27) + "…" : st.kom) : "omluven"}</span>` : "";
-            return `<td class="dz-c is-${st.k}"><i>${ikona}</i>${omluva}</td>`;
+            const pozd = pozde(u, h.id) ? `<span class="dz-late" title="Nepřihlášen do 12:00">po 12</span>` : "";
+            return `<td class="dz-c is-${st.k}" title="${esc(historieText(u, h.id, admin))}"><i>${ikona}</i>${omluva}${pozd}</td>`;
         }).join("");
         const pomer = (x, y, cls = "") => `<td class="dz-num dz-week${cls}">${y ? `<b>${x}</b><small>/${y}</small>` : "–"}</td>`;
         return `<tr><td class="dz-name"><span class="dz-link" data-hrac="${esc(h.id)}">${esc(h.jmeno)}</span></td>${bunky}${pomer(j.a, j.b, j.a > a ? " dz-week--a" : "")}${pomer(a, b)}</tr>`;
@@ -371,7 +403,7 @@ function otevriKartu(id) {
 }
 
 function vykresliKartu() {
-    if (!karta || !data) return;
+    if (!karta || !data || karta.udalost) return;
     const h = data.hraci.find(x => x.id === karta.id);
     if (!h) return;
     const admin = isAdmin();
@@ -451,14 +483,68 @@ function vykresliKartu() {
                     <i>${{ g: "✓", n: "✗", o: "✗", z: "?" }[st.k]}</i>
                     <span class="dz-kitem__d">${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)}</span>
                     <span class="dz-kitem__n">${esc(u.nazev)}<small>${esc(DRUHY[u.druh].nazev)}</small></span>
-                    <span class="dz-kitem__s">${STAV_TEXT[st.k]}${st.k === "o" ? (admin ? ": " + esc(st.kom) : "") : ""}</span>
+                    <span class="dz-kitem__s">${STAV_TEXT[st.k]}${st.k === "o" ? (admin ? ": " + esc(st.kom) : "") : ""}${pozde(u, h.id) ? ` <span class="dz-late">po 12</span>` : ""}</span>
+                    <span class="dz-kitem__h">${historieHtml(u, h.id, admin)}</span>
                 </div>`).join("") || `<p class="dz-empty">Nic neodpovídá filtru.</p>`}
         </div>
         ${admin ? "" : `<p class="dz-hint">Text omluv vidí jen přihlášený.</p>`}`;
 }
 
+/* ------------------------------------------------------ detail události ---
+   Klik na sloupec v týdnu: všichni hráči a všechny změny jejich odpovědí,
+   seřazeno podle času první odpovědi (kdo nejdřív, ten nahoře).
+   ------------------------------------------------------------------- */
+
+function otevriUdalost(id) {
+    const u = data && data.udalosti.find(x => String(x.id) === String(id));
+    if (!u) return;
+    karta = { udalost: u.id };
+    vykresliUdalost();
+    el("dzKarta").classList.add("is-open");
+}
+
+function vykresliUdalost() {
+    const u = data.udalosti.find(x => x.id === karta.udalost);
+    if (!u) return;
+    const admin = isAdmin();
+    const hraci = data.hraci.filter(h => u.ucast[h.id]).map(h => ({ h, st: stav(u, h.id), z: hist(u, h.id) }))
+        .sort((a, b) => (a.z[0] ? a.z[0][0] : "9") .localeCompare(b.z[0] ? b.z[0][0] : "9") || a.h.jmeno.localeCompare(b.h.jmeno, "cs"));
+    const pocty = { g: 0, o: 0, n: 0, z: 0 };
+    hraci.forEach(x => pocty[x.st.k] !== undefined && pocty[x.st.k]++);
+    const pozdePocet = hraci.filter(x => pozde(u, x.h.id)).length;
+    el("dzKartaObsah").innerHTML = `
+        <div class="dz-karta__head">
+            <div>
+                <h3>${esc(u.nazev)}</h3>
+                <p>${DNY[denTydne(u.zacatek)]} ${datumRok(u.zacatek)} ${cas(u.zacatek)} · ${esc(DRUHY[u.druh].nazev)}${u.zruseno ? " · <b>zrušeno</b>" : ""}</p>
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" data-close>Zavřít</button>
+        </div>
+        <div class="dz-kks">
+            <div class="dz-kk is-main"><b>${pocty.g}</b><span>byli</span></div>
+            <div class="dz-kk"><b>${pocty.o}</b><span>omluveni</span></div>
+            <div class="dz-kk"><b>${pocty.n}</b><span>bez omluvy</span></div>
+            <div class="dz-kk"><b>${pocty.z}</b><span>nezapsáno</span></div>
+            ${jeTrenink(u) && maHistorii(u) ? `<div class="dz-kk"><b>${pozdePocet}</b><span>nepřihlášeno do 12:00</span></div>` : ""}
+        </div>
+        <h4 class="dz-karta__h">Odpovědi a jejich změny</h4>
+        ${maHistorii(u) ? "" : `<p class="dz-hint">Časy odpovědí se ještě nestáhly – doplní je příští synchronizace.</p>`}
+        <div class="dz-klist">
+            ${hraci.map(({ h, st }) => `
+                <div class="dz-kitem is-${st.k === "x" ? "z" : st.k}">
+                    <i>${{ g: "✓", n: "✗", o: "✗", z: "?", x: "" }[st.k]}</i>
+                    <span class="dz-kitem__d"><span class="dz-link" data-hrac="${esc(h.id)}">${esc(h.jmeno)}</span></span>
+                    <span class="dz-kitem__s">${STAV_TEXT[st.k] || ""}${st.k === "o" ? (admin ? ": " + esc(st.kom) : "") : ""}${pozde(u, h.id) ? ` <span class="dz-late">po 12</span>` : ""}</span>
+                    <span class="dz-kitem__h">${historieHtml(u, h.id, admin)}</span>
+                </div>`).join("")}
+        </div>
+        <p class="dz-hint">V závorce je, kdo odpověď zadal za hráče (jinak odpověděl sám).${admin ? "" : " Text omluv vidí jen přihlášený."}</p>`;
+}
+
 el("dzKarta").addEventListener("click", (e) => {
     if (e.target.closest("[data-close]")) { el("dzKarta").classList.remove("is-open"); karta = null; return; }
+    const hr = e.target.closest("[data-hrac]");
+    if (hr && karta && karta.udalost) { otevriKartu(hr.dataset.hrac); return; }
     if (!karta) return;
     const b = e.target.closest("[data-druh],[data-stav],[data-rychle]");
     if (!b) return;
@@ -483,7 +569,7 @@ function vykresli() {
     }
     el("dzOd").textContent = datumRok(data.od);
     if (pohled === "sezona") vykresliSezonu(); else if (pohled === "mesice") vykresliMesice(); else vykresliTydny();
-    if (karta && el("dzKarta").classList.contains("is-open")) vykresliKartu();
+    if (karta && el("dzKarta").classList.contains("is-open")) karta.udalost ? vykresliUdalost() : vykresliKartu();
 }
 
 /* ------------------------------------------------------------- ovládání --- */
@@ -503,6 +589,8 @@ el("dzView").addEventListener("click", (e) => {
     if (m) { if (m.dataset.mesic) { mesic = m.dataset.mesic; vykresli(); } return; }
     const t = e.target.closest("[data-tyden]");
     if (t) { if (t.dataset.tyden) { tyden = t.dataset.tyden; vykresli(); } return; }
+    const ev = e.target.closest("[data-udalost]");
+    if (ev) { otevriUdalost(ev.dataset.udalost); return; }
     const r = e.target.closest("[data-hrac]");
     if (r) otevriKartu(r.dataset.hrac);
 });
@@ -519,5 +607,9 @@ whenReady(() => {
         };
         try { data = d.data ? JSON.parse(d.data) : null; } catch { data = null; }
         vykresli();
+    }, onDbError);
+    onSnapshot(docIn(DOCHAZKA_KOLEKCE, HISTORIE_DOKUMENT), (snap) => {
+        try { historie = snap.exists() && snap.data().data ? JSON.parse(snap.data().data) : null; } catch { historie = null; }
+        if (data) vykresli();
     }, onDbError);
 });

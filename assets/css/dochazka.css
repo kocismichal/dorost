@@ -286,3 +286,31 @@ th.dz-num { text-align: right; }
     .dz-kitem__s { grid-column: 3; font-size: 12.5px; }
     .dz-kselect { margin-left: 0; }
 }
+
+/* ------------------------------------------------- historie odpovědí --- */
+
+.dz-ev[data-udalost] { cursor: pointer; }
+.dz-ev[data-udalost]:hover .dz-ev__n { color: var(--accent); text-decoration: underline; }
+.dz-late {
+    display: inline-block;
+    margin-top: 2px;
+    padding: 0 5px;
+    border-radius: 4px;
+    background: var(--accent-tint);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.dz-c .dz-late { display: block; width: max-content; margin: 2px auto 0; }
+.dz-kitem { grid-template-columns: 28px 78px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr); }
+.dz-klist .dz-kitem__d .dz-link { font-weight: 800; }
+.dz-kitem__h { display: flex; flex-wrap: wrap; gap: 3px 10px; font-size: 12px; color: var(--muted); }
+.dz-h b { color: var(--text-soft); font-weight: 700; }
+.dz-h em { font-style: normal; color: #3b5bdb; }
+.dz-h--G { } .dz-h--N b { color: var(--accent); } .dz-h--M b { color: var(--warn); }
+.dz-h--none { font-style: italic; }
+@media (max-width: 640px) {
+    .dz-kitem { grid-template-columns: 26px 64px minmax(0, 1fr); }
+    .dz-kitem__h { grid-column: 2 / -1; }
+}

@@ -1,0 +1,38 @@
+# Každé pondělí zapíše do pokutníčku pokuty z docházky Týmuj za uplynulý
+# týden (nepřihlášen do 12:00, neudán důvod, splnění tréninkového týdne).
+# Token je stejný jako u synchronizace – secret TYMUJ_TOKEN.
+
+name: Pokuty z docházky
+
+on:
+  schedule:
+    # pondělí 7:00 UTC (9:00 v létě, 8:00 v zimě)
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      tyden:
+        description: "Pondělí týdne (RRRR-MM-DD), prázdné = uplynulý týden"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tymuj-pokuty
+  cancel-in-progress: false
+
+jobs:
+  pokuty:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Zapsat pokuty za týden
+        run: node scripts/tymuj-pokuty.mjs
+        env:
+          TYMUJ_TOKEN: ${{ secrets.TYMUJ_TOKEN }}
+          TYDEN: ${{ github.event.inputs.tyden }}
