@@ -137,13 +137,13 @@ Platí **60 dní**, pak synchronizace začne hlásit chybu 401. Výměna:
   Tréninky s áčkem, přáteláky a zápasy D/B/A se počítají zvlášť. Druh se
   pozná z názvu a dne události (`druhUdalosti` v `tymuj.js`) – při nových
   názvech událostí v Týmuj zkontrolovat, kam spadnou.
-- *Tréninkové jednotky* = domluva, že trénink s áčkem se počítá místo
-  tréninku dorostu. Po týdnech: tréninky dorostu + tréninky s áčkem, ale
-  nejvýš tolik, kolik měl dorost ten týden tréninků. Přehled sezóny se řadí
-  podle jednotek, vedle je zvlášť docházka jen na tréninky dorostu.
+- *Tréninkové jednotky* = tréninky dorostu + tréninky s áčkem (domluva:
+  trénink s áčkem se počítá místo tréninku dorostu). Bez stropu, procento se
+  bere z počtu tréninků dorostu, takže může být přes 100 %. Přehled sezóny
+  i měsíce se řadí podle jednotek, vedle je zvlášť docházka jen dorostu.
 - **Po měsících** – pořadí podle počtu tréninkových jednotek v měsíci (při
   shodě víc tréninků dorostu), medaile pro první tři, tečky za každý trénink.
-  Podklad pro měsíční odměny. Týden přes přelom měsíce se rozdělí.
+  Podklad pro měsíční odměny. 
 - Po týdnech se zobrazuje vždy jeden týden, přepíná se šipkami nebo výběrem.
 - Hráči se počítají jen události, na které byl v Týmuj pozvaný – kdo přišel
   později, má procenta od svého příchodu (na stránce štítek „od …“).

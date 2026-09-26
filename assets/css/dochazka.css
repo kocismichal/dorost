@@ -79,6 +79,7 @@ th.dz-num { text-align: right; }
 .dz-meter i.hi  { background: var(--ok); }
 .dz-meter i.mid { background: #d49a1a; }
 .dz-meter i.lo  { background: var(--accent); }
+.dz-meter i.plus { background: linear-gradient(90deg, var(--ok), #3b5bdb); }
 .dz-o { color: var(--warn) !important; }
 .dz-n { color: var(--accent) !important; font-weight: 800 !important; }
 .dz-z { color: var(--dim) !important; }

@@ -50,6 +50,7 @@ function plusDni(isoDen, n) {
 const jeTrenink = (u) => DRUHY[u.druh] && DRUHY[u.druh].trenink && !u.zruseno;
 const prijmeni = (j) => j.split(" ").slice(-1)[0];
 const procento = (a, b) => b ? Math.round((a / b) * 100) : 0;
+const tridaMetru = (pct) => pct > 100 ? "plus" : pct >= 70 ? "hi" : pct >= 45 ? "mid" : "lo";
 
 function kdy(iso) {
     const d = new Date(iso);
@@ -75,26 +76,21 @@ function stav(u, idHrace) {
 /* ---------------------------------------------------------- statistiky ---
    Dvě docházky:
    - tréninky dorostu = kolik tréninků dorostu hráč odchodil
-   - tréninkové jednotky = trénink s áčkem se počítá místo tréninku dorostu
-     (domluva s hráči). Počítá se po týdnech: dorost + áčko, ale nejvýš
-     tolik, kolik měl dorost ten týden tréninků – navíc se nenasbírá.
+   - tréninkové jednotky = tréninky dorostu + tréninky s áčkem (domluva:
+     trénink s áčkem se počítá místo tréninku dorostu). Bez stropu – kdo
+     trénuje navíc s áčkem, může mít přes 100 % (počítá se z tréninků dorostu).
    ------------------------------------------------------------------- */
 
-/** Tréninkové jednotky hráče za dané události: { a: odchozeno, b: z kolika }. */
+/** Tréninkové jednotky hráče za dané události: { a: odchozeno, b: tréninků dorostu }. */
 function jednotky(udalosti, idHrace) {
-    const tydny = new Map();
+    let a = 0, b = 0;
     for (const u of udalosti) {
         if (u.zruseno) continue;
         const st = stav(u, idHrace).k;
         if (st === "x") continue;
-        const k = pondeli(u.zacatek);
-        if (!tydny.has(k)) tydny.set(k, { dor: 0, byl: 0, a: 0 });
-        const t = tydny.get(k);
-        if (jeTrenink(u)) { t.dor++; if (st === "g") t.byl++; }
-        else if (u.druh === "T_A" && st === "g") t.a++;
+        if (jeTrenink(u)) { b++; if (st === "g") a++; }
+        else if (u.druh === "T_A" && st === "g") a++;
     }
-    let a = 0, b = 0;
-    for (const t of tydny.values()) { a += Math.min(t.byl + t.a, t.dor); b += t.dor; }
     return { a, b };
 }
 
@@ -170,7 +166,7 @@ function vykresliSezonu() {
     const stat = statistiky().sort((a, b) => b.jednPct - a.jednPct || b.pct - a.pct || b.byl - a.byl || prijmeni(a.h.jmeno).localeCompare(prijmeni(b.h.jmeno), "cs"));
     vykresliKpi(stat);
     const admin = isAdmin();
-    const metr = (pct) => `<td class="dz-pct"><div class="dz-meter"><i class="${pct >= 70 ? "hi" : pct >= 45 ? "mid" : "lo"}" style="width:${pct}%"></i></div><b>${pct} %</b></td>`;
+    const metr = (pct) => `<td class="dz-pct"><div class="dz-meter"><i class="${tridaMetru(pct)}" style="width:${Math.min(pct, 100)}%"></i></div><b>${pct} %</b></td>`;
 
     const radky = stat.map((s, i) => {
         const stitky = [
@@ -209,7 +205,7 @@ function vykresliSezonu() {
                 <thead>
                     <tr class="dz-grp"><th colspan="2"></th><th colspan="2" class="dz-grp--main">Tréninkové jednotky</th><th colspan="2">Tréninky dorostu</th><th colspan="4">Podle dne</th><th colspan="3">Chyběl na tréninku dorostu</th><th colspan="3">Zápasy</th></tr>
                     <tr><th>#</th><th>Hráč</th>
-                        <th title="Trénink s áčkem se počítá místo tréninku dorostu (nejvýš tolik, kolik měl dorost ten týden tréninků)">Docházka</th><th class="dz-num">Jedn.</th>
+                        <th title="Tréninky dorostu + tréninky s áčkem, v poměru k počtu tréninků dorostu – může být přes 100 %">Docházka</th><th class="dz-num">Jedn.</th>
                         <th>Docházka</th><th class="dz-num">Byl</th>
                         <th class="dz-num">Po</th><th class="dz-num">Út</th><th class="dz-num">Čt</th><th class="dz-num" title="Tréninky s áčkem">S áčkem</th>
                         <th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th><th class="dz-num" title="V Týmuj bez odpovědi nebo „možná“">Nezaps.</th>
@@ -218,7 +214,7 @@ function vykresliSezonu() {
                 <tbody>${radky}</tbody>
             </table>
         </div></div>`;
-    el("dzNote").textContent = "Řazeno podle tréninkových jednotek: trénink s áčkem se počítá místo tréninku dorostu, po týdnech a nejvýš tolik, kolik měl dorost ten týden tréninků. Tréninky dorostu = jen tréninky dorostu (Po, Út, Čt a jiné). Klikni na hráče – rozbalí se tréninky, na kterých chyběl, i s omluvou.";
+    el("dzNote").textContent = "Řazeno podle tréninkových jednotek = tréninky dorostu + tréninky s áčkem, v poměru k počtu tréninků dorostu. Kdo trénuje navíc s áčkem, může mít přes 100 %. Tréninky dorostu = jen tréninky dorostu (Po, Út, Čt a jiné). Klikni na hráče – rozbalí se tréninky, na kterých chyběl, i s omluvou.";
 }
 
 function vykresliTydny() {
@@ -283,15 +279,13 @@ function vykresliTydny() {
             </table>
         </div>
     </div>`;
-    el("dzNote").innerHTML = `✓ byl · ✗ chyběl · <span class="dz-om">omluven</span> chyběl s omluvou · ? nezapsáno. Prázdné políčko = hráč tehdy ještě nebyl v týmu. <b>Jednotky</b> = tréninky dorostu + tréninky s áčkem (nejvýš tolik, kolik měl dorost ten týden tréninků).${admin ? "" : " Text omluv vidí jen přihlášený."}`;
+    el("dzNote").innerHTML = `✓ byl · ✗ chyběl · <span class="dz-om">omluven</span> chyběl s omluvou · ? nezapsáno. Prázdné políčko = hráč tehdy ještě nebyl v týmu. <b>Jednotky</b> = tréninky dorostu + tréninky s áčkem (z počtu tréninků dorostu, může být víc).${admin ? "" : " Text omluv vidí jen přihlášený."}`;
 }
 
 const MESICE = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"];
 const nazevMesice = (ym) => MESICE[+ym.slice(5, 7) - 1] + " " + ym.slice(0, 4);
 
-/* Měsíc: pořadí podle počtu tréninkových jednotek – podklad pro odměny.
-   Jednotky se počítají jen z událostí toho měsíce (týden přes přelom
-   měsíce se rozdělí). */
+/* Měsíc: pořadí podle počtu tréninkových jednotek – podklad pro odměny. */
 function vykresliMesice() {
     vykresliKpi(statistiky());
     const admin = isAdmin();
@@ -334,7 +328,7 @@ function vykresliMesice() {
             <td class="ptable__rank">${top ? medaile[misto - 1] : misto + "."}</td>
             <td class="dz-name">${esc(s.h.jmeno)}</td>
             <td class="dz-num dz-big"><b>${s.jedn}</b><small>/${s.pozvan}</small></td>
-            <td class="dz-pct"><div class="dz-meter"><i class="${pct >= 70 ? "hi" : pct >= 45 ? "mid" : "lo"}" style="width:${pct}%"></i></div><b>${pct} %</b></td>
+            <td class="dz-pct"><div class="dz-meter"><i class="${tridaMetru(pct)}" style="width:${Math.min(pct, 100)}%"></i></div><b>${pct} %</b></td>
             <td class="dz-num"><b>${s.byl}</b><small>/${s.pozvan}</small></td>
             <td class="dz-num dz-a">${s.sA || ""}</td>
             <td class="dz-num dz-o">${s.omluven || ""}</td>
@@ -363,7 +357,7 @@ function vykresliMesice() {
             </table>
         </div>
     </div>`;
-    el("dzNote").innerHTML = `Pořadí podle počtu tréninkových jednotek v měsíci (trénink s áčkem se počítá místo tréninku dorostu, v každém týdnu nejvýš tolik, kolik měl dorost tréninků), při shodě rozhoduje víc tréninků dorostu. Tečky: <i class="dz-dot is-g"></i> byl · <i class="dz-dot is-o"></i> omluven · <i class="dz-dot is-n"></i> chyběl · <i class="dz-dot is-z"></i> nezapsáno – najetím myší se ukáže trénink.`;
+    el("dzNote").innerHTML = `Pořadí podle počtu tréninkových jednotek v měsíci (tréninky dorostu + tréninky s áčkem), při shodě rozhoduje víc tréninků dorostu. Tečky: <i class="dz-dot is-g"></i> byl · <i class="dz-dot is-o"></i> omluven · <i class="dz-dot is-n"></i> chyběl · <i class="dz-dot is-z"></i> nezapsáno – najetím myší se ukáže trénink.`;
 }
 
 function vykresli() {
