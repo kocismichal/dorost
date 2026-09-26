@@ -370,3 +370,11 @@ th.dz-num { text-align: right; }
 }
 .dz-fine--ask button[data-zrusit-ano] { background: var(--accent); color: #fff; }
 .dz-ktyden { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; }
+
+/* ------------------------------------------ širší stránka, pokuty vlevo --- */
+
+/* docházka má hodně sloupců – stránka se roztáhne podle monitoru */
+main.wrap.dz,
+body:has(main.dz) .appbar__in,
+body:has(main.dz) .subnav__in { max-width: 1800px; }
+.dz-pok { border-right: 2px solid var(--line-soft) !important; min-width: 78px; }

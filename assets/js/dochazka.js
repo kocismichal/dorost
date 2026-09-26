@@ -293,6 +293,7 @@ function vykresliSezonu() {
         return `<tr class="dz-row" data-hrac="${esc(s.h.id)}">
             <td class="ptable__rank">${i + 1}.</td>
             <td class="dz-name"><span class="dz-link">${esc(s.h.jmeno)}</span>${stitky}</td>
+            ${bunkaPokut(soucetPokut(data.udalosti, s.h.id))}
             ${metr(s.jednPct)}
             <td class="dz-num"><b>${s.jedn}</b><small>/${s.pozvan}</small></td>
             ${metr(s.pct)}
@@ -303,7 +304,6 @@ function vykresliSezonu() {
             <td class="dz-num dz-n">${s.bezOmluvy || ""}</td>
             <td class="dz-num dz-z">${s.nezapsano || ""}</td>
             <td class="dz-num">${s.Z_D || ""}</td><td class="dz-num">${s.Z_B || ""}</td><td class="dz-num">${s.Z_A || ""}</td>
-            ${bunkaPokut(soucetPokut(data.udalosti, s.h.id))}
         </tr>`;
     }).join("");
 
@@ -311,14 +311,13 @@ function vykresliSezonu() {
         <div class="table-card"><div class="archive__scroll">
             <table class="ptable dz-table">
                 <thead>
-                    <tr class="dz-grp"><th colspan="2"></th><th colspan="2" class="dz-grp--main">Tréninkové jednotky</th><th colspan="2">Tréninky dorostu</th><th colspan="4">Podle dne</th><th colspan="3">Chyběl na tréninku dorostu</th><th colspan="3">Zápasy</th><th></th></tr>
-                    <tr><th>#</th><th>Hráč</th>
+                    <tr class="dz-grp"><th colspan="3"></th><th colspan="2" class="dz-grp--main">Tréninkové jednotky</th><th colspan="2">Tréninky dorostu</th><th colspan="4">Podle dne</th><th colspan="3">Chyběl na tréninku dorostu</th><th colspan="3">Zápasy</th></tr>
+                    <tr><th>#</th><th>Hráč</th><th class="dz-num" title="Pokuty zapsané do pokutníčku z docházky (nepřihlášen, neudán důvod, tréninkový týden)">Pokuty</th>
                         <th title="Tréninky dorostu + tréninky s áčkem, v poměru k počtu tréninků dorostu – může být přes 100 %">Docházka</th><th class="dz-num">Jedn.</th>
                         <th>Docházka</th><th class="dz-num">Byl</th>
                         <th class="dz-num">Po</th><th class="dz-num">Út</th><th class="dz-num">Čt</th><th class="dz-num" title="Tréninky s áčkem">S áčkem</th>
                         <th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th><th class="dz-num" title="V Týmuj bez odpovědi nebo „možná“">Nezaps.</th>
-                        <th class="dz-num">D</th><th class="dz-num">B</th><th class="dz-num">A</th>
-                        <th class="dz-num" title="Pokuty zapsané do pokutníčku z docházky (nepřihlášen, neudán důvod, tréninkový týden)">Pokuty</th></tr>
+                        <th class="dz-num">D</th><th class="dz-num">B</th><th class="dz-num">A</th></tr>
                 </thead>
                 <tbody>${radky}</tbody>
             </table>
@@ -368,7 +367,7 @@ function vykresliTydny() {
             return `<td class="dz-c is-${st.k}" title="${esc(historieText(u, h.id, admin))}"><i>${ikona}</i>${omluva}${pozd}${stitkyPokut(pokutyUdalosti(u, h.id))}</td>`;
         }).join("");
         const pomer = (x, y, cls = "") => `<td class="dz-num dz-week${cls}">${y ? `<b>${x}</b><small>/${y}</small>` : "–"}</td>`;
-        return `<tr><td class="dz-name"><span class="dz-link" data-hrac="${esc(h.id)}">${esc(h.jmeno)}</span></td>${bunky}${pomer(j.a, j.b, j.a > a ? " dz-week--a" : "")}${pomer(a, b)}${bunkaPokut(soucetPokut(vTydnu, h.id))}</tr>`;
+        return `<tr><td class="dz-name"><span class="dz-link" data-hrac="${esc(h.id)}">${esc(h.jmeno)}</span></td>${bunkaPokut(soucetPokut(vTydnu, h.id))}${bunky}${pomer(j.a, j.b, j.a > a ? " dz-week--a" : "")}${pomer(a, b)}</tr>`;
     }).join("");
 
     const volby = klice.map(x => `<option value="${x}"${x === k ? " selected" : ""}>${datum(x)} – ${datumRok(plusDni(x, 6))}</option>`).join("");
@@ -384,7 +383,7 @@ function vykresliTydny() {
         </div>
         <div class="archive__scroll">
             <table class="ptable dz-wtable">
-                <thead><tr><th>Hráč</th>${hlavicky}<th class="dz-num" title="Tréninkové jednotky – trénink s áčkem se počítá místo tréninku dorostu">Jednotky</th><th class="dz-num">Dorost</th><th class="dz-num" title="Pokuty z docházky za týden včetně odečtu za tréninkový týden">Pokuty</th></tr></thead>
+                <thead><tr><th>Hráč</th><th class="dz-num" title="Pokuty z docházky za týden včetně odečtu za tréninkový týden">Pokuty</th>${hlavicky}<th class="dz-num" title="Tréninkové jednotky – trénink s áčkem se počítá místo tréninku dorostu">Jednotky</th><th class="dz-num">Dorost</th></tr></thead>
                 <tbody>${radky}</tbody>
             </table>
         </div>
@@ -437,13 +436,13 @@ function vykresliMesice() {
         return `<tr class="${top ? "dz-top" : ""}">
             <td class="ptable__rank">${top ? medaile[misto - 1] : misto + "."}</td>
             <td class="dz-name"><span class="dz-link" data-hrac="${esc(s.h.id)}">${esc(s.h.jmeno)}</span></td>
+            ${bunkaPokut(soucetPokut(vMesici, s.h.id, mesic))}
             <td class="dz-num dz-big"><b>${s.jedn}</b><small>/${s.pozvan}</small></td>
             <td class="dz-pct"><div class="dz-meter"><i class="${tridaMetru(pct)}" style="width:${Math.min(pct, 100)}%"></i></div><b>${pct} %</b></td>
             <td class="dz-num"><b>${s.byl}</b><small>/${s.pozvan}</small></td>
             <td class="dz-num dz-a">${s.sA || ""}</td>
             <td class="dz-num dz-o">${s.omluven || ""}</td>
             <td class="dz-num dz-n">${s.bezOmluvy || ""}</td>
-            ${bunkaPokut(soucetPokut(vMesici, s.h.id, mesic))}
             <td class="dz-dots">${tecky}</td>
         </tr>`;
     }).join("");
@@ -460,9 +459,9 @@ function vykresliMesice() {
         </div>
         <div class="archive__scroll">
             <table class="ptable dz-table dz-mtable">
-                <thead><tr><th>#</th><th>Hráč</th>
+                <thead><tr><th>#</th><th>Hráč</th><th class="dz-num" title="Pokuty z docházky za měsíc">Pokuty</th>
                     <th class="dz-num" title="Tréninkové jednotky – trénink s áčkem se počítá místo tréninku dorostu">Jednotky</th><th></th>
-                    <th class="dz-num">Dorost</th><th class="dz-num">S áčkem</th><th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th><th class="dz-num">Pokuty</th>
+                    <th class="dz-num">Dorost</th><th class="dz-num">S áčkem</th><th class="dz-num">Omluven</th><th class="dz-num">Bez omluvy</th>
                     <th>Tréninky dorostu v měsíci</th></tr></thead>
                 <tbody>${html}</tbody>
             </table>
