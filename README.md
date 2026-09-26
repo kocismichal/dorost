@@ -7,7 +7,7 @@ Firestore, takže je vidí všichni živě. Stránky:
 - **Kanadské body** (`kanadske-body.html`) – zápasy, góly a asistence
 - **Plakáty** (`plakaty.html`) – plakát A3 na víkend
 - **Taktika** (`taktika.html`) – taktická tabule: rozestavení, rohy, pokyny
-- **Pro hráče** (`pro-hrace.html`) – přehled k nastudování: regenerace, guma, válec, míček, jídlo, pití, spánek, den zápasu
+- **Pro hráče** (`pro-hrace*.html`) – přehled k nastudování, 5 podstránek: přehled, rozcvička a prevence, regenerace, jídlo a pití, otázky
 
 Platí pro všechny:
 
@@ -22,7 +22,11 @@ index.html               pokutníček
 kanadske-body.html       kanadské bodování
 plakaty.html             plakáty na víkend
 taktika.html             taktická tabule
-pro-hrace.html           přehled pro hráče (statický text)
+pro-hrace.html           Pro hráče – přehled (týden, pondělí, den zápasu, bolest)
+pro-hrace-rozcvicka.html   – rozcvička a prevence (FIFA 11+, guma)
+pro-hrace-regenerace.html  – regenerace (válec, míček, spánek)
+pro-hrace-jidlo.html       – jídlo a pití (kolem tréninku, strava a doplňky, pití)
+pro-hrace-kviz.html        – otázky k nastudování
 assets/css/app.css       styly webu
 assets/css/plakat.css    styly plakátu (zapouzdřené pod #plakatApp)
 assets/css/taktika.css   styly taktické tabule
@@ -172,11 +176,20 @@ polovinu – při přepínání se tedy nic nepřepočítává.
 
 ## Pro hráče
 
-Statická stránka – obsah se mění přímo v `pro-hrace.html`, z databáze nic
-nečte. Sekce: guma, válec, míček (druhy, kdy a jak, konkrétní cviky), jídlo
-kolem tréninku, strava a doplňky (výkop × čas jídla), pití, spánek, den zápasu s taškou, bolest a zranění, otázky
-k nastudování. Každá sekce má barvu přes třídu `ph-c-…` v `pro-hrace.css`.
-Tlačítko **Vytisknout tahák** schová menu a vytiskne jen obsah.
+Statické stránky – obsah se mění přímo v HTML, z databáze nic nečtou.
+Jsou rozdělené na 5 podstránek, mezi kterými se přepíná záložkami nahoře
+(`.ph-tabs` – při přidání podstránky doplnit odkaz do všech pěti souborů):
+
+- **Přehled** (`pro-hrace.html`) – tvůj týden, dva zápasy za víkend, proč
+  pondělní běh, den zápasu a taška, bolest a zranění
+- **Rozcvička a prevence** (`pro-hrace-rozcvicka.html`) – FIFA 11+, guma
+- **Regenerace** (`pro-hrace-regenerace.html`) – válec, míček, spánek
+- **Jídlo a pití** (`pro-hrace-jidlo.html`) – jídlo kolem tréninku, strava
+  a doplňky (jídlo podle času výkopu), pití
+- **K nastudování** (`pro-hrace-kviz.html`) – otázky podle témat
+
+Všechny sdílejí `pro-hrace.css` a `pro-hrace.js`. Každá sekce má barvu přes
+třídu `ph-c-…`. Tlačítko **Vytisknout** schová menu a vytiskne jen obsah.
 
 Sekce **Prevence zranění (FIFA 11+)**, **guma**, **válec** a **míček** mají přehrávač videí: vlevo YouTube
 (přes youtube-nocookie.com), vpravo seznam cviků. Seznam videí, dávkování

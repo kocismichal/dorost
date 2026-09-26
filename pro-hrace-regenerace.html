@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Pro hráče – Regenerace</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=12">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=7">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link" href="plakaty.html">Plakáty</a>
+        <a class="subnav__link" href="taktika.html">Taktika</a>
+        <a class="subnav__link is-active" href="pro-hrace.html">Pro hráče</a>
+    </div>
+</nav>
+
+<main class="wrap ph">
+
+    <!-- ============================================================ úvod -->
+    <section class="section">
+        <div class="section-head section-head--row">
+            <div>
+                <h2>Regenerace</h2>
+                <p>Co dělat po tréninku, večer a v noci. Válec tě opraví, míček ti srovná základnu – a nejlepší regenerace zdarma je spánek.</p>
+            </div>
+            <button type="button" class="btn btn--ghost" id="printBtn">Vytisknout</button>
+        </div>
+        <nav class="ph-tabs" aria-label="Pro hráče">
+            <a href="pro-hrace.html">Přehled</a>
+            <a href="pro-hrace-rozcvicka.html">Rozcvička a prevence</a>
+            <a class="is-active" href="pro-hrace-regenerace.html">Regenerace</a>
+            <a href="pro-hrace-jidlo.html">Jídlo a pití</a>
+            <a href="pro-hrace-kviz.html">K nastudování</a>
+        </nav>
+        <nav class="ph-chips" aria-label="Obsah stránky">
+            <a href="#valec">Válec</a>
+            <a href="#micek">Míček</a>
+            <a href="#spanek">Spánek</a>
+        </nav>
+    </section>
+
+<!-- ============================================================ válec -->
+    <section class="section ph-block ph-c-valec" id="valec">
+        <div class="ph-block__head">
+            <span class="ph-tag">Po tréninku a doma</span>
+            <h2>Masážní válec (foam roller)</h2>
+            <p>Válec slouží k <b>uvolnění svalů a fascií</b> vlastní vahou. Nejde o to „rozmačkat se“ – tlak dává nervové soustavě signál, že sval může povolit. Výsledek: lepší rozsah pohybu, pocit lehčích nohou a menší ztuhlost druhý den po zápase.</p>
+        </div>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Druhy</h3>
+                <dl class="ph-dl">
+                    <dt>Hladký, středně tvrdý</dt>
+                    <dd>Nejlepší na začátek. Rovnoměrný tlak, dobře se na něm učí technika a dýchání.</dd>
+                    <dt>S mřížkou / výstupky (grid)</dt>
+                    <dd>Plastové jádro, výstupky jako prsty maséra. Pro ty, kdo už jsou zvyklí. <b>Doporučení pro klub: grid, délka cca 33 cm</b> – vydrží, vejde se do tašky, stačí na nohy i záda.</dd>
+                    <dt>Extra tvrdý (černý EPP)</dt>
+                    <dd>Levný a nezničitelný, ale pro nezvyklé moc bolí – a sval, který se bolestí zatíná, se neuvolní.</dd>
+                    <dt>Vibrační</dt>
+                    <dd>Příjemné, ale drahé. Není potřeba.</dd>
+                </dl>
+                <p class="ph-note">Nekupovat úplně levné měkké molitanové válce – po měsíci jsou z nich šišky.</p>
+            </div>
+            <div class="ph-card">
+                <h3>Kdy a jak</h3>
+                <ul class="ph-list">
+                    <li><b>Před tréninkem</b> – krátce a rychleji, 20–30 vteřin na sval. Jen probudit, ne unavit.</li>
+                    <li><b>Po tréninku / doma</b> – pomalu, 1–2 minuty na sval. Na citlivém místě zastav a prodýchej, dokud nepovolí.</li>
+                    <li><b>Bolest max. 6 z 10</b> – „příjemně nepříjemné“. Když zadržuješ dech nebo se kroutíš, je to moc.</li>
+                    <li><b>Dýchej</b> – pomalý výdech pomáhá svalu povolit.</li>
+                    <li><b>Nikdy přes kosti a klouby</b> – ne přes kolena, ne na bedra (spodní část zad).</li>
+                    <li><b>Ne na čerstvé zranění</b> – natažený sval, modřina nebo otok se neválí.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Válec po tréninku – 8 až 10 minut</h3>
+        <ol class="ph-ex">
+            <li><b>Lýtka</b><span class="ph-dose">1 min každá noha</span>
+                <p>Sed, válec pod lýtkem, zvedni se na rukou. Pro větší tlak dej druhou nohu navrch. Zkus i vytočit špičku dovnitř a ven.</p></li>
+            <li><b>Zadní stehno</b><span class="ph-dose">1 min každá noha</span>
+                <p>Sed, válec pod stehnem, jeď od sedací kosti ke koleni (koleno samotné vynech).</p></li>
+            <li><b>Přední stehno</b><span class="ph-dose">1 min každá noha</span>
+                <p>Vzpor na předloktích, válec pod stehny. Od kyčle nad koleno, zpevněné břicho, nepropadat v bedrech.</p></li>
+            <li><b>Vnitřní stehno (třísla)</b><span class="ph-dose">1 min každá noha</span>
+                <p>Na břiše, noha pokrčená do strany, válec pod vnitřní stranou stehna. U fotbalistů hodně důležité.</p></li>
+            <li><b>Hýždě</b><span class="ph-dose">1 min každá strana</span>
+                <p>Sed na válci, kotník přes druhé koleno (čtyřka), nakloň se na stranu pokrčené nohy.</p></li>
+            <li><b>Horní záda</b><span class="ph-dose">1 min</span>
+                <p>Válec pod lopatkami, ruce za hlavou, pánev na zemi. Pomalu se zakláněj přes válec. Jen hrudní část – ne bedra.</p></li>
+        </ol>
+        <h3 class="ph-sub">Videa</h3>
+        <div class="ph-pl" data-videa="valec"></div>
+        <p class="ph-note ph-src">Videa: Runner's World a [P]rehab – krátké ukázky, anglicky.</p>
+    </section>
+
+<!-- ============================================================ míček -->
+    <section class="section ph-block ph-c-micek" id="micek">
+        <div class="ph-block__head">
+            <span class="ph-tag">Kdykoli – večer, ráno</span>
+            <h2>Míček na chodidla a detaily</h2>
+            <p>Míček se dostane tam, kam válec ne. <b>Chodidlo je základna celého těla</b> – nese každý krok, sprint i odraz. Ztuhlá chodidla a lýtka se propisují do kotníků i kolen. Míček zabere v tašce minimum místa, takže jede i na venkovní zápasy.</p>
+        </div>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Druhy</h3>
+                <dl class="ph-dl">
+                    <dt>Lakrosový míček</dt>
+                    <dd>Tvrdý a hladký, nejlepší poměr cena/užitek. Chodidla, hýždě, lopatky.</dd>
+                    <dt>Ježek (s bodlinami)</dt>
+                    <dd>Víc stimuluje kůži a nervová zakončení na plosce, do hloubky jde méně. Dobrý na probuzení chodidel ráno.</dd>
+                    <dt>Dvojitý míček (duoball)</dt>
+                    <dd>Dvě spojené koule – na svaly podél páteře, páteř jde do mezery mezi nimi.</dd>
+                </dl>
+            </div>
+            <div class="ph-card">
+                <h3>Kdy a jak</h3>
+                <ul class="ph-list">
+                    <li><b>Večer u televize</b> nebo ráno po probuzení – 2 minuty na každou nohu.</li>
+                    <li>Vestoje nebo vsedě přejížděj chodidlo od paty k prstům a krouživě do stran.</li>
+                    <li>Hledej <b>citlivá místa</b>, na nich zastav a prodýchej.</li>
+                    <li>Vestoje dávkuješ tlak tím, kolik váhy dáš na nohu. Začni vsedě.</li>
+                    <li>Efekt poznáš hned – projdi se a porovnej obě nohy.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Míček – 5 minut večer</h3>
+        <ol class="ph-ex">
+            <li><b>Chodidlo</b><span class="ph-dose">2 min každá noha</span>
+                <p>Podélně od paty ke špičce, pak napříč, nakonec kroužky. Na citlivém místě 20–30 vteřin.</p></li>
+            <li><b>Lýtko</b><span class="ph-dose">1 min každá noha</span>
+                <p>Sed, míček pod lýtkem, druhá noha navrch. Pomalu nahoru a dolů, vytáčej špičku do stran.</p></li>
+            <li><b>Hýždě</b><span class="ph-dose">1 min každá strana</span>
+                <p>Opři se zády o zeď nebo si sedni, míček pod hýždí. Malé kroužky.</p></li>
+            <li><b>Mezi lopatkami</b><span class="ph-dose">1 min</span>
+                <p>Záda o zeď, míček mezi páteří a lopatkou (ne přímo na páteř). Mírně pokrčuj kolena a posouvej se.</p></li>
+        </ol>
+        <h3 class="ph-sub">Videa</h3>
+        <div class="ph-pl" data-videa="micek"></div>
+        <p class="ph-note ph-src">Videa jsou anglicky od fyzioterapeutů – ukázka s lakrosovým míčkem, stejně to jde s tvrdým masážním míčkem.</p>
+    </section>
+
+<!-- ============================================================ spánek -->
+    <section class="section ph-block ph-c-spanek" id="spanek">
+        <div class="ph-block__head">
+            <span class="ph-tag">Nejlepší regenerace zdarma</span>
+            <h2>Spánek</h2>
+            <p>Žádný válec ani doplněk nenahradí spánek. Ve spánku tělo opravuje svaly a v tvém věku i roste. Kdo dlouhodobě spí málo, je pomalejší, víc se zraňuje a hůř se učí nové věci – na hřišti i ve škole.</p>
+        </div>
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Kolik</h3>
+                <p class="ph-big">8–10 hodin</p>
+                <p>Doporučení pro věk 13–18 let. Chodit spát a vstávat přibližně ve stejnou dobu – i o víkendu.</p>
+            </div>
+            <div class="ph-card">
+                <h3>Jak spát líp</h3>
+                <ul class="ph-list">
+                    <li><b>Mobil hodinu před spaním pryč</b> – světlo z displeje i scrollování drží mozek vzhůru.</li>
+                    <li>Tma, chladnější pokoj, žádná televize u postele.</li>
+                    <li>Večer po tréninku najíst, ale ne těžce těsně před spaním.</li>
+                    <li>Kofein (energetiky, kola, káva) odpoledne a večer ne.</li>
+                    <li>Po večerním zápase se hůř usíná – pomůže sprcha, jídlo a klid, ne hraní na mobilu do dvou.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · pro hráče</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/pro-hrace.js?v=4"></script>
+</body>
+</html>

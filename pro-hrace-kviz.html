@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Pro hráče – K nastudování</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=12">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=7">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link" href="plakaty.html">Plakáty</a>
+        <a class="subnav__link" href="taktika.html">Taktika</a>
+        <a class="subnav__link is-active" href="pro-hrace.html">Pro hráče</a>
+    </div>
+</nav>
+
+<main class="wrap ph">
+
+    <!-- ============================================================ úvod -->
+    <section class="section">
+        <div class="section-head section-head--row">
+            <div>
+                <h2>K nastudování</h2>
+                <p>Otázky ke všem stránkám Pro hráče.</p>
+            </div>
+            <button type="button" class="btn btn--ghost" id="printBtn">Vytisknout</button>
+        </div>
+        <nav class="ph-tabs" aria-label="Pro hráče">
+            <a href="pro-hrace.html">Přehled</a>
+            <a href="pro-hrace-rozcvicka.html">Rozcvička a prevence</a>
+            <a href="pro-hrace-regenerace.html">Regenerace</a>
+            <a href="pro-hrace-jidlo.html">Jídlo a pití</a>
+            <a class="is-active" href="pro-hrace-kviz.html">K nastudování</a>
+        </nav>
+
+    </section>
+
+    <!-- ============================================================ úkoly -->
+    <section class="section ph-block ph-c-ukoly" id="ukoly">
+        <div class="ph-block__head">
+            <span class="ph-tag">K nastudování</span>
+            <h2>Co by měl umět každý z vás</h2>
+            <p>Projděte si všechny stránky a na tréninku se budeme ptát. Kdo odpoví, má u trenéra plus.</p>
+        </div>
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3><a href="pro-hrace.html">Přehled</a></h3>
+                <ol class="ph-quiz">
+                    <li>Proč se svaly zlepšují až <i>po</i> tréninku?</li>
+                    <li>Proč se v pondělí běhá lehce a proč i po zápase?</li>
+                    <li>Co sníš mezi dvěma zápasy v jeden den?</li>
+                    <li>Kdy bolest musíš hlásit trenérovi?</li>
+                </ol>
+            </div>
+            <div class="ph-card">
+                <h3><a href="pro-hrace-rozcvicka.html">Rozcvička a prevence</a></h3>
+                <ol class="ph-quiz">
+                    <li>Z jakých tří částí je rozcvička FIFA 11+ a kolikrát týdně ji dělat?</li>
+                    <li>Kam míří koleno při doskoku a proč?</li>
+                    <li>Kterých 5 cviků s gumou děláme před tréninkem?</li>
+                </ol>
+            </div>
+            <div class="ph-card">
+                <h3><a href="pro-hrace-regenerace.html">Regenerace</a></h3>
+                <ol class="ph-quiz">
+                    <li>Kde se válcem nikdy nejezdí a jak moc to má bolet?</li>
+                    <li>Kolik hodin bys měl spát a co udělat s mobilem před spaním?</li>
+                </ol>
+            </div>
+            <div class="ph-card">
+                <h3><a href="pro-hrace-jidlo.html">Jídlo a pití</a></h3>
+                <ol class="ph-quiz">
+                    <li>Jak dlouho před odpoledním tréninkem máš mít oběd a co na talíři nechceš?</li>
+                    <li>Co sníš, když máš do tréninku jen 45 minut?</li>
+                    <li>Kdy a co jíš, když máš výkop v 10:00? A když v 15:30?</li>
+                    <li>Proč nepotřebuješ protein v prášku a co ho nahradí?</li>
+                    <li>Jak poznáš, že piješ málo?</li>
+                </ol>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · pro hráče</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/pro-hrace.js?v=4"></script>
+</body>
+</html>

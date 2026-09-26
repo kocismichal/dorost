@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Pro hráče – Jídlo a pití</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=12">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=7">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link" href="plakaty.html">Plakáty</a>
+        <a class="subnav__link" href="taktika.html">Taktika</a>
+        <a class="subnav__link is-active" href="pro-hrace.html">Pro hráče</a>
+    </div>
+</nav>
+
+<main class="wrap ph">
+
+    <!-- ============================================================ úvod -->
+    <section class="section">
+        <div class="section-head section-head--row">
+            <div>
+                <h2>Jídlo a pití</h2>
+                <p>Jídlo je palivo i stavební materiál. Kdy jíst kolem tréninku a zápasu, co dát na talíř, které doplňky nepotřebuješ a kolik pít.</p>
+            </div>
+            <button type="button" class="btn btn--ghost" id="printBtn">Vytisknout</button>
+        </div>
+        <nav class="ph-tabs" aria-label="Pro hráče">
+            <a href="pro-hrace.html">Přehled</a>
+            <a href="pro-hrace-rozcvicka.html">Rozcvička a prevence</a>
+            <a href="pro-hrace-regenerace.html">Regenerace</a>
+            <a class="is-active" href="pro-hrace-jidlo.html">Jídlo a pití</a>
+            <a href="pro-hrace-kviz.html">K nastudování</a>
+        </nav>
+        <nav class="ph-chips" aria-label="Obsah stránky">
+            <a href="#jidlo">Jídlo a trénink</a>
+            <a href="#strava">Strava a doplňky</a>
+            <a href="#piti">Pití</a>
+        </nav>
+    </section>
+
+<!-- ============================================================ jídlo -->
+    <section class="section ph-block ph-c-jidlo" id="jidlo">
+        <div class="ph-block__head">
+            <span class="ph-tag">Palivo</span>
+            <h2>Jídlo a trénink</h2>
+            <p>Jídlo je součást přípravy na výkon. Tělo potřebuje čas, aby krev ze žaludku (trávení) mohla jít do svalů (výkon). Kdo hodí do sebe kebab čtvrt hodiny před tréninkem, ten trénink zahodil – tělo bojuje s jídlem, ne se soupeřem.</p>
+        </div>
+
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card">
+                <h3>Trénink v 9:00 – snídaně</h3>
+                <p class="ph-time"><b>7:00–7:30</b> ideál</p>
+                <ul class="ph-list">
+                    <li>Ovesná kaše s banánem nebo borůvkami a trochou medu.</li>
+                    <li>Chleba nebo toast se šunkou, sýrem, vajíčkem.</li>
+                    <li>Lívance, palačinky (ne v tuně oleje).</li>
+                </ul>
+                <p class="ph-time"><b>8:15</b> když zaspíš</p>
+                <ul class="ph-list">
+                    <li>Banán, jogurt s cornflakes, rýžový chlebíček s medem, smoothie.</li>
+                    <li>Žádná vajíčka se slaninou – při prvním sprintu budou skákat.</li>
+                </ul>
+                <p class="ph-note">Hned po probuzení 3–5 dl vody. <b>Nikdy nalačno</b> – po 20 minutách budeš bez šťávy.</p>
+            </div>
+            <div class="ph-card">
+                <h3>Trénink ve 14:00 – oběd</h3>
+                <p class="ph-time"><b>11:00–11:30</b> ideál (2,5–3 h předem)</p>
+                <ul class="ph-list">
+                    <li><b>Jíst:</b> těstoviny, rýže, brambory, kuskus + kuřecí, krůtí, ryba. Málo tuku.</li>
+                    <li><b>Vynechat:</b> smažené (řízek, hranolky, smažák), smetanové omáčky, svíčková, guláš, velká mísa luštěnin nebo syrové zeleniny.</li>
+                </ul>
+                <p class="ph-time"><b>Škola do 13:00?</b></p>
+                <ul class="ph-list">
+                    <li>V 11:00 větší svačina (bageta se šunkou, banán, jogurt).</li>
+                    <li>Ve 13:00 už jen něco malého, pořádný oběd až po tréninku.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Poslední záchrana a po tréninku</h3>
+                <p class="ph-time"><b>30–60 min</b> před startem</p>
+                <ul class="ph-list">
+                    <li>Banán, ovocná kapsička, pár piškotů, rohlík s medem nebo džemem, hroznový cukr.</li>
+                </ul>
+                <p class="ph-time"><b>Do hodiny</b> po tréninku</p>
+                <ul class="ph-list">
+                    <li>Sacharidy + bílkoviny: bageta se šunkou nebo sýrem, kakao / mléko, jogurt nebo tvaroh s banánem.</li>
+                    <li>Pak normální večeře. Ne rovnou z hřiště do fastfoodu.</li>
+                </ul>
+                <p class="ph-note"><b>Energetické nápoje ne.</b> Kofein ve velké dávce do dorostu nepatří a spánek po nich stojí za nic.</p>
+            </div>
+        </div>
+        <p class="ph-tip"><b>Žaludek jako kotel:</b> těstoviny s kuřecím jsou suché dřevo – hned hoří a dávají energii. Smažák s tatarkou je mokrý pařez – jen čoudí.</p>
+    </section>
+
+<!-- ============================================================ strava -->
+    <section class="section ph-block ph-c-jidlo" id="strava">
+        <div class="ph-block__head">
+            <span class="ph-tag">Každý den</span>
+            <h2>Strava a doplňky</h2>
+            <p>Rosteš a k tomu trénuješ třikrát týdně a hraješ zápasy. Potřebuješ víc jídla než dospělý, který celý den sedí – a hlavně pravidelně. Nejlepší „doplněk stravy“ je normální jídlo pětkrát denně.</p>
+        </div>
+
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card">
+                <h3>Talíř sportovce</h3>
+                <ul class="ph-list">
+                    <li><b>Třetina příloha</b> – těstoviny, rýže, brambory, chleba. V den tréninku a zápasu klidně víc.</li>
+                    <li><b>Třetina bílkoviny</b> – maso, ryba, vejce, tvaroh, jogurt, sýr, luštěniny.</li>
+                    <li><b>Třetina zelenina a ovoce</b> – syrová i vařená, co ti chutná.</li>
+                    <li>Trocha tuku stačí – olej, máslo, ořechy.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Pět jídel denně</h3>
+                <ul class="ph-list">
+                    <li><b>Snídaně</b> – nikdy nevynechat.</li>
+                    <li><b>Svačina</b> do školy – bageta se šunkou a sýrem, jogurt, ovoce.</li>
+                    <li><b>Oběd</b> – ve škole sněz celý, i přílohu.</li>
+                    <li><b>Svačina</b> před tréninkem nebo po něm.</li>
+                    <li><b>Večeře</b> – normální teplé jídlo, ne jen chipsy u počítače.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Bílkoviny ke každému jídlu</h3>
+                <p>Svaly se opravují a rostou z bílkovin. Nepotřebuješ je v prášku – stačí, když je v každém jídle něco z tohohle:</p>
+                <ul class="ph-list">
+                    <li>2 vejce, plátek masa nebo ryby</li>
+                    <li>kelímek tvarohu nebo řeckého jogurtu</li>
+                    <li>sklenice mléka, kakaa, kefíru</li>
+                    <li>sýr, šunka, čočka, fazole</li>
+                    <li>Ryba aspoň 1–2× týdně.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Jídlo před zápasem podle času výkopu</h3>
+        <div class="ph-tablewrap">
+            <table class="ph-table">
+                <thead>
+                    <tr><th>Výkop</th><th>Hlavní jídlo</th><th>Co jíst</th><th>Malá svačina</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><b>10:00</b></td><td>snídaně v 7:00</td><td>ovesná kaše s banánem a medem, nebo chleba se šunkou a sýrem + čaj</td><td>9:00 – banán nebo pár piškotů</td></tr>
+                    <tr><td><b>12:00–14:00</b></td><td>pozdní snídaně / brzký oběd v 9:00–10:30</td><td>těstoviny nebo rýže s kuřecím, případně vydatná snídaně (vajíčka, chleba, jogurt)</td><td>hodinu před – banán, rohlík s medem</td></tr>
+                    <tr><td><b>15:00–16:30</b></td><td>oběd v 11:30–12:30</td><td>těstoviny, rýže, brambory + kuřecí, krůtí, ryba; málo omáčky a tuku</td><td>hodinu před – banán, piškoty, müsli tyčinka</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="ph-tip"><b>Den před zápasem</b> večeře s přílohou, <b>v den zápasu</b> jen jídlo, které znáš a které ti dělá dobře. Nový energetický gel, cizí restaurace nebo „něco na zkoušku“ – až po zápase.</p>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Doplňky – co nepotřebuješ</h3>
+                <ul class="ph-list">
+                    <li><b>Protein v prášku</b> – stejné bílkoviny dostaneš z tvarohu, mléka a masa, a levněji. Dává smysl jen výjimečně, když se opravdu nestíháš najíst.</li>
+                    <li><b>Kreatin, předtréninkovky, spalovače, gainery</b> – do 18 let ne. Pro rostoucí tělo nejsou ověřené a výkon ti v dorostu nezvednou víc než jídlo a spánek.</li>
+                    <li><b>Energetické nápoje</b> – velká dávka kofeinu a cukru, bušení srdce, horší spánek. Do dorostu nepatří.</li>
+                    <li><b>„Zázračné“ doplňky z internetu a od influencerů</b> – obvykle jen drahý marketing.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Doplňky – co může dávat smysl</h3>
+                <ul class="ph-list">
+                    <li><b>Vitamin D v zimě</b> (říjen–březen) – v Česku ho v zimě chybí skoro každému. Dávku ať určí rodiče nebo lékař.</li>
+                    <li><b>Iontový nápoj</b> – při dlouhém tréninku, turnaji, dvou zápasech za den nebo v horku.</li>
+                    <li><b>Železo, hořčík a další</b> – jen když lékař zjistí nedostatek z krve. Ne na vlastní pěst.</li>
+                </ul>
+                <p class="ph-note">Doplňky stravy nejsou léky a nikdo je předem nekontroluje. Některé bývají znečištěné látkami, které jsou na dopingovém seznamu. Když něco, tak jen s rodiči a z lékárny.</p>
+            </div>
+        </div>
+
+        <div class="ph-card ph-card--warn ph-card--wide">
+            <h3>Na co si dát pozor</h3>
+            <ul class="ph-list ph-list--cols">
+                <li><b>Vynechaná snídaně nebo oběd ve škole</b> – na tréninku pak nemáš z čeho brát.</li>
+                <li><b>Slazené limonády a energetiky</b> – půllitrová láhev nebo plechovka má kolem 50 g cukru, přes 10 kostek.</li>
+                <li><b>Fastfood po každém zápase</b> – jednou za čas nevadí, jako pravidlo zabíjí regeneraci.</li>
+                <li><b>Hubnutí a diety na vlastní pěst</b> – v růstu ne. Když řešíš váhu, řekni trenérovi, domluvíme se s rodiči.</li>
+                <li><b>Alkohol</b> – do 18 let ze zákona ne. A i u dospělých zhoršuje spánek a regeneraci na několik dní – i to „jedno pivo“ po zápase.</li>
+                <li><b>Cigarety a vapy</b> – nikotin zužuje cévy a zhoršuje dech. Vytrvalost jde dolů jako první.</li>
+            </ul>
+        </div>
+
+        <h3 class="ph-sub">Dobré svačiny do tašky</h3>
+        <ul class="ph-check">
+            <li>Bageta nebo rohlík se šunkou a sýrem</li>
+            <li>Banán, jablko, hrozny</li>
+            <li>Jogurt, tvaroh s ovocem</li>
+            <li>Kakao nebo mléko v krabičce</li>
+            <li>Müsli tyčinka (s méně cukru)</li>
+            <li>Rohlík s medem nebo džemem</li>
+            <li>Hrst ořechů (ne těsně před tréninkem)</li>
+            <li>Ovocná kapsička</li>
+        </ul>
+    </section>
+
+<!-- ============================================================ pití -->
+    <section class="section ph-block ph-c-piti" id="piti">
+        <div class="ph-block__head">
+            <span class="ph-tag">Každý den</span>
+            <h2>Pití</h2>
+            <p>Už malá ztráta vody zhorší rozhodování, přesnost i vytrvalost. Kdo přijde na trénink „vyschlý“, dožene to až druhý den.</p>
+        </div>
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card">
+                <h3>Během dne</h3>
+                <ul class="ph-list">
+                    <li>Láhev s sebou do školy a pít průběžně, ne všechno najednou.</li>
+                    <li><b>Test barvy moči:</b> světle žlutá = v pořádku, tmavá = piješ málo.</li>
+                    <li>Základ je voda. Slazené limonády jen výjimečně.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Kolem tréninku</h3>
+                <ul class="ph-list">
+                    <li><b>2 hodiny předem</b> cca 0,5 l.</li>
+                    <li><b>Během</b> po douscích v každé pauze.</li>
+                    <li><b>Po tréninku</b> dopít, co jsi vypotil – ideálně s jídlem.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>V horku</h3>
+                <ul class="ph-list">
+                    <li>Pít víc a častěji, i když nemáš žízeň.</li>
+                    <li>Při dlouhém tréninku nebo turnaji se hodí iontový nápoj nebo voda + něco slaného.</li>
+                    <li>Bolest hlavy, točení hlavy, zimnice v horku = hned říct trenérovi.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · pro hráče</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/pro-hrace.js?v=4"></script>
+</body>
+</html>

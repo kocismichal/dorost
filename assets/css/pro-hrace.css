@@ -22,8 +22,9 @@
 
 .ph-trio {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 14px;
+    margin-top: 18px;
 }
 .ph-trio__t {
     display: flex;
@@ -49,6 +50,32 @@
 }
 .ph-trio__t b { font-size: 22px; font-weight: 900; }
 .ph-trio__t span:last-child { font-size: 13.5px; color: var(--muted); }
+
+/* ------------------------------------------------ záložky podstránek --- */
+
+.ph-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 4px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+.ph-tabs a {
+    flex: 1 0 auto;
+    padding: 10px 16px;
+    border-radius: 9px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-soft);
+    text-decoration: none;
+    white-space: nowrap;
+}
+.ph-tabs a:hover { background: var(--bg-soft); color: var(--text); }
+.ph-tabs a.is-active { background: var(--accent); color: #fff; }
 
 /* ------------------------------------------------------------- obsah --- */
 
@@ -122,6 +149,7 @@
     color: var(--text-soft);
 }
 .ph-card p { margin: 0 0 8px; }
+.ph-card h3 a { color: inherit; }
 .ph-card h3 {
     margin: 0 0 10px;
     font-size: 15px;
@@ -393,6 +421,8 @@
     .ph-grid--3 { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 700px) {
+    .ph-tabs { flex-wrap: wrap; overflow: visible; }
+    .ph-tabs a { flex: 1 1 auto; padding: 9px 12px; font-size: 13px; }
     .ph-trio, .ph-grid { grid-template-columns: minmax(0, 1fr); }
     .ph-block { padding: 18px 16px 20px; border-left-width: 4px; }
     .ph-block__head h2 { font-size: 20px; }
@@ -401,7 +431,7 @@
 /* ------------------------------------------------------------ tisk --- */
 
 @media print {
-    .appbar, .subnav, .foot, .ph-chips, #printBtn, .toast, .overlay { display: none !important; }
+    .appbar, .subnav, .foot, .ph-chips, .ph-tabs, .ph-trio, #printBtn, .toast, .overlay { display: none !important; }
     body { background: #fff; }
     main { padding: 0; }
     .wrap { max-width: none; padding: 0; }
