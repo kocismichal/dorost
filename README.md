@@ -144,6 +144,9 @@ Platí **60 dní**, pak synchronizace začne hlásit chybu 401. Výměna:
 - **Po měsících** – pořadí podle počtu tréninkových jednotek v měsíci (při
   shodě víc tréninků dorostu), medaile pro první tři, tečky za každý trénink.
   Podklad pro měsíční odměny. 
+- **Karta hráče** – klik na jméno (v kterémkoli pohledu): souhrn, po měsících
+  a seznam všech událostí s filtry podle druhu (Po/Út/Čt/s áčkem/zápasy…),
+  stavu (byl/omluven/bez omluvy/nezapsáno) a měsíce.
 - Po týdnech se zobrazuje vždy jeden týden, přepíná se šipkami nebo výběrem.
 - Hráči se počítají jen události, na které byl v Týmuj pozvaný – kdo přišel
   později, má procenta od svého příchodu (na stránce štítek „od …“).

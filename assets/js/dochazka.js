@@ -23,7 +23,6 @@ let pohled = "sezona";    // sezona | mesice | tydny
 let vse = false;          // v týdnech ukázat i áčko, béčko a přáteláky
 let tyden = null;         // zobrazený týden (pondělí YYYY-MM-DD), null = poslední
 let mesic = null;         // zobrazený měsíc (YYYY-MM), null = poslední
-const otevreni = new Set();   // rozbalení hráči v přehledu sezóny
 
 const el = (id) => document.getElementById(id);
 
@@ -173,19 +172,9 @@ function vykresliSezonu() {
             s.pozdejsi ? `<span class="tag">od ${datum(s.pozdejsi)}</span>` : "",
             s.h.dlouhodobaOmluva ? `<span class="tag tag--warn" title="${esc(s.h.dlouhodobaOmluva.pozn || "")}">dlouhodobě omluven</span>` : ""
         ].join("");
-        const otevreny = otevreni.has(s.h.id);
-        let detail = "";
-        if (otevreny) {
-            const chybel = data.udalosti.filter(jeTrenink).map(u => ({ u, st: stav(u, s.h.id) })).filter(x => x.st.k !== "g" && x.st.k !== "x").reverse();
-            detail = `<tr class="dz-detail"><td></td><td colspan="15">${chybel.length ? `<ul class="dz-miss">${chybel.map(({ u, st }) => `
-                <li class="is-${st.k}"><b>${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)}</b> ${esc(u.nazev)}
-                    <span>${st.k === "o" ? (admin ? "omluva: " + esc(st.kom) : "omluven") : st.k === "n" ? "bez omluvy" : "nezapsáno"}</span></li>`).join("")}</ul>`
-                : "<p>Na žádném tréninku nechyběl. 👏</p>"}
-                ${admin ? "" : `<p class="dz-hint">Text omluv vidí jen přihlášený.</p>`}</td></tr>`;
-        }
-        return `<tr class="dz-row${otevreny ? " is-open" : ""}" data-hrac="${esc(s.h.id)}">
+        return `<tr class="dz-row" data-hrac="${esc(s.h.id)}">
             <td class="ptable__rank">${i + 1}.</td>
-            <td class="dz-name"><span class="dz-caret">▸</span>${esc(s.h.jmeno)}${stitky}</td>
+            <td class="dz-name"><span class="dz-link">${esc(s.h.jmeno)}</span>${stitky}</td>
             ${metr(s.jednPct)}
             <td class="dz-num"><b>${s.jedn}</b><small>/${s.pozvan}</small></td>
             ${metr(s.pct)}
@@ -196,7 +185,7 @@ function vykresliSezonu() {
             <td class="dz-num dz-n">${s.bezOmluvy || ""}</td>
             <td class="dz-num dz-z">${s.nezapsano || ""}</td>
             <td class="dz-num">${s.Z_D || ""}</td><td class="dz-num">${s.Z_B || ""}</td><td class="dz-num">${s.Z_A || ""}</td>
-        </tr>${detail}`;
+        </tr>`;
     }).join("");
 
     el("dzView").innerHTML = `
@@ -214,7 +203,7 @@ function vykresliSezonu() {
                 <tbody>${radky}</tbody>
             </table>
         </div></div>`;
-    el("dzNote").textContent = "Řazeno podle tréninkových jednotek = tréninky dorostu + tréninky s áčkem, v poměru k počtu tréninků dorostu. Kdo trénuje navíc s áčkem, může mít přes 100 %. Tréninky dorostu = jen tréninky dorostu (Po, Út, Čt a jiné). Klikni na hráče – rozbalí se tréninky, na kterých chyběl, i s omluvou.";
+    el("dzNote").textContent = "Řazeno podle tréninkových jednotek = tréninky dorostu + tréninky s áčkem, v poměru k počtu tréninků dorostu. Kdo trénuje navíc s áčkem, může mít přes 100 %. Tréninky dorostu = jen tréninky dorostu (Po, Út, Čt a jiné). Klikni na hráče – otevře se jeho karta s celou docházkou a filtry.";
 }
 
 function vykresliTydny() {
@@ -258,7 +247,7 @@ function vykresliTydny() {
             return `<td class="dz-c is-${st.k}"><i>${ikona}</i>${omluva}</td>`;
         }).join("");
         const pomer = (x, y, cls = "") => `<td class="dz-num dz-week${cls}">${y ? `<b>${x}</b><small>/${y}</small>` : "–"}</td>`;
-        return `<tr><td class="dz-name">${esc(h.jmeno)}</td>${bunky}${pomer(j.a, j.b, j.a > a ? " dz-week--a" : "")}${pomer(a, b)}</tr>`;
+        return `<tr><td class="dz-name"><span class="dz-link" data-hrac="${esc(h.id)}">${esc(h.jmeno)}</span></td>${bunky}${pomer(j.a, j.b, j.a > a ? " dz-week--a" : "")}${pomer(a, b)}</tr>`;
     }).join("");
 
     const volby = klice.map(x => `<option value="${x}"${x === k ? " selected" : ""}>${datum(x)} – ${datumRok(plusDni(x, 6))}</option>`).join("");
@@ -326,7 +315,7 @@ function vykresliMesice() {
         }).join("");
         return `<tr class="${top ? "dz-top" : ""}">
             <td class="ptable__rank">${top ? medaile[misto - 1] : misto + "."}</td>
-            <td class="dz-name">${esc(s.h.jmeno)}</td>
+            <td class="dz-name"><span class="dz-link" data-hrac="${esc(s.h.id)}">${esc(s.h.jmeno)}</span></td>
             <td class="dz-num dz-big"><b>${s.jedn}</b><small>/${s.pozvan}</small></td>
             <td class="dz-pct"><div class="dz-meter"><i class="${tridaMetru(pct)}" style="width:${Math.min(pct, 100)}%"></i></div><b>${pct} %</b></td>
             <td class="dz-num"><b>${s.byl}</b><small>/${s.pozvan}</small></td>
@@ -360,6 +349,129 @@ function vykresliMesice() {
     el("dzNote").innerHTML = `Pořadí podle počtu tréninkových jednotek v měsíci (tréninky dorostu + tréninky s áčkem), při shodě rozhoduje víc tréninků dorostu. Tečky: <i class="dz-dot is-g"></i> byl · <i class="dz-dot is-o"></i> omluven · <i class="dz-dot is-n"></i> chyběl · <i class="dz-dot is-z"></i> nezapsáno – najetím myší se ukáže trénink.`;
 }
 
+/* ------------------------------------------------------- karta hráče ---
+   Celá docházka jednoho hráče za sezónu: souhrn, měsíce a seznam všech
+   událostí s filtry (druh, stav, měsíc). Otevírá se klikem na jméno.
+   ------------------------------------------------------------------- */
+
+const DRUHY_DOROST = ["T_PO", "T_UT", "T_CT", "T_JINY"];
+const FILTR_DRUHY = [
+    ["T_PO", "Po – kondice"], ["T_UT", "Út"], ["T_CT", "Čt"], ["T_JINY", "Jiný trénink"],
+    ["T_A", "S áčkem"], ["Z_D", "Zápas D"], ["Z_B", "Zápas B"], ["Z_A", "Zápas A"], ["PRAT", "Přátelák"]
+];
+const FILTR_STAVY = [["g", "Byl"], ["o", "Omluven"], ["n", "Bez omluvy"], ["z", "Nezapsáno"]];
+const STAV_TEXT = { g: "byl", o: "omluven", n: "chyběl bez omluvy", z: "nezapsáno" };
+
+let karta = null;   // { id, druhy: Set, stavy: Set, mesic: "" }
+
+function otevriKartu(id) {
+    karta = { id, druhy: new Set(DRUHY_DOROST), stavy: new Set(["g", "o", "n", "z"]), mesic: "" };
+    vykresliKartu();
+    el("dzKarta").classList.add("is-open");
+}
+
+function vykresliKartu() {
+    if (!karta || !data) return;
+    const h = data.hraci.find(x => x.id === karta.id);
+    if (!h) return;
+    const admin = isAdmin();
+    const s = statistiky().find(x => x.h.id === h.id) || {};
+    const moje = data.udalosti.filter(u => u.ucast[h.id] && !u.zruseno);
+
+    // souhrn po měsících
+    const mesice = [...new Set(moje.map(u => u.zacatek.slice(0, 7)))].sort();
+    const poMesicich = mesice.map(m => {
+        const um = moje.filter(u => u.zacatek.slice(0, 7) === m);
+        const tr = um.filter(jeTrenink);
+        const byl = tr.filter(u => stav(u, h.id).k === "g").length;
+        const j = jednotky(um, h.id);
+        const pct = procento(j.a, j.b);
+        return `<div class="dz-kmes">
+            <span class="dz-kmes__m">${nazevMesice(m)}</span>
+            <div class="dz-meter"><i class="${tridaMetru(pct)}" style="width:${Math.min(pct, 100)}%"></i></div>
+            <span class="dz-kmes__v"><b>${j.a}</b>/${j.b} jedn. · dorost ${byl}/${tr.length}</span>
+        </div>`;
+    }).join("");
+
+    // filtrovaný seznam
+    const seznam = moje.filter(u => karta.druhy.has(u.druh))
+        .filter(u => !karta.mesic || u.zacatek.slice(0, 7) === karta.mesic)
+        .map(u => ({ u, st: stav(u, h.id) }))
+        .filter(x => karta.stavy.has(x.st.k))
+        .sort((a, b) => b.u.zacatek.localeCompare(a.u.zacatek));
+    const bylo = seznam.filter(x => x.st.k === "g").length;
+
+    const chip = (typ, k, text, on) => `<button type="button" class="dz-chip${on ? " is-on" : ""}" data-${typ}="${k}">${text}</button>`;
+    const kpi = (cislo, popis, cls = "") => `<div class="dz-kk${cls}"><b>${cislo}</b><span>${popis}</span></div>`;
+
+    el("dzKartaObsah").innerHTML = `
+        <div class="dz-karta__head">
+            <div>
+                <h3>${esc(h.jmeno)}</h3>
+                <p>${s.prvni ? "V týmu od " + datum(s.prvni) + " · " : ""}sezóna od ${datumRok(data.od)}${h.dlouhodobaOmluva ? ` · <span class="tag tag--warn">dlouhodobě omluven</span>` : ""}</p>
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" data-close>Zavřít</button>
+        </div>
+
+        <div class="dz-kks">
+            ${kpi(`${s.jednPct ?? 0} %`, `tréninkové jednotky (${s.jedn ?? 0}/${s.pozvan ?? 0})`, " is-main")}
+            ${kpi(`${s.pct ?? 0} %`, `tréninky dorostu (${s.byl ?? 0}/${s.pozvan ?? 0})`)}
+            ${kpi(s.dny ? `${s.dny.T_PO[0]}/${s.dny.T_PO[1]}` : "–", "pondělní kondice")}
+            ${kpi(s.dny ? `${s.dny.T_UT[0]}/${s.dny.T_UT[1]} · ${s.dny.T_CT[0]}/${s.dny.T_CT[1]}` : "–", "úterý · čtvrtek")}
+            ${kpi(s.sA ?? 0, "tréninků s áčkem")}
+            ${kpi(`${s.Z_D ?? 0} / ${s.Z_B ?? 0} / ${s.Z_A ?? 0}`, "zápasy D / B / A")}
+            ${kpi(`${s.omluven ?? 0} · ${s.bezOmluvy ?? 0} · ${s.nezapsano ?? 0}`, "omluven · bez omluvy · nezapsáno")}
+        </div>
+
+        <h4 class="dz-karta__h">Po měsících</h4>
+        <div class="dz-kmesice">${poMesicich || "<p>Zatím nic.</p>"}</div>
+
+        <h4 class="dz-karta__h">Všechny události</h4>
+        <div class="dz-filtry">
+            <div class="dz-filtr">
+                <span>Druh</span>
+                ${chip("rychle", "dorost", "Tréninky dorostu", DRUHY_DOROST.every(d => karta.druhy.has(d)) && karta.druhy.size === 4)}
+                ${chip("rychle", "vse", "Vše", karta.druhy.size === FILTR_DRUHY.length)}
+                <i class="dz-sep"></i>
+                ${FILTR_DRUHY.map(([k, t]) => chip("druh", k, t, karta.druhy.has(k))).join("")}
+            </div>
+            <div class="dz-filtr">
+                <span>Stav</span>
+                ${FILTR_STAVY.map(([k, t]) => chip("stav", k, t, karta.stavy.has(k))).join("")}
+                <select class="field dz-kselect" id="dzKartaMesic" aria-label="Měsíc">
+                    <option value="">Celá sezóna</option>
+                    ${mesice.slice().reverse().map(m => `<option value="${m}"${m === karta.mesic ? " selected" : ""}>${nazevMesice(m)}</option>`).join("")}
+                </select>
+            </div>
+        </div>
+        <p class="dz-kcount">${seznam.length} ${seznam.length === 1 ? "událost" : seznam.length >= 2 && seznam.length <= 4 ? "události" : "událostí"}${seznam.length ? ` · byl na ${bylo} (${procento(bylo, seznam.length)} %)` : ""}</p>
+        <div class="dz-klist">
+            ${seznam.map(({ u, st }) => `
+                <div class="dz-kitem is-${st.k}">
+                    <i>${{ g: "✓", n: "✗", o: "✗", z: "?" }[st.k]}</i>
+                    <span class="dz-kitem__d">${DNY[denTydne(u.zacatek)]} ${datum(u.zacatek)}</span>
+                    <span class="dz-kitem__n">${esc(u.nazev)}<small>${esc(DRUHY[u.druh].nazev)}</small></span>
+                    <span class="dz-kitem__s">${STAV_TEXT[st.k]}${st.k === "o" ? (admin ? ": " + esc(st.kom) : "") : ""}</span>
+                </div>`).join("") || `<p class="dz-empty">Nic neodpovídá filtru.</p>`}
+        </div>
+        ${admin ? "" : `<p class="dz-hint">Text omluv vidí jen přihlášený.</p>`}`;
+}
+
+el("dzKarta").addEventListener("click", (e) => {
+    if (e.target.closest("[data-close]")) { el("dzKarta").classList.remove("is-open"); karta = null; return; }
+    if (!karta) return;
+    const b = e.target.closest("[data-druh],[data-stav],[data-rychle]");
+    if (!b) return;
+    if (b.dataset.rychle === "dorost") karta.druhy = new Set(DRUHY_DOROST);
+    else if (b.dataset.rychle === "vse") karta.druhy = new Set(FILTR_DRUHY.map(x => x[0]));
+    else if (b.dataset.druh) { const k = b.dataset.druh; karta.druhy.has(k) ? karta.druhy.delete(k) : karta.druhy.add(k); }
+    else if (b.dataset.stav) { const k = b.dataset.stav; karta.stavy.has(k) ? karta.stavy.delete(k) : karta.stavy.add(k); }
+    vykresliKartu();
+});
+el("dzKarta").addEventListener("change", (e) => {
+    if (e.target.id === "dzKartaMesic") { karta.mesic = e.target.value; vykresliKartu(); }
+});
+
 function vykresli() {
     vykresliSync();
     el("dzAllWrap").hidden = pohled !== "tydny";
@@ -371,6 +483,7 @@ function vykresli() {
     }
     el("dzOd").textContent = datumRok(data.od);
     if (pohled === "sezona") vykresliSezonu(); else if (pohled === "mesice") vykresliMesice(); else vykresliTydny();
+    if (karta && el("dzKarta").classList.contains("is-open")) vykresliKartu();
 }
 
 /* ------------------------------------------------------------- ovládání --- */
@@ -390,11 +503,8 @@ el("dzView").addEventListener("click", (e) => {
     if (m) { if (m.dataset.mesic) { mesic = m.dataset.mesic; vykresli(); } return; }
     const t = e.target.closest("[data-tyden]");
     if (t) { if (t.dataset.tyden) { tyden = t.dataset.tyden; vykresli(); } return; }
-    const r = e.target.closest(".dz-row");
-    if (!r) return;
-    const id = r.dataset.hrac;
-    otevreni.has(id) ? otevreni.delete(id) : otevreni.add(id);
-    vykresli();
+    const r = e.target.closest("[data-hrac]");
+    if (r) otevriKartu(r.dataset.hrac);
 });
 
 initAuth(vykresli);
