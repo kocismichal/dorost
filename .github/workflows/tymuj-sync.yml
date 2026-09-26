@@ -1,0 +1,34 @@
+# Stahuje docházku dorostu z Týmuj do databáze webu (stránka Docházka).
+# Token do Týmuj je v secretu TYMUJ_TOKEN (Settings → Secrets and variables
+# → Actions). Platí 60 dní, pak je potřeba vložit nový – postup v README.
+
+name: Docházka z Týmuj
+
+on:
+  schedule:
+    # každý den v 6:00 a večer po tréninku (časy v UTC, v létě +2 h)
+    - cron: "0 4 * * *"
+    - cron: "30 18 * * *"
+    - cron: "30 20 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tymuj-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Stáhnout docházku a uložit
+        run: node scripts/tymuj-sync.mjs
+        env:
+          TYMUJ_TOKEN: ${{ secrets.TYMUJ_TOKEN }}

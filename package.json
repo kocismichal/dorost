@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Web dorostu FK Agro Vnorovy – statický web, package.json jen kvůli skriptu scripts/tymuj-sync.mjs (ES moduly)."
+}

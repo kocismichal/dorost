@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#14171a">
-<title>FK Agro Vnorovy – Dorost | Plakáty</title>
+<title>FK Agro Vnorovy – Dorost | Docházka</title>
 <link rel="icon" href="assets/img/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/plakat.css?v=9">
+<link rel="stylesheet" href="assets/css/dochazka.css?v=1">
 </head>
 <body>
 
@@ -38,47 +38,43 @@
     <div class="subnav__in">
         <a class="subnav__link" href="index.html">Pokutníček</a>
         <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
-        <a class="subnav__link" href="dochazka.html">Docházka</a>
-        <a class="subnav__link is-active" href="plakaty.html">Plakáty</a>
+        <a class="subnav__link is-active" href="dochazka.html">Docházka</a>
+        <a class="subnav__link" href="plakaty.html">Plakáty</a>
         <a class="subnav__link" href="taktika.html">Taktika</a>
         <a class="subnav__link" href="pro-hrace.html">Pro hráče</a>
     </div>
 </nav>
 
-<main class="wrap">
+<main class="wrap dz">
 
-    <section class="section" id="plakatApp">
-        <div class="section-head">
-            <h2>Plakáty na víkend</h2>
-            <p>Plakát A3 na šířku pro každé kolo podzimu. Prohlížet a tisknout může kdokoli, upravovat jen po přihlášení. Změny se ukládají do databáze, takže je hned vidí všichni.</p>
+    <section class="section">
+        <div class="section-head section-head--row">
+            <div>
+                <h2>Docházka dorostu</h2>
+                <p>Bere se automaticky z Týmuj – co trenér v Týmuj opraví na skutečnou docházku, to platí i tady. Počítá se od začátku sezóny <b id="dzOd">13. 7. 2026</b>. Hráčům, kteří přišli později, se počítají jen tréninky od jejich příchodu.</p>
+            </div>
+            <div class="dz-sync" id="dzSync"><span class="loader"></span></div>
         </div>
 
-        <div class="pl-toolbar">
-            <button type="button" id="koloPrev" class="btn btn--ghost" title="Předchozí kolo">◀</button>
-            <select id="koloSelect" class="field pl-select" aria-label="Kolo"></select>
-            <button type="button" id="koloNext" class="btn btn--ghost" title="Další kolo">▶</button>
-            <span id="koloStav" class="pl-stav"></span>
-            <span class="pl-toolbar__spacer"></span>
-            <button type="button" id="resetBtn" class="btn btn--ghost admin-only" hidden>Vrátit podle rozlosování</button>
-            <button type="button" id="printBtn" class="btn btn--primary">Vytisknout / PDF</button>
+        <div class="dz-kpis" id="dzKpis"></div>
+
+        <div class="dz-bar">
+            <div class="dz-seg" role="tablist">
+                <button type="button" class="is-on" data-view="sezona">Přehled sezóny</button>
+                <button type="button" data-view="tydny">Po týdnech</button>
+            </div>
+            <label class="dz-check" id="dzAllWrap" hidden><input type="checkbox" id="dzAll"> i áčko, béčko a přáteláky</label>
         </div>
 
-        <div class="preview">
-            <div class="stage"><div class="poster" id="poster"></div></div>
-        </div>
-
-        <p class="pl-hint">Tisk: v dialogu vyber <b>A3</b>, <b>na šířku</b>, okraje <b>žádné</b> a zapni <b>grafiku na pozadí</b>, jinak se nevytisknou barevné pruhy.</p>
-
-        <div class="pl-editor admin-only" id="plakatEditorBox" hidden>
-            <h3 class="pl-h pl-h--first">Úprava plakátu</h3>
-            <p class="pl-note">Změny se projeví hned v náhledu a samy se uloží.</p>
-            <div id="plakatEditor"></div>
-        </div>
+        <div id="dzView"></div>
+        <p class="dz-note" id="dzNote"></p>
     </section>
 
 </main>
 
-<footer class="foot">FK Agro Vnorovy · Dorost · plakáty na víkend</footer>
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · docházka z Týmuj</footer>
 
 <!-- ============================================================ přihlášení -->
 <div class="overlay" id="loginOverlay">
@@ -101,6 +97,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/plakaty.js?v=9"></script>
+<script type="module" src="assets/js/dochazka.js?v=1"></script>
 </body>
 </html>

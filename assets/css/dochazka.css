@@ -1,0 +1,173 @@
+/* ==========================================================================
+   FK AGRO VNOROVY – DOCHÁZKA
+   Přehled sezóny (tabulka hráčů) a rozpis po týdnech. Navazuje na app.css.
+   ========================================================================== */
+
+/* -------------------------------------------------------- synchronizace --- */
+
+.dz-sync { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.dz-sync__chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: var(--ok-tint);
+    color: var(--ok-dark);
+    font-size: 12.5px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.dz-sync__chip.is-warn { background: #fdf3e7; color: var(--warn); }
+.dz-sync__err { max-width: 340px; font-size: 12.5px; color: var(--danger); text-align: right; }
+
+/* ---------------------------------------------------------------- KPI --- */
+
+.dz-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.dz-kpi {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 14px 18px;
+}
+.dz-kpi b { display: block; font-size: 26px; font-weight: 900; color: var(--text); font-variant-numeric: tabular-nums; }
+.dz-kpi span { font-size: 13px; color: var(--muted); }
+
+/* ------------------------------------------------------------ přepínač --- */
+
+.dz-bar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.dz-seg {
+    display: inline-flex;
+    padding: 4px;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+.dz-seg button {
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 9px;
+    background: none;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-soft);
+    cursor: pointer;
+}
+.dz-seg button.is-on { background: var(--accent); color: #fff; }
+.dz-check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-soft); cursor: pointer; }
+
+/* ------------------------------------------------------- přehled sezóny --- */
+
+.dz-table th, .dz-table td { white-space: nowrap; }
+.dz-table .dz-grp th { padding-top: 8px; padding-bottom: 0; background: var(--bg-soft); border-bottom: 0; text-align: center; color: var(--dim); font-size: 10px; }
+.dz-num { text-align: right; font-variant-numeric: tabular-nums; }
+th.dz-num { text-align: right; }
+.dz-num small { color: var(--dim); font-weight: 600; }
+.dz-row { cursor: pointer; }
+.dz-row:hover td { background: var(--bg-soft); }
+.dz-name { font-weight: 800; color: var(--text) !important; }
+.dz-caret { display: inline-block; width: 14px; color: var(--dim); transition: transform .15s; }
+.dz-row.is-open .dz-caret { transform: rotate(90deg); }
+.dz-pct { display: flex; align-items: center; gap: 10px; min-width: 170px; }
+.dz-pct b { width: 42px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+.dz-meter { flex: 1; height: 8px; border-radius: 99px; background: var(--line-soft); overflow: hidden; }
+.dz-meter i { display: block; height: 100%; border-radius: 99px; }
+.dz-meter i.hi  { background: var(--ok); }
+.dz-meter i.mid { background: #d49a1a; }
+.dz-meter i.lo  { background: var(--accent); }
+.dz-o { color: var(--warn) !important; }
+.dz-n { color: var(--accent) !important; font-weight: 800 !important; }
+.dz-z { color: var(--dim) !important; }
+.tag--warn { background: #fdf3e7; border-color: #f3d9b5; color: var(--warn); }
+
+.dz-detail td { background: var(--bg-soft); white-space: normal; }
+.dz-miss { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 6px 18px; }
+.dz-miss li { font-size: 13px; font-weight: 500; padding-left: 10px; border-left: 3px solid var(--line); }
+.dz-miss li b { color: var(--text); margin-right: 4px; }
+.dz-miss li span { display: block; color: var(--muted); }
+.dz-miss li.is-o { border-left-color: var(--warn); }
+.dz-miss li.is-o span { color: var(--warn); }
+.dz-miss li.is-n { border-left-color: var(--accent); }
+.dz-miss li.is-n span { color: var(--accent); font-weight: 700; }
+.dz-detail p { margin: 0; font-size: 13px; color: var(--muted); }
+.dz-hint { margin-top: 8px !important; font-size: 12px !important; }
+
+/* ------------------------------------------------------------- týdny --- */
+
+.dz-weekcard {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+}
+.dz-weekcard__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--line);
+}
+.dz-weekcard__head h3 { margin: 0; font-size: 16px; font-weight: 900; }
+.dz-weekcard__head span { font-size: 13px; color: var(--muted); }
+
+.dz-wtable th, .dz-wtable td { white-space: nowrap; }
+.dz-wtable td:first-child, .dz-wtable th:first-child { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+.dz-wtable th:first-child { background: var(--bg-soft); }
+.dz-ev { text-align: center !important; min-width: 84px; vertical-align: bottom; line-height: 1.3; text-transform: none !important; letter-spacing: 0 !important; }
+.dz-ev span { display: block; }
+.dz-ev__d { font-size: 11px; color: var(--muted); }
+.dz-ev__n { font-size: 12.5px; font-weight: 900; color: var(--text); max-width: 120px; margin: 0 auto; overflow: hidden; text-overflow: ellipsis; }
+.dz-ev__c { font-size: 11px; font-weight: 700; color: var(--ok); }
+.dz-ev.is-extra { background: #f2f4f3 !important; }
+.dz-ev.is-extra .dz-ev__n { color: var(--muted); }
+.dz-ev--Z_D .dz-ev__n { color: var(--accent); }
+.dz-ev.is-off .dz-ev__n { text-decoration: line-through; color: var(--dim); }
+.dz-ev.is-off .dz-ev__c { color: var(--dim); }
+
+.dz-c { text-align: center; padding: 6px 6px !important; min-width: 84px; }
+.dz-c i {
+    display: inline-grid;
+    place-items: center;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    font-style: normal;
+    font-size: 13px;
+    font-weight: 900;
+}
+.dz-c.is-g i { background: var(--ok-tint); color: var(--ok); }
+.dz-c.is-n i { background: var(--accent-tint); color: var(--accent); }
+.dz-c.is-o i { background: #fdf3e7; color: var(--warn); }
+.dz-c.is-z i { background: var(--bg-soft); color: var(--dim); }
+.dz-c.is-off { background: repeating-linear-gradient(135deg, transparent 0 6px, var(--line-soft) 6px 7px); }
+.dz-om {
+    display: block;
+    max-width: 120px;
+    margin: 2px auto 0;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--warn);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dz-note .dz-om { display: inline; margin: 0; }
+.dz-week { font-size: 14px; }
+.dz-week b { color: var(--text); }
+
+.dz-note { margin: 12px 2px 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.dz-empty { padding: 30px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius-lg); }
+
+/* ------------------------------------------------------------ mobil --- */
+
+@media (max-width: 800px) {
+    .dz-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dz-sync { align-items: flex-start; }
+    .dz-sync__err { text-align: left; }
+}
