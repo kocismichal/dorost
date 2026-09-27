@@ -467,3 +467,14 @@
 @media (max-width: 700px) {
     .ph-table { font-size: 13px; min-width: 560px; }
 }
+
+/* ------------------------------------------------------------ semafor --- */
+
+.ph-sem { border-top: 4px solid var(--line); }
+.ph-sem--ok   { border-top-color: #16794a; background: #f1faf5; }
+.ph-sem--mid  { border-top-color: #d49a1a; background: #fdf8ee; }
+.ph-sem--stop { border-top-color: #c8102e; background: #fdf1f2; }
+.ph-sem--ok h3   { color: #16794a; }
+.ph-sem--mid h3  { color: #b45309; }
+.ph-sem--stop h3 { color: #c8102e; }
+.ph-block > .ph-grid--3 + .ph-grid { margin-top: 14px; }

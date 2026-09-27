@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/pro-hrace.css?v=7">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=8">
 </head>
 <body>
 
@@ -64,10 +64,179 @@
             <a href="pro-hrace-kviz.html">K nastudování</a>
         </nav>
         <nav class="ph-chips" aria-label="Obsah stránky">
+            <a href="#ziviny">Živiny – co je co</a>
+            <a href="#cukry">Cukry a ovoce</a>
             <a href="#jidlo">Jídlo a trénink</a>
             <a href="#strava">Strava a doplňky</a>
             <a href="#piti">Pití</a>
         </nav>
+    </section>
+
+<!-- ============================================================ živiny -->
+    <section class="section ph-block ph-c-jidlo" id="ziviny">
+        <div class="ph-block__head">
+            <span class="ph-tag">Základy</span>
+            <h2>Živiny – co je co</h2>
+            <p>Jídlo se skládá ze tří hlavních živin. Každá dělá v těle něco jiného a sportovec potřebuje všechny – jen v jiném poměru a v jinou dobu.</p>
+        </div>
+
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card">
+                <h3>Sacharidy = palivo</h3>
+                <p>Hlavní zdroj energie pro sprint, souboje a rychlé rozhodování. Tělo si je ukládá do svalů a jater jako <b>glykogen</b> – zásoba vystačí zhruba na zápas. Když dojde, nohy „ztěžknou“ a hlava se zpomalí.</p>
+                <ul class="ph-list">
+                    <li><b>Kde:</b> pečivo, těstoviny, rýže, brambory, ovesné vločky, kuskus, ovoce.</li>
+                    <li><b>Kolik:</b> základ každého jídla – v den tréninku a zápasu víc.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Bílkoviny = stavební materiál</h3>
+                <p>Opravují svaly po tréninku, pomáhají růstu a imunitě. Energii nedávají rychle – jejich práce je <b>oprava a stavba</b>.</p>
+                <ul class="ph-list">
+                    <li><b>Kde:</b> maso, ryby, vejce, tvaroh, jogurt, mléko, sýr, luštěniny.</li>
+                    <li><b>Kolik:</b> ke každému jídlu porce zhruba velikosti dlaně. Nejvíc je potřeba do hodiny po tréninku.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Tuky = zásoba a ochrana</h3>
+                <p>Potřebné pro hormony, vitamíny (A, D, E, K) a jako energie pro klidné tempo. Tráví se ale <b>pomalu</b> – těsně před výkonem proto málo.</p>
+                <ul class="ph-list">
+                    <li><b>Dobré:</b> ořechy, olivový a řepkový olej, ryby, avokádo.</li>
+                    <li><b>Omezit:</b> smažené, fastfood, uzeniny, sladkosti se smetanou a čokoládou.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Vláknina</h3>
+                <p>Je v zelenině, ovoci, celozrnném pečivu a luštěninách. Dobrá pro trávení a sytost – <b>každý den ano</b>. Den před zápasem a v den zápasu jí ale nepřeháněj: velká mísa syrové zeleniny nebo fazole nadýmají.</p>
+            </div>
+            <div class="ph-card">
+                <h3>Vitamíny a minerály</h3>
+                <p>Nedávají energii, ale bez nich tělo nefunguje – imunita, kosti, krev, svaly. Nejlíp se dají pestrým jídlem: <b>ovoce a zelenina každý den</b>, mléčné výrobky (vápník), maso a luštěniny (železo).</p>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Co jíst a co ne – semafor</h3>
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card ph-sem ph-sem--ok">
+                <h3>Jez často</h3>
+                <ul class="ph-list">
+                    <li>Těstoviny, rýže, brambory, kuskus</li>
+                    <li>Chléb, rohlíky, ovesné vločky, müsli bez polevy</li>
+                    <li>Kuřecí, krůtí, libové maso, ryby, vejce</li>
+                    <li>Tvaroh, jogurt, mléko, kefír, sýr</li>
+                    <li>Ovoce a zelenina</li>
+                    <li>Voda, neslazený čaj, ředěná šťáva</li>
+                </ul>
+            </div>
+            <div class="ph-card ph-sem ph-sem--mid">
+                <h3>Občas</h3>
+                <ul class="ph-list">
+                    <li>Pizza, domácí burger, řízek (ne před tréninkem)</li>
+                    <li>Sladké pečivo, koláče, sušenky</li>
+                    <li>Ovocné jogurty a slazené mléčné nápoje</li>
+                    <li>Džusy (raději ředit vodou)</li>
+                    <li>Uzeniny, párky</li>
+                </ul>
+            </div>
+            <div class="ph-card ph-sem ph-sem--stop">
+                <h3>Výjimečně / ne</h3>
+                <ul class="ph-list">
+                    <li>Energetické nápoje</li>
+                    <li>Slazené limonády a kola</li>
+                    <li>Chipsy, hranolky, smažený sýr</li>
+                    <li>Fastfood jako pravidelné jídlo</li>
+                    <li>Bonbony a čokoládové tyčinky místo jídla</li>
+                    <li>Alkohol</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================ cukry -->
+    <section class="section ph-block ph-c-jidlo" id="cukry">
+        <div class="ph-block__head">
+            <span class="ph-tag">Energie</span>
+            <h2>Cukry a ovoce</h2>
+            <p>Cukr není nepřítel – je to sacharid a pro sval nejrychlejší palivo. Záleží na tom, <b>jaký, kolik a kdy</b>.</p>
+        </div>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Pomalé (složité) sacharidy</h3>
+                <p>Těstoviny, rýže, brambory, pečivo, vločky. Tráví se postupně a energii pouštějí <b>pomalu a dlouho</b>. Patří do hlavního jídla 3–4 hodiny před zápasem a do jídel během dne.</p>
+            </div>
+            <div class="ph-card">
+                <h3>Rychlé (jednoduché) cukry</h3>
+                <p>Hroznový cukr, med, banán, sušené ovoce, piškoty, ionťák. Jdou do krve <b>rychle</b> – hodí se, když energii potřebuješ hned: 30–60 minut před zápasem, o poločase a hned po zápase. Celý den ve velkém (limonády, sladkosti) ale ne – dávají energii bez živin a láká to k přejídání.</p>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Jaký cukr před zápasem</h3>
+        <div class="ph-grid">
+            <div class="ph-card ph-sem ph-sem--ok">
+                <h3>Hodí se (30–60 min před a o poločase)</h3>
+                <ul class="ph-list">
+                    <li><b>Banán</b> – nejlepší volba, cukr + draslík, snadno se tráví</li>
+                    <li>Rohlík nebo toast s medem či džemem</li>
+                    <li>Pár piškotů, rýžový chlebíček s medem</li>
+                    <li>Ovocná kapsička (přesnídávka)</li>
+                    <li>2–4 kostky hroznového cukru</li>
+                    <li>Hrst rozinek nebo 2–3 datle</li>
+                    <li>Ionťák po douscích (hlavně v horku)</li>
+                </ul>
+            </div>
+            <div class="ph-card ph-sem ph-sem--stop">
+                <h3>Nehodí se</h3>
+                <ul class="ph-list">
+                    <li><b>Čokoládové tyčinky</b> (Snickers, Mars…) – hodně tuku, tráví se dlouho</li>
+                    <li>Sladkosti se smetanou, dorty, zákusky</li>
+                    <li><b>Energetické nápoje</b> – kofein, bušení srdce, pak propad</li>
+                    <li>Sycené limonády a kola – nadýmají, v žaludku „bublá“</li>
+                    <li>Velká dávka sladkého najednou (půl litru džusu, pytlík bonbonů)</li>
+                    <li>Energetický gel nebo tyčinka, kterou jsi nikdy nezkoušel</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Ovoce</h3>
+        <div class="ph-grid ph-grid--3">
+            <div class="ph-card">
+                <h3>Proč je důležité</h3>
+                <ul class="ph-list">
+                    <li>Vitamíny (hlavně C) a minerály – <b>imunita</b>, míň nemocí a vynechaných tréninků.</li>
+                    <li>Draslík a voda – pomáhá svalům a pitnému režimu.</li>
+                    <li>Rychlá a přirozená energie místo sladkostí.</li>
+                    <li><b>Aspoň 2 porce ovoce denně</b> (porce = co se vejde do dlaně) + zelenina ke každému jídlu.</li>
+                </ul>
+            </div>
+            <div class="ph-card ph-sem ph-sem--ok">
+                <h3>Před zápasem ano</h3>
+                <ul class="ph-list">
+                    <li><b>Banán</b></li>
+                    <li>Hroznové víno</li>
+                    <li>Meloun (hodně vody)</li>
+                    <li>Mango, ananas</li>
+                    <li>Rozinky, datle – malá hrst</li>
+                    <li>Ovocná přesnídávka</li>
+                    <li>Jablko – když ho snášíš (někoho nadýmá)</li>
+                </ul>
+            </div>
+            <div class="ph-card ph-sem ph-sem--mid">
+                <h3>Před zápasem radši ne (do 2 hodin)</h3>
+                <ul class="ph-list">
+                    <li><b>Hrušky a švestky</b> – můžou rozhýbat střeva</li>
+                    <li>Sušené švestky, fíky – totéž, ještě silněji</li>
+                    <li>Velké množství třešní</li>
+                    <li>Hodně citrusů (pomeranč, grep) – kyselé, u někoho pálení žáhy</li>
+                    <li>Nezralé ovoce a velká mísa ovoce najednou</li>
+                </ul>
+                <p class="ph-note">Normálně během týdne je všechno ovoce v pořádku – omezení platí jen těsně před výkonem.</p>
+            </div>
+        </div>
+        <p class="ph-tip"><b>Pravidlo:</b> před zápasem jen to, co znáš a co ti dělá dobře. Každý žaludek je jiný – vyzkoušej si svoji svačinu na tréninku, ne v zápase.</p>
     </section>
 
 <!-- ============================================================ jídlo -->
