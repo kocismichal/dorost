@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/pro-hrace.css?v=9">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=10">
 </head>
 <body>
 
@@ -66,6 +66,7 @@
         <nav class="ph-chips" aria-label="Obsah stránky">
             <a href="#ziviny">Živiny – co je co</a>
             <a href="#cukry">Cukry a ovoce</a>
+            <a href="#kolik">Kolik čeho za den</a>
             <a href="#jidlo">Jídlo a trénink</a>
             <a href="#strava">Strava a doplňky</a>
             <a href="#energetiky">Energetické nápoje</a>
@@ -240,6 +241,112 @@
             </div>
         </div>
         <p class="ph-tip"><b>Pravidlo:</b> před zápasem jen to, co znáš a co ti dělá dobře. Každý žaludek je jiný – vyzkoušej si svoji svačinu na tréninku, ne v zápase.</p>
+    </section>
+
+<!-- ============================================================ kolik -->
+    <section class="section ph-block ph-c-jidlo" id="kolik">
+        <div class="ph-block__head">
+            <span class="ph-tag">Čísla</span>
+            <h2>Kolik čeho za den</h2>
+            <p>Potřeba se počítá <b>na kilo tvé váhy</b> a podle toho, co ten den děláš. Čísla jsou vodítko – gramy nemusíš každý den počítat, stačí vědět, jak vypadá správná porce. Rosteš, takže když máš hlad, jez víc (hlavně přílohy a bílkoviny), ne sladkosti.</p>
+        </div>
+
+        <h3 class="ph-sub">Denní potřeba podle váhy</h3>
+        <div class="ph-tablewrap">
+            <table class="ph-table ph-table--num">
+                <thead>
+                    <tr><th>Tvoje váha</th><th>Bílkoviny<br><small>1,2–1,6 g/kg</small></th><th>Sacharidy – volno<br><small>4–5 g/kg</small></th><th>Sacharidy – trénink<br><small>5–7 g/kg</small></th><th>Sacharidy – zápas a den před<br><small>6–8 g/kg</small></th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><b>55 kg</b></td><td>66–88 g</td><td>220–275 g</td><td>275–385 g</td><td>330–440 g</td></tr>
+                    <tr><td><b>60 kg</b></td><td>72–96 g</td><td>240–300 g</td><td>300–420 g</td><td>360–480 g</td></tr>
+                    <tr><td><b>65 kg</b></td><td>78–104 g</td><td>260–325 g</td><td>325–455 g</td><td>390–520 g</td></tr>
+                    <tr><td><b>70 kg</b></td><td>84–112 g</td><td>280–350 g</td><td>350–490 g</td><td>420–560 g</td></tr>
+                    <tr><td><b>75 kg</b></td><td>90–120 g</td><td>300–375 g</td><td>375–525 g</td><td>450–600 g</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="ph-note">Tuky: zhruba čtvrtina až třetina energie – přirozeně z jídla (mléčné, maso, ořechy, olej). Nemusíš je počítat, jen nepřehánět smažené a sladké.</p>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Jak to rozdělit do dne</h3>
+                <ul class="ph-list">
+                    <li><b>Bílkoviny rovnoměrně:</b> 20–30 g v každém ze 4–5 jídel – tělo je tak využije líp, než když sníš všechno k večeři.</li>
+                    <li><b>Po tréninku</b> do hodiny 20–25 g bílkovin + sacharidy (kakao, rohlík se šunkou, tvaroh s banánem).</li>
+                    <li><b>Sacharidů nejvíc kolem tréninku</b> – oběd předem, svačina před a jídlo po.</li>
+                    <li>Den před zápasem a v den zápasu víc přílohy, míň tuku a vlákniny.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Porce podle ruky (na jedno jídlo)</h3>
+                <ul class="ph-list">
+                    <li><b>Bílkoviny = dlaň</b> (tloušťka i velikost dlaně) – maso, ryba, tvaroh, vejce.</li>
+                    <li><b>Příloha = 1–2 pěsti</b> – v tréninkový den 2, ve volno 1.</li>
+                    <li><b>Zelenina = 2 hrsti.</b></li>
+                    <li><b>Tuk = palec</b> – olej, máslo, ořechy.</li>
+                </ul>
+                <p class="ph-note">Tvoje ruka roste s tebou, takže porce sedí sama.</p>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Ukázkový tréninkový den (hráč 65 kg, trénink v 17:30)</h3>
+        <div class="ph-tablewrap">
+            <table class="ph-table ph-table--num">
+                <thead><tr><th>Kdy</th><th>Co</th><th>Bílkoviny</th><th>Sacharidy</th></tr></thead>
+                <tbody>
+                    <tr><td><b>7:00</b> snídaně</td><td>ovesná kaše: 60 g vloček, 250 ml mléka, banán, lžíce medu</td><td>17 g</td><td>90 g</td></tr>
+                    <tr><td><b>10:00</b> svačina</td><td>2 rohlíky se šunkou a sýrem, jablko</td><td>22 g</td><td>68 g</td></tr>
+                    <tr><td><b>12:30</b> oběd</td><td>těstoviny (250 g uvařených) s kuřecím masem (80 g) a rajčatovou omáčkou</td><td>33 g</td><td>71 g</td></tr>
+                    <tr><td><b>16:30</b> před tréninkem</td><td>banán a 5 piškotů</td><td>3 g</td><td>47 g</td></tr>
+                    <tr><td><b>19:30</b> po tréninku</td><td>kakao (250 ml)</td><td>9 g</td><td>25 g</td></tr>
+                    <tr><td><b>20:00</b> večeře</td><td>brambory (250 g), 2 vejce, zelenina</td><td>19 g</td><td>49 g</td></tr>
+                    <tr class="ph-total"><td colspan="2"><b>Celkem</b></td><td><b>103 g</b> (1,6 g/kg)</td><td><b>350 g</b> (5,4 g/kg)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="ph-note">Obyčejné jídlo, žádný prášek – a bílkovin je dost. V zápasový den přidej přílohu (víc těstovin, rohlík navíc).</p>
+
+        <h3 class="ph-sub">Kolik je v čem – běžné porce</h3>
+        <div class="ph-grid">
+            <div class="ph-tablewrap">
+                <table class="ph-table ph-table--num">
+                    <thead><tr><th>Hlavně bílkoviny</th><th>Porce</th><th>Bílkoviny</th><th>Sacharidy</th></tr></thead>
+                    <tbody>
+                        <tr><td>Kuřecí / krůtí maso</td><td>150 g</td><td>35 g</td><td>0 g</td></tr>
+                        <tr><td>Losos, jiná ryba</td><td>150 g</td><td>30 g</td><td>0 g</td></tr>
+                        <tr><td>Tvaroh</td><td>250 g</td><td>30 g</td><td>9 g</td></tr>
+                        <tr><td>Řecký jogurt</td><td>200 g</td><td>16 g</td><td>8 g</td></tr>
+                        <tr><td>Mléko</td><td>0,5 l</td><td>17 g</td><td>24 g</td></tr>
+                        <tr><td>Kakao</td><td>250 ml</td><td>9 g</td><td>25 g</td></tr>
+                        <tr><td>Vejce</td><td>2 ks</td><td>13 g</td><td>1 g</td></tr>
+                        <tr><td>Sýr (eidam)</td><td>2 plátky (40 g)</td><td>11 g</td><td>0 g</td></tr>
+                        <tr><td>Šunka</td><td>3 plátky (50 g)</td><td>9 g</td><td>1 g</td></tr>
+                        <tr><td>Čočka vařená</td><td>200 g</td><td>18 g</td><td>40 g</td></tr>
+                        <tr><td>Mandle, ořechy</td><td>hrst (30 g)</td><td>6 g</td><td>3 g</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="ph-tablewrap">
+                <table class="ph-table ph-table--num">
+                    <thead><tr><th>Hlavně sacharidy</th><th>Porce</th><th>Bílkoviny</th><th>Sacharidy</th></tr></thead>
+                    <tbody>
+                        <tr><td>Těstoviny vařené</td><td>250 g (talíř)</td><td>13 g</td><td>63 g</td></tr>
+                        <tr><td>Rýže vařená</td><td>200 g</td><td>5 g</td><td>56 g</td></tr>
+                        <tr><td>Brambory vařené</td><td>250 g</td><td>5 g</td><td>43 g</td></tr>
+                        <tr><td>Chléb</td><td>2 krajíce (100 g)</td><td>8 g</td><td>45 g</td></tr>
+                        <tr><td>Rohlík</td><td>1 ks</td><td>4 g</td><td>25 g</td></tr>
+                        <tr><td>Ovesné vločky</td><td>60 g</td><td>8 g</td><td>35 g</td></tr>
+                        <tr><td>Banán</td><td>1 ks</td><td>1 g</td><td>27 g</td></tr>
+                        <tr><td>Jablko</td><td>1 ks</td><td>0 g</td><td>17 g</td></tr>
+                        <tr><td>Rozinky</td><td>hrst (30 g)</td><td>1 g</td><td>22 g</td></tr>
+                        <tr><td>Piškoty</td><td>5 ks</td><td>2 g</td><td>20 g</td></tr>
+                        <tr><td>Med</td><td>lžíce (20 g)</td><td>0 g</td><td>16 g</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <p class="ph-note">Hodnoty jsou zaokrouhlené a liší se podle výrobku – přesné číslo najdeš na obalu v řádku „bílkoviny“ a „sacharidy“ (na 100 g).</p>
     </section>
 
 <!-- ============================================================ jídlo -->
@@ -519,7 +626,7 @@
                 <h3>Protein (bílkoviny v prášku)</h3>
                 <p>Je to jen <b>koncentrované jídlo</b> – nejčastěji bílkoviny z mléka (syrovátka, whey), případně rostlinné (hrách, rýže, sója). Nic víc, nic zázračného.</p>
                 <ul class="ph-list">
-                    <li><b>Kolik bílkovin potřebuješ:</b> zhruba 1,2–1,6 g na kilo váhy denně – u 65 kg asi 80–100 g. To se dá sníst bez prášku.</li>
+                    <li><b>Kolik bílkovin potřebuješ:</b> zhruba 1,2–1,6 g na kilo váhy denně – u 65 kg asi 80–100 g. To se dá sníst bez prášku (viz <a href="#kolik">Kolik čeho za den</a>).</li>
                     <li><b>Víc neznamená víc svalů.</b> Co tělo nevyužije, spálí nebo uloží – svaly staví trénink.</li>
                     <li><b>Kdy může dávat smysl:</b> když se po tréninku nestihneš najíst, nemáš chuť k jídlu nebo nejíš maso. Jako pohodlná náhrada svačiny, ne jídla.</li>
                     <li><b>Když už:</b> jedna odměrka (20–25 g) po tréninku s mlékem nebo vodou. Z lékárny nebo od ověřené značky – levné prášky bývají znečištěné. Kdo špatně snáší mléko, ať zkusí izolát nebo rostlinný.</li>

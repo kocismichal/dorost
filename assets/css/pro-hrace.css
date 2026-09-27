@@ -481,3 +481,7 @@
 
 .ph-table td.ph-ok { color: #16794a; font-weight: 800; }
 .ph-table td.ph-no { color: #c8102e; font-weight: 800; }
+
+.ph-table th small { font-weight: 700; text-transform: none; letter-spacing: 0; opacity: .8; }
+.ph-table tr.ph-total td { background: var(--c-tint); border-top: 2px solid var(--c); }
+.ph-block > .ph-grid > .ph-tablewrap { align-self: start; }

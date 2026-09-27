@@ -266,7 +266,7 @@ Jsou rozdělené na 5 podstránek, mezi kterými se přepíná záložkami naho�
   pondělní běh, den zápasu a taška, bolest a zranění
 - **Rozcvička a prevence** (`pro-hrace-rozcvicka.html`) – FIFA 11+, guma
 - **Regenerace** (`pro-hrace-regenerace.html`) – válec, míček, spánek, křeče, masti (hořčík je u jídla)
-- **Jídlo a pití** (`pro-hrace-jidlo.html`) – živiny (co je co, semafor), cukry a ovoce, energetické nápoje, hořčík (druhy), protein a kreatin, jídlo kolem tréninku, strava
+- **Jídlo a pití** (`pro-hrace-jidlo.html`) – živiny (co je co, semafor), cukry a ovoce, kolik čeho za den (tabulky podle váhy, ukázkový den, obsah v jídle), energetické nápoje, hořčík (druhy), protein a kreatin, jídlo kolem tréninku, strava
   a doplňky (jídlo podle času výkopu), pití
 - **K nastudování** (`pro-hrace-kviz.html`) – otázky podle témat
 
