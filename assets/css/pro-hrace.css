@@ -478,3 +478,6 @@
 .ph-sem--mid h3  { color: #b45309; }
 .ph-sem--stop h3 { color: #c8102e; }
 .ph-block > .ph-grid--3 + .ph-grid { margin-top: 14px; }
+
+.ph-table td.ph-ok { color: #16794a; font-weight: 800; }
+.ph-table td.ph-no { color: #c8102e; font-weight: 800; }
