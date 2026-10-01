@@ -15,6 +15,8 @@ Platí pro všechny:
 - **Prohlížení** – veřejné, bez přihlášení.
 - **Zápis** – jen po přihlášení (tlačítko vpravo nahoře). Heslo je společné
   pro celý tým, jméno slouží pouze k archivaci (kdo co zapsal).
+  V kódu (`assets/js/core.js`) je jen otisk hesla (SHA-256 se solí), ne heslo samotné;
+  jak vyrobit otisk pro nové heslo, je v komentáři u `ADMIN_PASSWORD_HASH`.
 
 ## Struktura
 

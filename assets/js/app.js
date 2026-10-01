@@ -13,7 +13,7 @@ import {
     roster, playerById, saveDefaultRoster, nextRosterOrder, slug,
     AdminStore, isAdmin, initAuth, updateAuthUI,
     esc, money, czDateTime, closeOverlays, openOverlay, toast, zrusPokutuZDochazky
-} from "./core.js?v=10";
+} from "./core.js?v=11";
 
 /* --------------------------------------------------------- druhy pokut ---
    perMinute: při kliknutí se zeptá na počet minut, částka = amount * minuty

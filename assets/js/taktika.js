@@ -18,7 +18,7 @@ import {
     roster, onRoster,
     AdminStore, isAdmin, initAuth,
     esc, slug, czDay, openOverlay, closeOverlays, toast
-} from "./core.js?v=10";
+} from "./core.js?v=11";
 
 import { ROZPIS } from "./rozpis-dorost.js?v=10";
 

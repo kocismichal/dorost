@@ -8,7 +8,7 @@
 import {
     col, docIn, whenReady, onDbError, setStatus,
     initAuth, isAdmin, updateAuthUI, esc, toast
-} from "./core.js?v=10";
+} from "./core.js?v=11";
 import { LOGA, SOUTEZE, TYMY, SEZONA } from "./plakat-data.js?v=9";
 
 import {

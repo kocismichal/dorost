@@ -11,7 +11,7 @@
 import {
     docIn, col, whenReady, onDbError, setStatus, initAuth, isAdmin, esc, roster, onRoster,
     toast, zrusPokutuZDochazky, obnovPokutuZDochazky
-} from "./core.js?v=10";
+} from "./core.js?v=11";
 import { DRUHY, DOCHAZKA_KOLEKCE, DOCHAZKA_DOKUMENT, HISTORIE_DOKUMENT, prihlasenVcas } from "./tymuj.js?v=2";
 
 import { onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";

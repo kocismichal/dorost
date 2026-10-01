@@ -13,7 +13,7 @@ import {
     roster, onRoster, slug,
     AdminStore, isAdmin, initAuth, updateAuthUI,
     esc, czDay, closeOverlays, openOverlay, toast
-} from "./core.js?v=10";
+} from "./core.js?v=11";
 
 import { ROZPIS } from "./rozpis-dorost.js?v=10";
 

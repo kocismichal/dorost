@@ -24,7 +24,12 @@ const FIREBASE_CONFIG = {
     appId: "1:547110091681:web:e417f869fba98fd85169e0"
 };
 const APP_ID = "dorost-pokuty";
-const ADMIN_PASSWORD = "AgroDorost26";
+/* Heslo se v kódu neukládá – jen jeho otisk SHA-256 (se solí HESLO_SUL).
+   Nové heslo: otisk = SHA-256 z textu "dorost-vnorovy|<heslo>" (hex), např.
+   node -e "console.log(require('crypto').createHash('sha256').update('dorost-vnorovy|'+process.argv[1]).digest('hex'))" <heslo>
+   a výsledek vložit sem. */
+const HESLO_SUL = "dorost-vnorovy|";
+const ADMIN_PASSWORD_HASH = "b681dc47a3d5acaf6a8bbfa4728154dd1ceefb89e16de0990967b34251752ed1";
 
 /* ------------------------------------------------------------- hráči ----
    Soupiska žije v databázi, aby se dala měnit přímo na webu (po přihlášení).
@@ -174,6 +179,13 @@ export const AdminStore = {
 
 export function isAdmin() { return AdminStore.on && !!AdminStore.name; }
 
+/** SHA-256 (hex) hesla se solí – porovnává se s ADMIN_PASSWORD_HASH. */
+async function otiskHesla(pass) {
+    const data = new TextEncoder().encode(HESLO_SUL + pass);
+    const buf = await crypto.subtle.digest("SHA-256", data);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 /** Skryje/odkryje vše s třídou .admin-only a přepne hlavičku. */
 export function updateAuthUI() {
     const loginBtn = document.getElementById("loginBtn");
@@ -207,13 +219,13 @@ export function initAuth(onChange) {
         toast("Odhlášeno");
     });
 
-    document.getElementById("loginForm").addEventListener("submit", (e) => {
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const name = document.getElementById("loginName").value.trim();
         const pass = document.getElementById("loginPassword").value;
         const err = document.getElementById("loginErr");
         if (!name) { err.textContent = "Zadej své jméno."; err.classList.add("is-on"); return; }
-        if (pass !== ADMIN_PASSWORD) { err.textContent = "Špatné heslo."; err.classList.add("is-on"); return; }
+        if (await otiskHesla(pass) !== ADMIN_PASSWORD_HASH) { err.textContent = "Špatné heslo."; err.classList.add("is-on"); return; }
         AdminStore.name = name;
         AdminStore.on = true;
         closeOverlays();
