@@ -48,7 +48,8 @@ onRoster(() => renderAll());
 function allPlayers() {
     return [
         ...roster().map(p => ({ id: p.id, name: p.name, guest: false })),
-        ...state.guests.map(g => ({ id: g.id, name: g.name, guest: true }))
+        /* host se štítkem st. žák; stZak: false = host bez štítku (třeba bývalý hráč dorostu) */
+        ...state.guests.map(g => ({ id: g.id, name: g.name, guest: true, stZak: g.stZak !== false }))
     ];
 }
 
@@ -119,7 +120,7 @@ function renderTable() {
                 <td class="ptable__rank">${r.rank ?? "–"}</td>
                 <td>
                     ${esc(r.name)}
-                    ${r.guest ? `<span class="tag">st. žák</span>` : ""}
+                    ${r.stZak ? `<span class="tag">st. žák</span>` : ""}
                 </td>
                 <td class="ptable__num">${r.games}</td>
                 <td class="ptable__num">${r.goals}</td>
@@ -409,7 +410,7 @@ function openLineupModal(matchId) {
 
     document.getElementById("lineupList").innerHTML = players.map(p => `
         <div class="lrow" data-id="${p.id}" data-name="${esc(p.name)}">
-            <span class="lrow__name">${esc(p.name)}${p.guest ? `<span class="tag">st. žák</span>` : ""}</span>
+            <span class="lrow__name">${esc(p.name)}${p.stZak ? `<span class="tag">st. žák</span>` : ""}</span>
             <span class="lrow__seg">
                 ${ROLES.map(([role, short, title]) => `
                     <label title="${title}">

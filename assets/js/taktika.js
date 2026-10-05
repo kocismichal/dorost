@@ -254,7 +254,7 @@ function allPlayers() {
     state.matches.forEach(m => (m.lineup || []).forEach(l => games.set(l.id, (games.get(l.id) || 0) + 1)));
     const list = [
         ...roster().map(p => ({ id: p.id, name: p.name, guest: false })),
-        ...state.guests.map(g => ({ id: g.id, name: g.name, guest: true }))
+        ...state.guests.map(g => ({ id: g.id, name: g.name, guest: true, stZak: g.stZak !== false }))
     ].map(p => ({ ...p, games: games.get(p.id) || 0, num: state.jerseys[p.id] || "" }))
      .sort((a, b) => b.games - a.games || a.name.localeCompare(b.name, "cs"));
     playersCache = list;
@@ -307,7 +307,7 @@ function renderPlayers() {
         ? (L.rows || []).map(r => {
             const base = allPlayers().find(p => p.id === r.key);
             return {
-                id: r.key, name: base ? base.name : r.name, guest: !!base?.guest, games: base?.games ?? 0,
+                id: r.key, name: base ? base.name : r.name, guest: !!base?.guest, stZak: !!base?.stZak, games: base?.games ?? 0,
                 num: r.num || "", group: r.role === "sub" ? "sub" : "start", gk: r.role === "gk"
             };
         })
@@ -337,7 +337,7 @@ function renderPlayers() {
         <div class="tk-prow ${onBoard.has(p.id) ? "is-on" : ""}">
             ${numCell}
             <button type="button" class="tk-pbtn" data-pick="${esc(p.id)}" ${edit ? "" : "disabled"}>
-                <span class="tk-pname">${esc(p.name)}${p.gk ? ` <span class="tag">brankář</span>` : ""}${p.guest ? ` <span class="tag">st. žák</span>` : ""}</span>
+                <span class="tk-pname">${esc(p.name)}${p.gk ? ` <span class="tag">brankář</span>` : ""}${p.stZak ? ` <span class="tag">st. žák</span>` : ""}</span>
                 <span class="tk-pgames" title="Odehrané zápasy podle sestav v kanadských bodech">${p.games} z.</span>
             </button>
         </div>`;
@@ -1570,7 +1570,7 @@ function renderLuRows() {
             <div class="tk-lu-who">
                 <select class="field" data-lu-pid="${i}" aria-label="Hráč ze soupisky">
                     <option value="">— mimo soupisku —</option>
-                    ${players.map(p => `<option value="${esc(p.id)}" ${p.id === r.pid ? "selected" : ""}>${esc(p.name)}${p.guest ? " (st. žák)" : ""}</option>`).join("")}
+                    ${players.map(p => `<option value="${esc(p.id)}" ${p.id === r.pid ? "selected" : ""}>${esc(p.name)}${p.stZak ? " (st. žák)" : ""}</option>`).join("")}
                 </select>
                 ${r.pid ? "" : `<input class="field" data-lu-name="${i}" value="${esc(r.name)}" placeholder="Jméno Příjmení" aria-label="Jméno">`}
             </div>

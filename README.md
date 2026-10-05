@@ -109,6 +109,8 @@ z našeho pohledu.
 **Hostující hráči** (starší žáci, co vypomůžou) se přidávají tlačítkem
 „+ Přidat hostujícího hráče“. Objeví se jen v kanadském bodování označení
 štítkem *st. žák*, do pokutníčku nezasahují.
+Host s polem `stZak: false` (v databázi, kolekce `guests`) štítek nemá –
+tak je zapsaný třeba bývalý hráč dorostu, který odehraje jen pár zápasů.
 
 Smazání zápasu smaže i jeho branky, aby body nezůstaly viset v tabulce.
 
