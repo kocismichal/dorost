@@ -24,6 +24,7 @@ Platí pro všechny:
 index.html               pokutníček
 kanadske-body.html       kanadské bodování
 dochazka.html            docházka dorostu z Týmuj
+cestaky.html             cesťáky – cestovné na venkovní zápasy áčka a dorostu
 plakaty.html             plakáty na víkend
 taktika.html             taktická tabule
 pro-hrace.html           Pro hráče – přehled (týden, pondělí, den zápasu, bolest)
@@ -38,6 +39,8 @@ assets/css/pro-hrace.css styly stránky Pro hráče
 assets/js/dochazka.js    zobrazení docházky
 assets/js/tymuj.js       stažení docházky z Týmuj + zápis do databáze (sdílí web i synchronizace)
 assets/css/dochazka.css  styly docházky
+assets/js/cestaky.js     cesťáky – seznam venkovních zápasů s km a výpočet
+assets/css/cestaky.css   styly cesťáků
 scripts/tymuj-sync.mjs   synchronizace Týmuj → databáze (Node, pouští GitHub Actions)
 scripts/tymuj-pokuty.mjs pondělní zápis pokut z docházky do pokutníčku
 scripts/spolecne.mjs     konfigurace Firebase a token pro skripty
@@ -185,6 +188,19 @@ Platí **60 dní**, pak synchronizace začne hlásit chybu 401. Výměna:
 - Text omluv vidí jen přihlášený. Je to jen skrytí v prohlížeči – v databázi
   jsou data čitelná stejně jako zbytek webu, do omluv v Týmuj tedy nepsat nic
   citlivého.
+
+## Cesťáky
+
+Stránka `cestaky.html` – cestovné na venkovní zápasy áčka a dorostu (podzim 2025, jaro 2026, podzim 2026,
+volitelně i krajský pohár áčka). Počítá se **km tam a zpět × počet aut × sazba**.
+
+- Seznam zápasů je přímo v `assets/js/cestaky.js` (`ZAPASY`): datum, soupeř, hřiště ze zápisu fotbal.cz a km
+  z Vnorov po silnici (OpenStreetMap / OSRM, ke středu obce, zaokrouhleno). Nové období = přidat řádky
+  do `ZAPASY` a období do `OBDOBI`. `id` zápasu neměnit.
+- Po přihlášení jde měnit sazbu, výchozí počet aut, jestli počítat poháry, a u každého zápasu bus (pak se
+  auta nepočítají, jen cena busu), počet aut a km. Ukládá se samo do dokumentu `meta/cestaky`
+  (pole `sazba`, `auta`, `pohary`, `zapasy` = jen úpravy proti výchozímu stavu, `upravil`, `kdy`).
+- Výchozí stav: 5 Kč/km, 4 auta, áčko do Kyjova busem.
 
 ## Plakáty
 
