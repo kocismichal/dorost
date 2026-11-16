@@ -6,7 +6,6 @@ Firestore, takže je vidí všichni živě. Stránky:
 - **Pokutníček** (`index.html`) – pokuty hráčů
 - **Kanadské body** (`kanadske-body.html`) – zápasy, góly a asistence
 - **Docházka** (`dochazka.html`) – docházka dorostu, automaticky z Týmuj
-- **Plakáty** (`plakaty.html`) – plakát A3 na víkend
 - **Taktika** (`taktika.html`) – taktická tabule: rozestavení, rohy, pokyny
 - **Pro hráče** (`pro-hrace*.html`) – přehled k nastudování, 5 podstránek: přehled, rozcvička a prevence, regenerace, jídlo a pití, otázky
 
@@ -25,7 +24,6 @@ index.html               pokutníček
 kanadske-body.html       kanadské bodování
 dochazka.html            docházka dorostu z Týmuj
 cestaky.html             cesťáky – cestovné na venkovní zápasy áčka a dorostu
-plakaty.html             plakáty na víkend
 taktika.html             taktická tabule
 pro-hrace.html           Pro hráče – přehled (týden, pondělí, den zápasu, bolest)
 pro-hrace-rozcvicka.html   – rozcvička a prevence (FIFA 11+, guma)
@@ -33,7 +31,6 @@ pro-hrace-regenerace.html  – regenerace (válec, míček, spánek)
 pro-hrace-jidlo.html       – jídlo a pití (kolem tréninku, strava a doplňky, pití)
 pro-hrace-kviz.html        – otázky k nastudování
 assets/css/app.css       styly webu
-assets/css/plakat.css    styly plakátu (zapouzdřené pod #plakatApp)
 assets/css/taktika.css   styly taktické tabule
 assets/css/pro-hrace.css styly stránky Pro hráče
 assets/js/dochazka.js    zobrazení docházky
@@ -50,12 +47,8 @@ assets/js/core.js        sdílené jádro – Firebase, přihlášení, soupiska
 assets/js/app.js         logika pokut
 assets/js/points.js      logika kanadských bodů
 assets/js/rozpis-dorost.js rozpis zápasů dorostu (podzim 2026) pro kanadské body
-assets/js/plakaty.js     logika plakátů
-assets/js/plakat-data.js znaky, soutěže a rozlosování podzimu 2026
 assets/js/taktika.js     logika taktické tabule
 assets/js/pro-hrace.js   hlavička a tisk stránky Pro hráče
-assets/plakat/znaky/     znaky klubů (58 souborů)
-assets/plakat/qr/        QR kód na Instagram
 assets/img/logo.png      logo klubu
 ```
 
@@ -204,28 +197,7 @@ volitelně i krajský pohár áčka). Počítá se **km tam a zpět × počet au
 
 ## Plakáty
 
-Plakát A3 na šířku (420 × 297 mm) pro každé kolo podzimu. Prohlížení a tisk
-jsou veřejné, úpravy jen po přihlášení.
-
-Přepínač nahoře přepíná mezi 13 koly. Štítek vedle něj říká, jestli je kolo
-**podle rozlosování** (bere se z `plakat-data.js`), nebo **upraveno ručně**
-(uložené v databázi, kolekce `posters`, dokument `kolo-1` až `kolo-13`).
-Tlačítko **Vrátit podle rozlosování** uloženou verzi smaže.
-
-Úpravy se ukládají samy, asi vteřinu po posledním psaní, a rovnou do
-databáze – vidí je tedy všichni, ne jen ten, kdo je zapsal.
-
-Tisk: Ctrl+P → **A3**, **na šířku**, okraje **žádné**, zapnout **grafiku na
-pozadí**. Kolem grafiky je schválně bílý okraj 9,6 mm, aby tiskárna nic
-neuřízla.
-
-Rozvržení se přizpůsobuje obsahu – čím víc řádků mládeže nebo venkovních
-zápasů, tím menší znaky a QR kód. Nic se tedy nemá rozsypat, ani když se
-zápasů nasype víc.
-
-> **Pozor:** výška hlavičky plus horní okraj `.rule` musí dát 122 px. Když se
-> zvětší logo nebo nadpis nad čarou, posune se čára pod „PROGRAM VÍKENDU“ a
-> přeskládá se celý zbytek plakátu.
+Plakáty jsou od 16. 11. 2026 jen v aplikaci Asistent (mk-asistent.github.io); z webu dorostu stránka zmizela.
 
 ## Taktika
 
@@ -301,6 +273,6 @@ Oficiální videa FIFA vkládání na cizí weby blokují – proto souhrny od
 University of Iowa. Nové video vždy vyzkoušet na živé stránce.
 
 > **Důležité:** po každé změně v `app.js`, `points.js`, `core.js`,
-> `plakaty.js`, `plakat-data.js`, `taktika.js`, `pro-hrace.js`, `dochazka.js`,
-> `tymuj.js`, `app.css`, `plakat.css`, `taktika.css`, `pro-hrace.css` nebo `dochazka.css` zvyš číslo `?v=` u odkazů ve všech `.html` (a u importů uvnitř skriptů). Bez toho si
+> `taktika.js`, `pro-hrace.js`, `dochazka.js`,
+> `tymuj.js`, `app.css`, `taktika.css`, `pro-hrace.css` nebo `dochazka.css` zvyš číslo `?v=` u odkazů ve všech `.html` (a u importů uvnitř skriptů). Bez toho si
 > prohlížeče drží starou verzi a lidem se změna neprojeví.

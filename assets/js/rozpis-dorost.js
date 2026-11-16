@@ -1,7 +1,7 @@
 /* ==========================================================================
    FK AGRO VNOROVY – DOROST · rozpis zápasů
    Podzim 2026, 5. liga staršího dorostu JMKFS (C) – podle rozlosování
-   na fotbal.cz (stejné termíny jako v plakat-data.js).
+   na fotbal.cz.
    Na stránce Kanadské body se z každého řádku stane karta zápasu, ke které
    se po přihlášení zapíše výsledek a branky.
 
