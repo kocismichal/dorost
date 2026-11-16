@@ -193,7 +193,7 @@ Plakáty jsou od 16. 11. 2026 jen v aplikaci Asistent (mk-asistent.github.io); z
 ## Statistiky
 
 Statistiky hráčů áčka, béčka a dorostu FK Agro Vnorovy ze zápisů o utkání na fotbal.cz: přehled týmů, rekordy,
-tabulka všech hráčů (filtr tým / sezóna / hledání, řazení klikem) a karta každého hráče (`statistiky.html#hrac=<id>`:
+popis výběru (co je vybrané a odkud čísla jsou), nejvíc gólů za sezónu, tabulka všech hráčů (lišta filtrů pod menu: tým, sezóny od–do, víc soutěží naráz, hledání; řazení klikem) a karta každého hráče (`statistiky.html#hrac=<id>`:
 po sezónách, kdy dává góly, tým s ním a bez něj, zajímavosti, všechny zápasy).
 
 - **Data:** Firestore kolekce `statistiky`, dokument na sezónu (`s2020`…`s2026`), pole `data` = JSON se zápasy

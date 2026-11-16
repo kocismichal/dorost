@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/statistiky.css?v=1">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=2">
 </head>
 <body>
 
@@ -39,6 +39,31 @@
     </div>
 </nav>
 
+<!-- filtry jako samostatná lišta s dlaždicemi -->
+<div class="st-fbar" id="filterBar">
+    <div class="st-fbar__in">
+        <div class="st-ftile">
+            <div class="st-ftile__l">Tým</div>
+            <div class="st-seg" id="teamSeg"></div>
+        </div>
+        <div class="st-ftile">
+            <div class="st-ftile__l">Sezóny</div>
+            <div class="st-range">
+                <label>od <select id="seasonFrom" class="st-select" aria-label="Sezóna od"></select></label>
+                <label>do <select id="seasonTo" class="st-select" aria-label="Sezóna do"></select></label>
+            </div>
+        </div>
+        <div class="st-ftile st-ftile--wide">
+            <div class="st-ftile__l">Soutěže <button type="button" class="st-link" id="compAll">vybrat vše</button></div>
+            <div class="st-chips" id="compChips"></div>
+        </div>
+        <div class="st-ftile">
+            <div class="st-ftile__l">Hráč</div>
+            <input id="searchInp" class="st-select st-search" type="search" placeholder="Hledat hráče…" aria-label="Hledat hráče">
+        </div>
+    </div>
+</div>
+
 <main class="wrap">
 
     <!-- ====================================================== přehled -->
@@ -46,16 +71,9 @@
         <section class="section">
             <div class="section-head">
                 <h2>Statistiky hráčů FK Agro Vnorovy</h2>
-                <p>Áčko, béčko i dorost ze zápisů o utkání na fotbal.cz. Od sezóny 2023/24 je všechno ze sestav
-                   v zápisech (minuty, střídání, kdo kdy dal gól), góly s minutou od 2020/21 a starší sezóny od 2014/15 ze statistik
-                   soutěží v IS FAČR (zápasy, minuty, góly, karty). Klikni na hráče a otevře se jeho karta.</p>
+                <p>Áčko, béčko i dorost ze zápisů fotbal.cz a statistik IS FAČR. Nahoře vyber tým, rozsah sezón a soutěže (jde jich zakliknout víc) – vše níž se přepočítá. Klikni na hráče a otevře se jeho karta.</p>
             </div>
-            <div class="st-filters">
-                <div class="st-seg" id="teamSeg"></div>
-                <select id="seasonSel" class="st-select" aria-label="Sezóna"></select>
-                <select id="compSel" class="st-select" aria-label="Soutěž"></select>
-                <input id="searchInp" class="st-select st-search" type="search" placeholder="Hledat hráče…" aria-label="Hledat hráče">
-            </div>
+            <div class="st-popis" id="popis" hidden></div>
             <div id="loadInfo" class="st-load"><span class="loader"></span> Načítám zápisy…</div>
         </section>
 
@@ -66,8 +84,14 @@
 
         <section class="section" id="recordsSec" hidden>
             <div class="section-head"><h2>Rekordy a zajímavosti</h2>
-                <p>Platí pro vybraný tým a sezónu.</p></div>
+                <p>Platí pro výběr nahoře (tým, sezóny, soutěže).</p></div>
             <div class="st-records" id="records"></div>
+        </section>
+
+        <section class="section" id="seasonTopSec" hidden>
+            <div class="section-head"><h2>Nejvíc gólů za sezónu</h2>
+                <p>Kdo kolik nastřílel v jedné sezóně a za jaký tým. Klik na řádek otevře kartu hráče.</p></div>
+            <div class="table-card"><div class="archive__scroll" id="seasonTop"></div></div>
         </section>
 
         <section class="section" id="tableSec" hidden>
@@ -88,6 +112,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/statistiky.js?v=3"></script>
+<script type="module" src="assets/js/statistiky.js?v=4"></script>
 </body>
 </html>

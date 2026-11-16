@@ -18,6 +18,36 @@
 .st-empty { color: var(--dim); font-size: 13.5px; padding: 14px; text-align: center; }
 .st-note { font-size: 12px; color: var(--muted); margin: 8px 0 0; line-height: 1.5; }
 
+/* --- lišta filtrů (dlaždice pod menu) --- */
+.st-fbar { background: var(--bg-soft); border-bottom: 1px solid var(--line); }
+.st-fbar__in {
+    max-width: 1400px; margin: 0 auto; padding: 12px 22px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start;
+}
+.st-fbar__in > .st-ftile { flex: 0 1 auto; }
+.st-fbar__in > .st-ftile:last-child { flex: 1 1 220px; }
+.st-fbar__in > .st-ftile--wide { order: 5; flex: 1 1 100%; }
+.st-ftile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow); min-width: 0; }
+.st-ftile__l { font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; display: flex; gap: 10px; align-items: center; }
+.st-range { display: flex; gap: 8px; flex-wrap: wrap; }
+.st-range label { font-size: 12.5px; font-weight: 700; color: var(--text-soft); display: flex; gap: 6px; align-items: center; }
+.st-range .st-select { min-height: 36px; }
+.st-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-cchip {
+    border: 1px solid var(--line); background: var(--bg-soft); color: var(--text-soft); border-radius: 20px;
+    padding: 6px 11px; font-size: 12px; font-weight: 800; cursor: pointer;
+}
+.st-cchip.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.st-link { border: 0; background: none; color: var(--accent); font-size: 11px; font-weight: 800; cursor: pointer; padding: 0; text-transform: none; letter-spacing: 0; }
+.st-fbar .st-seg button { padding: 7px 11px; }
+.st-fbar .st-search { min-height: 36px; min-width: 160px; }
+
+/* --- popis výběru --- */
+.st-popis { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 12px 16px; box-shadow: var(--shadow); }
+.st-popis__t { font-weight: 900; font-size: 15px; }
+.st-popis__nums { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 6px 0; font-size: 13.5px; color: var(--text-soft); }
+.st-popis__nums b { color: var(--accent); font-size: 16px; }
+.st-popis__src { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
 /* --- týmy --- */
 .st-teams { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
 .st-team {
@@ -40,7 +70,8 @@
 .st-rec__ico { font-size: 26px; line-height: 1; width: 40px; height: 40px; display: grid; place-items: center; background: var(--accent-tint); border-radius: 10px; flex: none; }
 .st-rec__t { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 .st-rec__p { font-size: 15px; font-weight: 900; margin-top: 2px; }
-.st-rec__p a, .st-facts a { color: var(--text); text-decoration: none; border-bottom: 2px solid var(--accent-tint); }
+.st-rec__p a, .st-facts a { color: var(--text); text-decoration: none; }
+.st-facts a { color: var(--accent); font-weight: 700; }
 .st-rec__p a:hover { color: var(--accent); }
 .st-rec__v { font-size: 12.5px; color: var(--text-soft); margin-top: 2px; font-weight: 600; }
 
@@ -112,6 +143,9 @@
 .st-card--r { background: var(--danger); }
 
 @media (max-width: 640px) {
+    .st-fbar__in { padding: 10px 12px; }
+    .st-fbar__in > .st-ftile { flex: 1 1 100%; }
+    .st-fbar .st-search { width: 100%; }
     .st-hero { padding: 16px; gap: 12px; }
     .st-hero__av { width: 56px; height: 56px; font-size: 20px; }
     .st-hero__name { font-size: 21px; }
