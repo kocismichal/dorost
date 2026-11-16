@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Statistiky hráčů</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=12">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=1">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link" href="dochazka.html">Docházka</a>
+        <a class="subnav__link" href="taktika.html">Taktika</a>
+        <a class="subnav__link is-active" href="statistiky.html">Statistiky</a>
+        <a class="subnav__link" href="pro-hrace.html">Pro hráče</a>
+    </div>
+</nav>
+
+<main class="wrap">
+
+    <!-- ====================================================== přehled -->
+    <div id="viewOverview">
+        <section class="section">
+            <div class="section-head">
+                <h2>Statistiky hráčů FK Agro Vnorovy</h2>
+                <p>Áčko, béčko i dorost ze zápisů o utkání na fotbal.cz. Minuty, střídání a karty jsou ze sestav (ty jsou
+                   v zápisech od sezóny 2023/24), góly od sezóny 2020/21. Klikni na hráče a otevře se jeho karta.</p>
+            </div>
+            <div class="st-filters">
+                <div class="st-seg" id="teamSeg"></div>
+                <select id="seasonSel" class="st-select" aria-label="Sezóna"></select>
+                <input id="searchInp" class="st-select st-search" type="search" placeholder="Hledat hráče…" aria-label="Hledat hráče">
+            </div>
+            <div id="loadInfo" class="st-load"><span class="loader"></span> Načítám zápisy…</div>
+        </section>
+
+        <section class="section" id="teamsSec" hidden>
+            <div class="section-head"><h2>Týmy</h2></div>
+            <div class="st-teams" id="teamCards"></div>
+        </section>
+
+        <section class="section" id="recordsSec" hidden>
+            <div class="section-head"><h2>Rekordy a zajímavosti</h2>
+                <p>Platí pro vybraný tým a sezónu.</p></div>
+            <div class="st-records" id="records"></div>
+        </section>
+
+        <section class="section" id="tableSec" hidden>
+            <div class="section-head"><h2>Všichni hráči</h2>
+                <p>Řadit jde klikem na záhlaví sloupce. Góly na 90 minut se ukazují od 300 odehraných minut.</p></div>
+            <div class="table-card">
+                <div class="archive__scroll"><table class="ptable st-table" id="playersTable"></table></div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ===================================================== karta hráče -->
+    <div id="viewPlayer" hidden></div>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · statistiky hráčů ze zápisů fotbal.cz · <span id="updInfo"></span></footer>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/statistiky.js?v=1"></script>
+</body>
+</html>

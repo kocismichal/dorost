@@ -1,0 +1,131 @@
+/* ==========================================================================
+   FK AGRO VNOROVY · Statistiky hráčů – doplněk k app.css
+   ========================================================================== */
+
+.st-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.st-seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.st-seg button {
+    border: 0; background: transparent; padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    font-size: 13px; font-weight: 800; color: var(--muted);
+}
+.st-seg button.is-on { background: var(--accent); color: #fff; }
+.st-select {
+    min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--surface); font-size: 13.5px; font-weight: 700; color: var(--text);
+}
+.st-search { min-width: 200px; flex: 1; max-width: 320px; }
+.st-load { margin-top: 18px; color: var(--muted); font-size: 14px; display: flex; gap: 10px; align-items: center; }
+.st-empty { color: var(--dim); font-size: 13.5px; padding: 14px; text-align: center; }
+.st-note { font-size: 12px; color: var(--muted); margin: 8px 0 0; line-height: 1.5; }
+
+/* --- týmy --- */
+.st-teams { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.st-team {
+    background: var(--ink); color: #fff; border-radius: var(--radius-lg); padding: 18px 20px;
+    box-shadow: var(--shadow); border-left: 5px solid var(--accent);
+}
+.st-team__name { font-size: 19px; font-weight: 900; margin-bottom: 8px; }
+.st-team__row { font-size: 13.5px; color: rgba(255,255,255,.82); line-height: 1.7; }
+.st-team__row b { color: #fff; }
+.st-team a { color: #fff; font-weight: 800; }
+.c-ok { color: #6ee7a8; font-weight: 800; }
+.c-bad { color: #ff8a9a; font-weight: 800; }
+
+/* --- rekordy --- */
+.st-records { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+.st-rec {
+    display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--shadow);
+}
+.st-rec__ico { font-size: 26px; line-height: 1; width: 40px; height: 40px; display: grid; place-items: center; background: var(--accent-tint); border-radius: 10px; flex: none; }
+.st-rec__t { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.st-rec__p { font-size: 15px; font-weight: 900; margin-top: 2px; }
+.st-rec__p a, .st-facts a { color: var(--text); text-decoration: none; border-bottom: 2px solid var(--accent-tint); }
+.st-rec__p a:hover { color: var(--accent); }
+.st-rec__v { font-size: 12.5px; color: var(--text-soft); margin-top: 2px; font-weight: 600; }
+
+/* --- tabulka hráčů --- */
+.st-sort { cursor: pointer; user-select: none; }
+.st-sort.is-sorted { color: var(--accent); }
+.st-row { cursor: pointer; }
+.st-row:hover td { background: var(--accent-tint); }
+.st-rank { display: inline-block; min-width: 22px; color: var(--dim); font-weight: 800; font-size: 12px; }
+.st-chip {
+    display: inline-block; padding: 2px 7px; margin-right: 4px; border-radius: 20px; font-size: 10.5px; font-weight: 900;
+    letter-spacing: .03em; background: var(--bg-soft); border: 1px solid var(--line); color: var(--text-soft);
+}
+.st-chip--A { background: var(--accent); border-color: var(--accent); color: #fff; }
+.st-chip--B { background: var(--ink); border-color: var(--ink); color: #fff; }
+.st-chip--D { background: var(--ok-tint); border-color: #b7e2c9; color: var(--ok-dark); }
+.st-teamcell { white-space: nowrap; }
+
+/* --- karta hráče --- */
+.st-back { display: inline-block; margin-bottom: 16px; font-weight: 800; color: var(--accent); text-decoration: none; font-size: 14px; }
+.st-hero {
+    display: flex; gap: 18px; align-items: center; background: var(--ink); color: #fff; border-radius: var(--radius-lg);
+    padding: 22px; box-shadow: var(--shadow); border-bottom: 4px solid var(--accent); margin-bottom: 16px;
+}
+.st-hero__av {
+    width: 74px; height: 74px; border-radius: 50%; background: var(--accent); display: grid; place-items: center;
+    font-size: 27px; font-weight: 900; flex: none; border: 3px solid #fff;
+}
+.st-hero__name { margin: 0 0 8px; font-size: 26px; font-weight: 900; }
+.st-hero__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.st-hero__pos { font-size: 12.5px; color: rgba(255,255,255,.75); font-weight: 700; margin-left: 4px; }
+
+.st-tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 16px; }
+.st-tile { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 14px 16px; box-shadow: var(--shadow); }
+.st-tile__v { font-size: 28px; font-weight: 900; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.st-tile__l { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--text-soft); margin-top: 3px; }
+.st-tile__s { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.st-grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.st-box { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: var(--shadow); margin-bottom: 16px; min-width: 0; }
+.st-box h3 { margin: 0 0 12px; font-size: 16px; font-weight: 900; }
+.st-small { font-size: 13px; }
+.st-small th, .st-small td { padding: 8px 10px; }
+
+.st-bars { display: flex; gap: 8px; align-items: flex-end; height: 170px; padding-top: 6px; }
+.st-bar { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
+.st-bar__col { flex: 1; width: 100%; display: flex; align-items: flex-end; background: var(--bg-soft); border-radius: 8px; overflow: hidden; }
+.st-bar__fill { width: 100%; background: var(--accent); border-radius: 8px 8px 0 0; min-height: 2px; }
+.st-bar__v { font-weight: 900; font-size: 14px; margin-top: 4px; }
+.st-bar__l { font-size: 11px; color: var(--muted); font-weight: 700; }
+.st-split { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin-top: 14px; font-size: 13.5px; color: var(--text-soft); }
+.st-split b { color: var(--accent); font-size: 16px; }
+
+.st-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+.st-vs__col { background: var(--bg-soft); border-radius: 12px; padding: 14px; text-align: center; }
+.st-vs__col:first-child { background: var(--accent-tint); }
+.st-vs__t { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.st-vs__big { font-size: 32px; font-weight: 900; color: var(--text); margin-top: 4px; }
+.st-vs__l { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.st-vs__row { font-size: 12.5px; color: var(--text-soft); font-weight: 600; line-height: 1.6; }
+
+.st-facts { margin: 0; padding-left: 20px; line-height: 1.8; font-size: 14px; color: var(--text-soft); }
+
+.st-res { font-weight: 900; font-variant-numeric: tabular-nums; }
+.st-res--V { color: var(--ok); }
+.st-res--P { color: var(--danger); }
+.st-card { display: inline-block; width: 9px; height: 13px; border-radius: 2px; vertical-align: -2px; }
+.st-card--y { background: #f5c518; }
+.st-card--r { background: var(--danger); }
+
+@media (max-width: 640px) {
+    .st-hero { padding: 16px; gap: 12px; }
+    .st-hero__av { width: 56px; height: 56px; font-size: 20px; }
+    .st-hero__name { font-size: 21px; }
+    .st-tile__v { font-size: 23px; }
+    .st-tiles { grid-template-columns: repeat(2, 1fr); }
+    .st-grid2 { grid-template-columns: 1fr; }
+    .st-search { max-width: none; }
+    .st-seg button { padding: 7px 10px; }
+    .st-table td:nth-child(4), .st-table th:nth-child(4),
+    .st-table td:nth-child(5), .st-table th:nth-child(5),
+    .st-table td:nth-child(8), .st-table th:nth-child(8),
+    .st-table td:nth-child(9), .st-table th:nth-child(9),
+    .st-table td:nth-child(10), .st-table th:nth-child(10) { display: none; }
+    .st-table .tag { display: none; }
+    .st-table td, .st-table th { padding: 9px 6px; }
+    .st-chip { padding: 2px 5px; margin-right: 2px; }
+}

@@ -24,6 +24,7 @@ index.html               pokutníček
 kanadske-body.html       kanadské bodování
 dochazka.html            docházka dorostu z Týmuj
 taktika.html             taktická tabule
+statistiky.html          statistiky hráčů A, B a dorostu ze zápisů fotbal.cz (karta každého hráče)
 pro-hrace.html           Pro hráče – přehled (týden, pondělí, den zápasu, bolest)
 pro-hrace-rozcvicka.html   – rozcvička a prevence (FIFA 11+, guma)
 pro-hrace-regenerace.html  – regenerace (válec, míček, spánek)
@@ -45,6 +46,8 @@ assets/js/app.js         logika pokut
 assets/js/points.js      logika kanadských bodů
 assets/js/rozpis-dorost.js rozpis zápasů dorostu (podzim 2026) pro kanadské body
 assets/js/taktika.js     logika taktické tabule
+assets/js/statistiky.js  výpočet a zobrazení statistik hráčů
+assets/css/statistiky.css styly statistik
 assets/js/pro-hrace.js   hlavička a tisk stránky Pro hráče
 assets/img/logo.png      logo klubu
 ```
@@ -186,6 +189,23 @@ Cesťáky jsou od 16. 11. 2026 v aplikaci Asistent (data soukromě na Disku); z 
 ## Plakáty
 
 Plakáty jsou od 16. 11. 2026 jen v aplikaci Asistent (mk-asistent.github.io); z webu dorostu stránka zmizela.
+
+## Statistiky
+
+Statistiky hráčů áčka, béčka a dorostu FK Agro Vnorovy ze zápisů o utkání na fotbal.cz: přehled týmů, rekordy,
+tabulka všech hráčů (filtr tým / sezóna / hledání, řazení klikem) a karta každého hráče (`statistiky.html#hrac=<id>`:
+po sezónách, kdy dává góly, tým s ním a bez něj, zajímavosti, všechny zápasy).
+
+- **Data:** Firestore kolekce `statistiky`, dokument na sezónu (`s2020`…`s2026`), pole `data` = JSON se zápasy
+  (`lu` = sestava Vnorov `[jméno, základ, minuta střídání, ŽK, ČK, s kým střídal, pozice, kapitán]`, `g` / `ga` = góly
+  Vnorov / soupeře `[jméno, minuta, penalta, vlastní]`) a `aktualizovano`. Všechno ostatní se počítá v prohlížeči.
+- **Co v zápisech je:** sestavy a střídání od sezóny 2023/24, střelci od 2020/21, starší ročníky zápisy nemají.
+  Zápas se počítá na 90 minut (bez nastavení), takže minuty můžou být o pár procent nižší než v aplikaci fotbal.cz.
+- **Aktualizace:** fotbal.cz pouští jen běžný prohlížeč (skript z Pythonu / GitHub Actions dostane 403), proto data
+  stahuje Claude přes Chrome z archivu soutěží (`/souteze/subjekty/competition/315` kraj, `/320` Hodonín,
+  `?seasonFilter-season-id=0..5`, aktuální ročník `/souteze/subjekty/subjekt/315` a `/320`) a zapisuje je přes REST
+  Firestore. Stačí říct „aktualizuj statistiky“.
+- Tým se pozná ze soutěže (dorost) a z názvu Vnorov v zápise (B tým má v názvu „B“).
 
 ## Taktika
 
