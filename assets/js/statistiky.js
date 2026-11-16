@@ -92,9 +92,11 @@ function asistence(seznam) {
         const m = podleId.get(String(z && z.id));
         if (!m) continue;
         m.asist = 1;
-        for (const [min, kdo, nej] of z.a || []) {
-            const g = m.g.find(g => g[1] === +min && !g[3] && !g[4]);
-            if (g) { g[4] = String(kdo || ""); g[5] = nej ? 1 : 0; }
+        for (const [min, kdo, nej, oprava] of z.a || []) {
+            const g = m.g.find(g => g[1] === +min && !g[3] && !g[4] && !g[6]);
+            if (!g) continue;
+            if (oprava) { g[6] = g[0]; g[0] = String(oprava); }        // střelec opravený podle Michala, g[6] = jméno ze zápisu FAČR
+            if (kdo) { g[4] = String(kdo); g[5] = nej ? 1 : 0; }
         }
     }
 }
@@ -421,7 +423,7 @@ function zapisHtml(m) {
         const stav = m.h ? `${a}:${b}` : `${b}:${a}`;
         const hracSoupere = nas ? g[3] : !g[3];
         return `<div class="st-gl ${nas ? "is-nas" : ""}"><span class="st-gl__m">${esc(g[1])}'</span><span class="st-gl__s">${stav}</span>
-            <span>${esc(g[0])}${g[2] ? " (pen.)" : ""}${g[3] ? " (vlastní)" : ""}${nas && g[4] ? ` <small>asistence ${esc(g[4])}${g[5] ? " (nejisté)" : ""}</small>` : ""}${hracSoupere ? ` <small>${esc(kratce(m.o))}</small>` : ""}</span></div>`;
+            <span>${esc(g[0])}${g[2] ? " (pen.)" : ""}${g[3] ? " (vlastní)" : ""}${nas && g[6] ? ` <small>(v zápisu FAČR: ${esc(g[6])})</small>` : ""}${nas && g[4] ? ` <small>asistence ${esc(g[4])}${g[5] ? " (nejisté)" : ""}</small>` : ""}${hracSoupere ? ` <small>${esc(kratce(m.o))}</small>` : ""}</span></div>`;
     }).join("");
     const lu = m.lu || [];
     const hrac = r => {
