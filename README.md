@@ -206,10 +206,12 @@ po sezónách, kdy dává góly, tým s ním a bez něj, zajímavosti, všechny 
   `?seasonFilter-season-id=0..5`, aktuální ročník `/souteze/subjekty/subjekt/315` a `/320`) a zapisuje je přes REST
   Firestore. Stačí říct „aktualizuj statistiky“.
 - Tým se pozná ze soutěže (dorost) a z názvu Vnorov v zápise (B tým má v názvu „B“); pohár podle hráčů v sestavě.
-- **Starší sezóny 2015/16–2019/20** (a karty 2020/21–2022/23): dokument `statistiky/stare`, pole `souhrny` = JSON
-  `[{s, c, vn, cup, rows: [[jméno, góly, ŽK, ČK]]}]` ze stránek Statistiky soutěže (`/souteze/turnaje/stats/<id>`).
-  Ty nemají klub hráče → bere se jen soutěž, kde je Vnorovy v tabulce, a jen hráči, kteří jsou v zápisech Vnorov od 2020
-  (kdo skončil dřív, chybí); poháry jen při shodě aspoň 6 jmen (jinak jde o jmenovce). Zápasy a minuty tam nejsou.
+- **Sezóny do 2022/23** (zápisy bez sestav): dokument `statistiky/is`, pole `souhrny` = JSON
+  `[{s, org, c, id, rows: [[ID hráče, jméno, příjmení, tým, G, Z, ŽK, ČK, minuty]]}]` ze starého IS FAČR
+  (`https://is1.fotbal.cz/hraci/statistiky.aspx?req=<id soutěže z fotbal.cz>`, formulář s filtrem ID klubu Vnorov
+  6250541, odeslání `__doPostBack('ctl00$MainContent$btnSearch')`, stránkování po 30 přes `Page$N`). Dorost ze
+  spojených týmů se hledá v celé soutěži podle „Vnorov“ v názvu týmu. Z toho zápasy, minuty a karty do 2022/23,
+  góly do 2019/20 (od 2020/21 góly ze zápisů). Seznam soutěží 2014–2022 se bere z archivu fotbal.cz.
 - Soutěže se sjednocují přes přejmenování (I.A třída = 6. liga, I.B = 7. liga, OP = 8. liga, III. třída = 9. liga) –
   funkce `uroven()`; filtr soutěže v přehledu, na kartě hráče tabulky Po sezónách a Podle soutěže.
 

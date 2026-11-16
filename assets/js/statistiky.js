@@ -23,7 +23,7 @@ whenReady(async () => {
         let upd = "";
         snap.forEach(d => {
             const x = d.data();
-            if (x.souhrny) JSON.parse(x.souhrny).forEach(o => st.old.push(o));
+            if (d.id === "is" && x.souhrny) nactiIS(JSON.parse(x.souhrny));
             if (x.data) JSON.parse(x.data).forEach(m => st.matches.push(m));
             if (x.aktualizovano && x.aktualizovano > upd) upd = x.aktualizovano;
         });
@@ -56,6 +56,19 @@ function pohary() {
         m.lu.forEach(r => { const x = liga[m.s + "|" + r[0]]; if (x) { if (x.A >= x.B) a++; else b++; } });
         m.t = b > a ? "B" : "A";
     });
+}
+
+/** Statistiky soutěží ze starého IS FAČR: řádek [id, jméno, příjmení, tým, G, Z, ŽK, ČK, min] → skupiny podle týmu. */
+function nactiIS(souteze) {
+    for (const c of souteze) {
+        const tymy = new Map();
+        for (const r of c.rows) {
+            const vn = r[3];
+            if (!tymy.has(vn)) tymy.set(vn, []);
+            tymy.get(vn).push([`${r[2]} ${r[1]}`.trim(), +r[4] || 0, +r[6] || 0, +r[7] || 0, +r[5] || 0, +r[8] || 0]);
+        }
+        for (const [vn, rows] of tymy) st.old.push({ s: c.s, c: c.c, vn, rows });
+    }
 }
 
 /** Soutěž sjednocená přes přejmenování (od 2025/26 se krajské a okresní třídy jmenují „N. liga“). */
@@ -158,14 +171,17 @@ function compute(matches, old = []) {
             get(n).perMatch.push({ m, c: im ? im.c : null, row: im ? im.row : null, g: (m.g || []).filter(x => x[0] === n && !x[3]) });
         }
     }
-    /* starší sezóny jen ze statistik soutěží: góly do 2019/20, karty do 2022/23 (dřív nejsou sestavy) */
-    for (const o of old) for (const [n, g, zk, ck] of o.rows) {
-        const goals = o.s < 2020 ? g : 0, karty = o.s < 2023;
-        if (!goals && !(karty && (zk || ck)) && !P.has(n) && o.s >= 2020) continue;
-        const p = get(n);
-        p.teams.add(o.t); p.seasons.add(o.s);
-        p.goals += goals; p.oldGoals = (p.oldGoals || 0) + goals;
-        if (karty) { p.zk += zk; p.ck += ck; }
+    /* sezóny bez sestav (do 2022/23) ze statistik soutěží IS FAČR: zápasy, minuty, karty;
+       góly do 2019/20 (od 2020/21 jsou góly ze zápisů a tam se jen přičtou do poměru gólů na minutu) */
+    for (const o of old) {
+        if (o.s >= 2023) continue;
+        for (const [n, g, zk, ck, z, mn] of o.rows) {
+            const p = get(n);
+            p.teams.add(o.t); p.seasons.add(o.s);
+            p.apps += z; p.isApps = (p.isApps || 0) + z; p.min += mn; p.zk += zk; p.ck += ck;
+            p.goalsLu += g;
+            if (o.s < 2020) { p.goals += g; p.oldGoals = (p.oldGoals || 0) + g; }
+        }
     }
     for (const p of P.values()) {
         p.g90 = p.min >= MIN_PRO_POMER ? p.goalsLu * 90 / p.min : null;
@@ -322,7 +338,7 @@ function renderPlayer(id) {
     const radek = (fm, fo) => {
         const ms = st.matches.filter(fm), os = st.old.filter(fo);
         const x = compute(ms, os).get(p.name);
-        return x && (x.apps || x.goals || x.bench || x.zk || os.length) ? { x, lu: ms.some(m => (m.lu || []).length) } : null;
+        return x && (x.apps || x.goals || x.bench || x.zk || os.length) ? { x, lu: os.length > 0 || ms.some(m => (m.lu || []).length) } : null;
     };
     const bySeason = [...klice.values()].sort((a, b) => b.s - a.s || a.t.localeCompare(b.t) || poradi(a.u) - poradi(b.u))
         .map(k => ({ ...k, ...(radek(m => m.s === k.s && m.t === k.t && m.u === k.u, o => o.s === k.s && o.t === k.t && o.u === k.u) || {}) }))
@@ -383,9 +399,9 @@ function renderPlayer(id) {
         </div>
     </section>
     <div class="st-tiles">
-        ${tile(p.apps || "–", "zápasů", p.apps ? `${p.starts} v základu · ${p.subIn} střídal` : "sestavy jsou od 2023/24")}
+        ${tile(p.apps || "–", "zápasů", p.starts + p.subIn ? `od 2023/24: ${p.starts} v základu · ${p.subIn} střídal` : "")}
         ${tile(p.min ? fmt(p.min) : "–", "minut", p.apps ? `${Math.round(p.min / p.apps)} min na zápas` : "")}
-        ${tile(p.goals, "gólů", [p.oldGoals ? `${p.oldGoals} před 2020/21` : "", p.pens ? `${p.pens} z penalty` : ""].filter(Boolean).join(" · "))}
+        ${tile(p.goals, "gólů", p.pens ? `${p.pens} z penalty (od 2020/21)` : "")}
         ${tile(p.g90 != null ? r1(p.g90) : "–", "gólů na 90 min", p.goalsLu && p.min ? `gól každých ${Math.round(p.min / p.goalsLu)} min` : "")}
         ${tile(p.full, "celých 90 minut")}
         ${tile(`${p.zk} / ${p.ck}`, "žluté / červené")}
@@ -401,7 +417,7 @@ function renderPlayer(id) {
                     <td class="ptable__num">${lu ? x.apps : "?"}</td>
                     <td class="ptable__num">${lu ? fmt(x.min) : "?"}</td><td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${x.zk}</td></tr>`).join("")}</tbody>
             </table></div>
-            <p class="st-note">„?“ = zápisy té sezóny nemají sestavy. Do 2019/20 jsou góly a karty ze statistik soutěže, 2020/21–2022/23 góly ze zápisů a karty ze statistik soutěže.</p>
+            <p class="st-note">Do 2022/23 jsou zápasy, minuty a karty ze statistik soutěží IS FAČR (góly do 2019/20 taky), od 2020/21 góly ze zápisů, od 2023/24 všechno ze sestav.</p>
         </section>
 
         <section class="st-box">
@@ -413,7 +429,7 @@ function renderPlayer(id) {
                     <td class="ptable__num">${lu ? fmt(x.min) + (vsechnyLu ? "" : "+") : "?"}</td>
                     <td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${x.g90 != null ? r1(x.g90) : "–"}</td></tr>`).join("")}</tbody>
             </table></div>
-            <p class="st-note">„+“ = část sezón té soutěže je bez sestav, skutečný počet je vyšší. G/90 jen ze zápasů se sestavou.</p>
+            <p class="st-note">G/90 = góly na 90 odehraných minut.</p>
         </section>
 
         <section class="st-box">
