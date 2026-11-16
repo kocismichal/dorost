@@ -208,7 +208,7 @@ po sezónách, kdy dává góly, tým s ním a bez něj, zajímavosti, všechny 
   `CLAUDE_PRACOVNI\NASTROJE\fotbal\statistiky_vnorovy\`.
 - **Ligové tabulky:** dokument `statistiky/tabulky`, pole `tabulky` = JSON `[{s, org, c, id, stav, rows: [[pořadí, klub, Z, V,
   R, P, skóre, body]]}]` (`stav` 'p' průběžná, 'n' nedohráno – covid 2019/20 a 2020/21); sekce Ligové tabulky (umístění,
-  klik rozbalí celou tabulku). Řádek Vnorov musí sedět s výsledky zápasů (16. 11. 2026 sedí 21/21).
+  klik rozbalí celou tabulku); sekce je dole pod hráči, ve výchozím stavu sbalená, sezóny oddělené nadpisem, vlastní přepínač týmu. Řádek Vnorov musí sedět s výsledky zápasů (16. 11. 2026 sedí 21/21).
 - **Kanadské bodování:** dokument `statistiky/asistence`, pole `data` = JSON `[{id zápasu, d, a: [[minuta gólu, kdo přihrál,
   nejisté]]}]` z Michalovy vlastní evidence (FAČR asistence nevede) – zatím A tým 2025/26 (PDF `OSOBNI\fotbal\dokumenty\
   Vnorovy-statistiky-sezony.pdf`, 34 asistencí, kolo 15 Vojkovice přiřazení nejisté). Zápas se záznamem = `m.asist`; sekce

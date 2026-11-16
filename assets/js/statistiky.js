@@ -13,7 +13,7 @@ const TEAMS = { A: "A tým", B: "B tým", D: "Dorost" };
 const MIN_PRO_POMER = 300;          // od kolika minut ukazovat góly na 90 min
 const DELKA = 90;                   // délka zápasu (dospělí i starší dorost)
 
-const st = { matches: [], old: [], tables: [], team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
+const st = { matches: [], old: [], tables: [], tabTeam: "all", team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
 
 /* ------------------------------------------------------------ načtení ---- */
 
@@ -662,11 +662,20 @@ let TAB = [];                 // tabulky pro aktuální výběr (index v data-ta
 const STAV = { p: "průběžná", n: "nedohráno" };
 
 function renderTabulky() {
-    TAB = st.tables.filter(vyber).sort((a, b) => b.s - a.s || a.t.localeCompare(b.t));
-    document.getElementById("tabulkySec").hidden = !TAB.length;
+    const vse = st.tables.filter(vyber);
+    TAB = vse.filter(x => st.tabTeam === "all" || x.t === st.tabTeam).sort((a, b) => b.s - a.s || a.t.localeCompare(b.t));
+    document.getElementById("tabulkySec").hidden = !vse.length;
+    document.getElementById("tabulkyPocet").textContent = vse.length ? `${vse.length} ${vse.length === 1 ? "tabulka" : vse.length < 5 ? "tabulky" : "tabulek"}` : "";
+    /* vlastní přepínač týmu jen pro tabulky (nabízí týmy, které ve výběru tabulku mají) */
+    const tymy = Object.keys(TEAMS).filter(k => vse.some(x => x.t === k));
+    if (st.tabTeam !== "all" && !tymy.includes(st.tabTeam)) { st.tabTeam = "all"; return renderTabulky(); }
+    const seg = document.getElementById("tabTeamSeg");
+    seg.hidden = tymy.length < 2;
+    seg.innerHTML = [["all", "Všechny"], ...tymy.map(k => [k, TEAMS[k]])].map(([k, l]) => `<button type="button" data-k="${k}" class="${k === st.tabTeam ? "is-on" : ""}">${l}</button>`).join("");
+    seg.onclick = (e) => { const b = e.target.closest("button"); if (!b) return; st.tabTeam = b.dataset.k; renderTabulky(); };
     document.getElementById("tabulky").innerHTML = `<table class="ptable st-small st-tabs">
         <thead><tr><th>Sezóna</th><th>Soutěž</th><th class="ptable__num">Místo</th><th class="ptable__num">Z</th><th class="ptable__num">V</th><th class="ptable__num">R</th><th class="ptable__num">P</th><th class="ptable__num">Skóre</th><th class="ptable__num">Body</th><th></th></tr></thead>
-        <tbody>${TAB.map((t, i) => { const r = t.nas; return `<tr class="st-row" data-tab="${i}" tabindex="0">
+        <tbody>${TAB.map((t, i) => { const r = t.nas; return `${i === 0 || TAB[i - 1].s !== t.s ? `<tr class="st-sez"><td colspan="10">Sezóna ${seasonLbl(t.s)}</td></tr>` : ""}<tr class="st-row" data-tab="${i}" tabindex="0">
             <td>${seasonLbl(t.s)}</td>
             <td><span class="st-chip st-chip--${t.t}">${t.t === "D" ? "Dor" : t.t}</span> ${esc(t.c)}${t.stav ? ` <span class="st-stav">${STAV[t.stav]}</span>` : ""}</td>
             <td class="ptable__num"><b class="st-misto${r[0] <= 3 ? " is-top" : ""}">${esc(r[0])}.</b> <span class="st-dim">/ ${t.rows.length}</span></td>

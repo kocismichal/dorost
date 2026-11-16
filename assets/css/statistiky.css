@@ -194,6 +194,20 @@
 .st-kb__sum td { background: var(--bg-soft); font-weight: 800; }
 
 /* --- ligové tabulky a rodiny --- */
+.st-fold { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 0 16px; }
+.st-fold > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 16px 0; }
+.st-fold > summary::-webkit-details-marker { display: none; }
+.st-fold__h { font-size: 21px; font-weight: 900; color: var(--text); }
+.st-fold__n { font-size: 13px; font-weight: 700; color: var(--muted); }
+.st-fold__x { margin-left: auto; color: var(--dim); font-size: 18px; transition: transform .15s; }
+.st-fold[open] .st-fold__x { transform: rotate(180deg); }
+.st-fold__p { margin: 0 0 12px; font-size: 14px; color: var(--muted); line-height: 1.55; }
+.st-fold .st-seg { margin-bottom: 12px; }
+.st-fold .table-card { margin-bottom: 16px; box-shadow: none; }
+.st-seg--sm button { padding: 6px 11px; font-size: 12.5px; }
+.st-sez td { background: var(--ink); color: #fff; font-weight: 900; font-size: 12.5px; letter-spacing: .04em; text-transform: uppercase; padding: 8px 12px; }
+.st-tabs tr.st-sez + tr td { border-top: 0; }
+.st-tabs > thead th:first-child, .st-tabs > tbody > tr.st-row > td:first-child { display: none; }   /* sezóna je v nadpisu skupiny */
 .st-dim { color: var(--dim); font-weight: 600; }
 .st-misto { font-size: 15px; }
 .st-misto.is-top { color: var(--accent); }
@@ -225,7 +239,7 @@
     #rodiny table { table-layout: fixed; }
     #rodiny th { white-space: normal; }
     #rodiny th:nth-child(1) { width: 24%; } #rodiny th:nth-child(2) { width: 30%; } #rodiny th:nth-child(3) { width: 14%; }
-    .st-tabs > thead th:last-child, .st-tabs > tbody > tr:not(.st-tfull) > td:last-child { display: none; }   /* šipka */
+    .st-tabs > thead th:last-child, .st-tabs > tbody > tr:not(.st-tfull):not(.st-sez) > td:last-child { display: none; }   /* šipka */
     .st-liga th:nth-child(n+4):nth-child(-n+6), .st-liga td:nth-child(n+4):nth-child(-n+6) { display: none; }   /* V, R, P */
     .st-zlink { font-size: 12px; }
     .st-zrow { grid-template-columns: 1fr auto 18px; }
