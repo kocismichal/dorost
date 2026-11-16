@@ -193,6 +193,47 @@
 .st-rod { display: inline-block; margin-top: 3px; padding: 1px 7px; border-radius: 20px; font-size: 10.5px; font-weight: 800; background: var(--bg-soft); border: 1px solid var(--line); color: var(--muted); }
 .st-rod.is-ok { background: var(--ok-tint); border-color: #b7e2c9; color: var(--ok-dark); }
 
+/* --- rekordy: shoda a režim TOP 3 --- */
+.st-rec__p small { color: var(--muted); font-weight: 700; font-size: 11.5px; }
+.st-rec__top { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.st-rec__top li { display: grid; grid-template-columns: 20px 1fr auto; gap: 6px; align-items: baseline; font-size: 13px; }
+.st-rec__top li:first-child .st-rec__n a, .st-rec__top li:first-child .st-rec__n { font-weight: 900; }
+.st-rec__r { color: var(--muted); font-weight: 900; font-size: 12px; }
+.st-rec__n { min-width: 0; font-weight: 700; }
+.st-rec__n a { color: var(--text); text-decoration: none; }
+.st-rec__n small { display: block; color: var(--muted); font-weight: 600; font-size: 11px; }
+.st-rec__k { color: var(--text-soft); font-weight: 800; font-size: 12px; white-space: nowrap; }
+.st-records.is-top3 { grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); }
+.st-recmode { margin-top: 10px; }
+
+/* --- pořadí v okně rekordu --- */
+.st-top { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.st-top li { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; padding: 7px 10px; border-radius: 8px; background: var(--bg-soft); font-size: 13.5px; }
+.st-top li.is-1 { background: var(--accent-tint); }
+.st-top li a { color: var(--text); font-weight: 800; text-decoration: none; }
+.st-top li a:hover { color: var(--accent); }
+.st-top__r { color: var(--muted); font-weight: 900; }
+.st-top__v { color: var(--text-soft); font-weight: 700; font-size: 12.5px; text-align: right; }
+.st-top__vic { margin-top: 6px; }
+.st-top__vic > summary { cursor: pointer; color: var(--accent); font-weight: 800; font-size: 13px; padding: 4px 0; }
+.st-top__vic .st-top { margin-top: 4px; }
+
+/* --- brankáři a +/− --- */
+.c-plus { color: var(--ok); }
+.c-minus { color: var(--danger); }
+.st-pmrow { margin: 12px 0 0; font-size: 13.5px; color: var(--text-soft); line-height: 1.6; }
+@media (min-width: 641px) { .st-gk td:first-child, .st-pm td:first-child { white-space: nowrap; } }
+@media (max-width: 640px) {
+    .st-gk th:nth-child(3), .st-gk td:nth-child(3), .st-gk th:nth-child(5), .st-gk td:nth-child(5), .st-gk th:nth-child(10), .st-gk td:nth-child(10),
+    .st-pm th:nth-child(4), .st-pm td:nth-child(4), .st-pm th:nth-child(6), .st-pm td:nth-child(6),
+    .st-pm th:nth-child(8), .st-pm td:nth-child(8), .st-pm th:nth-child(9), .st-pm td:nth-child(9) { display: none; }
+    .st-gk td, .st-gk th, .st-pm td, .st-pm th { padding: 8px 5px; }
+    .st-gk th, .st-pm th { white-space: normal; }
+    .st-gk .st-chip { display: none; }
+    .st-gk th:nth-child(9), .st-gk td:nth-child(9) { display: none; }
+    .st-pm th:nth-child(2), .st-pm td:nth-child(2) { display: none; }
+}
+
 /* --- kanadské bodování --- */
 .st-kb__n { color: var(--text); font-weight: 800; text-decoration: none; }
 .st-kb__n:hover { color: var(--accent); }

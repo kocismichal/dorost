@@ -214,6 +214,12 @@ po sezónách, kdy dává góly, tým s ním a bez něj, zajímavosti, všechny 
   Vnorovy-statistiky-sezony.pdf`, 34 asistencí, kolo 15 Vojkovice přiřazení nejisté). Zápas se záznamem = `m.asist`; sekce
   Kanadské bodování (G, A, body, G/90, A/90, B/90, min/bod) bere góly a minuty jen z těchto zápasů; rekordy Nejvíc asistencí
   a Kanadské body, asistence na kartě hráče a v zápisu. Ověřeno proti PDF na číslo (tým 25 720 min, 38 G, 34 A). A tým 2026/27 podzim z Michalova výpisu (22 asistencí, 13 zápasů); Milotice 17. 10. 4' střelec opravený na Janoušek Tobiáš (zápis FAČR: Vajdík Petr) – zápis na webu to ukazuje poznámkou.
+- **Brankáři a +/− na hřišti** (ze sestav od 2023/24): brankář = pozice B nebo náhradník, který šel za brankáře (v zápise
+  mívá N); góly dané/obdržené v době na hřišti (minuta > příchod, ≤ odchod, do konce včetně nastavení), čisté konto = celý
+  zápas bez obdrženého gólu. Ověřeno proti PDF A 2025/26 na číslo (Havelka 16/15/1 365/27/4, Motyčka 11/975/34; +/− hráčů).
+  Na kartě hráče řádek „když byl na hřišti“.
+- **Rekordy:** přepínač Přehled / TOP 3 (pamatuje se v prohlížeči), shoda na 1. místě = všichni (sdílená místa 1., 1., 3.);
+  klik → okno s pořadím TOP 5 (rozbalit do 10.), u rekordů za zápas TOP 10 zápasů se zápisem.
 - **Rodinné góly:** sbalená sekce pro zajímavost a rekord podle příjmení; potvrzené rodiny v dokumentu `statistiky/rodiny` (pole `data` = JSON {příjmení: [jména]} – u nich se počítají jen vypsaní, štítek „rodina“), ostatní jen „stejné příjmení“; jména zapsaná různě (bez háčku, y/i,
   pořadí slov) sjednocuje `sjednotJmena()`.
 - Tým se pozná ze soutěže (dorost) a z názvu Vnorov v zápise (B tým má v názvu „B“); pohár podle hráčů v sestavě.
