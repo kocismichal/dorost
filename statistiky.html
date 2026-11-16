@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/statistiky.css?v=2">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=4">
 </head>
 <body>
 
@@ -46,12 +46,9 @@
             <div class="st-ftile__l">Tým</div>
             <div class="st-seg" id="teamSeg"></div>
         </div>
-        <div class="st-ftile">
-            <div class="st-ftile__l">Sezóny</div>
-            <div class="st-range">
-                <label>od <select id="seasonFrom" class="st-select" aria-label="Sezóna od"></select></label>
-                <label>do <select id="seasonTo" class="st-select" aria-label="Sezóna do"></select></label>
-            </div>
+        <div class="st-ftile st-ftile--wide st-ftile--s">
+            <div class="st-ftile__l">Sezóny <button type="button" class="st-link" id="seasonAll">všechny</button></div>
+            <div class="st-chips" id="seasonChips"></div>
         </div>
         <div class="st-ftile st-ftile--wide">
             <div class="st-ftile__l">Soutěže <button type="button" class="st-link" id="compAll">vybrat vše</button></div>
@@ -110,8 +107,10 @@
 
 <footer class="foot">FK Agro Vnorovy · statistiky hráčů ze zápisů fotbal.cz · <span id="updInfo"></span></footer>
 
+<div class="overlay" id="detailOverlay"><div class="modal st-modal" id="detailBox" role="dialog" aria-modal="true"></div></div>
+
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/statistiky.js?v=4"></script>
+<script type="module" src="assets/js/statistiky.js?v=6"></script>
 </body>
 </html>

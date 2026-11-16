@@ -26,6 +26,7 @@
 .st-fbar__in > .st-ftile { flex: 0 1 auto; }
 .st-fbar__in > .st-ftile:last-child { flex: 1 1 220px; }
 .st-fbar__in > .st-ftile--wide { order: 5; flex: 1 1 100%; }
+.st-fbar__in > .st-ftile--s { order: 4; }
 .st-ftile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow); min-width: 0; }
 .st-ftile__l { font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; display: flex; gap: 10px; align-items: center; }
 .st-range { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -37,6 +38,8 @@
     padding: 6px 11px; font-size: 12px; font-weight: 800; cursor: pointer;
 }
 .st-cchip.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.st-cchip--s { background: #eef3fb; border-color: #cfdcf0; color: #1d3f72; }
+.st-cchip--s.is-on { background: #1d4f91; border-color: #1d4f91; color: #fff; }
 .st-link { border: 0; background: none; color: var(--accent); font-size: 11px; font-weight: 800; cursor: pointer; padding: 0; text-transform: none; letter-spacing: 0; }
 .st-fbar .st-seg button { padding: 7px 11px; }
 .st-fbar .st-search { min-height: 36px; min-width: 160px; }
@@ -57,7 +60,10 @@
 .st-team__name { font-size: 19px; font-weight: 900; margin-bottom: 8px; }
 .st-team__row { font-size: 13.5px; color: rgba(255,255,255,.82); line-height: 1.7; }
 .st-team__row b { color: #fff; }
-.st-team a { color: #fff; font-weight: 800; }
+.st-team a { color: #fff; font-weight: 800; text-decoration: none; }
+.st-team a:hover, .st-tlink:hover { color: #ffb3bf; }
+.st-tlink { border: 0; background: none; padding: 0; color: #fff; font: inherit; font-weight: 700; cursor: pointer; text-align: left; border-bottom: 1px dashed rgba(255,255,255,.5); }
+.st-team__note { font-size: 11.5px; color: rgba(255,255,255,.55); margin-top: 6px; }
 .c-ok { color: #6ee7a8; font-weight: 800; }
 .c-bad { color: #ff8a9a; font-weight: 800; }
 
@@ -74,6 +80,46 @@
 .st-facts a { color: var(--accent); font-weight: 700; }
 .st-rec__p a:hover { color: var(--accent); }
 .st-rec__v { font-size: 12.5px; color: var(--text-soft); margin-top: 2px; font-weight: 600; }
+.st-rec { cursor: pointer; transition: transform .12s, box-shadow .12s; }
+.st-rec:hover { transform: translateY(-2px); box-shadow: var(--shadow-up); }
+.st-rec__b { flex: 1; min-width: 0; }
+.st-rec__more { align-self: center; font-size: 22px; font-weight: 900; color: var(--dim); }
+.st-rec__src { font-size: 9.5px; letter-spacing: .02em; text-transform: none; color: var(--dim); font-weight: 700; }
+
+/* --- okno s podrobnostmi a zápisem --- */
+.st-modal { max-width: 640px; max-height: calc(100vh - 40px); overflow-y: auto; }
+.st-modal__head { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.st-modal__head h3 { font-size: 18px; }
+.st-modal__x { border: 0; background: var(--bg-soft); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; font-size: 15px; flex: none; }
+.st-modal__card { display: inline-block; margin: 6px 0 4px; color: var(--accent); font-weight: 800; text-decoration: none; font-size: 13.5px; }
+.st-modal__l { font-size: 11px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; }
+.st-modal__sum { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.7; color: var(--text-soft); }
+.st-zlist { display: flex; flex-direction: column; gap: 6px; }
+.st-zrow { display: grid; grid-template-columns: 82px auto 1fr auto 18px; gap: 8px; align-items: center; padding: 9px 12px;
+    border: 1px solid var(--line); border-radius: 10px; cursor: pointer; font-size: 13.5px; background: var(--surface); }
+.st-zrow:hover, .st-zrow.is-open { border-color: var(--accent); background: var(--accent-tint); }
+.st-zrow__d { color: var(--muted); font-weight: 700; font-size: 12.5px; }
+.st-zrow__o { font-weight: 800; min-width: 0; }
+.st-zrow__o small { display: block; font-weight: 600; color: var(--muted); font-size: 11.5px; }
+.st-zrow__x { color: var(--dim); transition: transform .15s; }
+.st-zrow.is-open .st-zrow__x { transform: rotate(180deg); }
+.st-zapis { border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px; margin-top: -8px; padding: 14px; background: var(--bg-soft); font-size: 13px; }
+.st-modal > .st-zapis:first-child { margin-top: 0; }
+.st-zapis__h { font-size: 15px; font-weight: 900; }
+.st-zapis__h b { color: var(--accent); margin-left: 6px; }
+.st-zapis__m { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.st-zapis__l { font-size: 10.5px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: 12px 0 5px; }
+.st-gl { display: grid; grid-template-columns: 34px 38px 1fr; gap: 6px; padding: 3px 0; color: var(--text-soft); }
+.st-gl.is-nas { color: var(--text); font-weight: 800; }
+.st-gl small { color: var(--muted); font-weight: 600; }
+.st-gl__m { color: var(--muted); font-variant-numeric: tabular-nums; }
+.st-gl__s { font-weight: 900; font-variant-numeric: tabular-nums; }
+.st-lugrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2px 14px; }
+.st-lu { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px dashed var(--line); }
+.st-lu__n a { color: var(--text); font-weight: 700; text-decoration: none; }
+.st-lu__n a:hover { color: var(--accent); }
+.st-lu__i { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.st-zapis__ext { display: inline-block; margin-top: 12px; color: var(--accent); font-weight: 800; text-decoration: none; }
 
 /* --- tabulka hráčů --- */
 .st-sort { cursor: pointer; user-select: none; }
@@ -143,6 +189,10 @@
 .st-card--r { background: var(--danger); }
 
 @media (max-width: 640px) {
+    .st-zrow { grid-template-columns: 1fr auto 18px; }
+    .st-zrow__d { grid-column: 1 / -1; }
+    .st-zrow .st-chip { display: none; }
+    .st-modal { padding: 16px; }
     .st-fbar__in { padding: 10px 12px; }
     .st-fbar__in > .st-ftile { flex: 1 1 100%; }
     .st-fbar .st-search { width: 100%; }
