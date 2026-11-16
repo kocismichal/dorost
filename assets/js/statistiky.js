@@ -13,23 +13,27 @@ const TEAMS = { A: "A tým", B: "B tým", D: "Dorost" };
 const MIN_PRO_POMER = 300;          // od kolika minut ukazovat góly na 90 min
 const DELKA = 90;                   // délka zápasu (dospělí i starší dorost)
 
-const st = { matches: [], old: [], team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
+const st = { matches: [], old: [], tables: [], team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
 
 /* ------------------------------------------------------------ načtení ---- */
 
 whenReady(async () => {
     try {
         const snap = await getDocs(col("statistiky"));
-        let upd = "";
+        let upd = "", is = [];
         snap.forEach(d => {
             const x = d.data();
-            if (d.id === "is" && x.souhrny) nactiIS(JSON.parse(x.souhrny));
+            if (d.id === "is" && x.souhrny) is = JSON.parse(x.souhrny);
+            if (d.id === "tabulky" && x.tabulky) st.tables = JSON.parse(x.tabulky);
             if (x.data) JSON.parse(x.data).forEach(m => st.matches.push(m));
             if (x.aktualizovano && x.aktualizovano > upd) upd = x.aktualizovano;
         });
+        nactiIS(is, sjednotJmena(st.matches, is));
         st.matches.forEach(m => { m.t = teamOf(m); m.u = uroven(m.c); });
         pohary();
         st.old.forEach(o => { o.t = teamOf(o); o.u = uroven(o.c); });
+        st.tables.forEach(t => { t.nas = t.rows.find(r => /vnorov/i.test(r[1])); t.t = teamOf({ c: t.c, vn: t.nas ? t.nas[1] : "" }); t.u = uroven(t.c); });
+        st.tables = st.tables.filter(t => t.nas);
         st.matches.sort((a, b) => (a.d || "").localeCompare(b.d || ""));
         document.getElementById("updInfo").textContent = upd ? "aktualizováno " + new Date(upd).toLocaleDateString("cs-CZ") : "";
         setStatus("online");
@@ -58,13 +62,38 @@ function pohary() {
     });
 }
 
+/** Stejný hráč bývá v zápisech zapsaný různě (bez háčku, i/y, jméno před příjmením) a měl by pak dvě karty.
+    Zápisy se stejným klíčem (bez diakritiky, y = i, slova podle abecedy) se sjednotí na ten naposledy použitý.
+    Přepíše jména v zápasech a vrátí funkci pro jména z IS. */
+function sjednotJmena(matches, souteze) {
+    const klic = n => n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/y/g, "i").split(/\s+/).sort().join(" ");
+    const tvary = {};                                  // klíč → {zápis jména: [naposledy, kolikrát]}
+    const vid = (n, kdy) => { const x = (tvary[klic(n)] = tvary[klic(n)] || {}), y = (x[n] = x[n] || ["", 0]); if (kdy > y[0]) y[0] = kdy; y[1]++; };
+    matches.forEach(m => { (m.lu || []).forEach(r => vid(r[0], m.d || "")); (m.g || []).forEach(g => { if (!g[3]) vid(g[0], m.d || ""); }); });
+    souteze.forEach(c => c.rows.forEach(r => vid(`${r[2]} ${r[1]}`.trim(), String(c.s))));
+    const kanon = {};
+    for (const x of Object.values(tvary)) {
+        const v = Object.entries(x);
+        if (v.length < 2) continue;
+        const nej = v.sort((a, b) => b[1][0].localeCompare(a[1][0]) || b[1][1] - a[1][1])[0][0];
+        v.forEach(([n]) => { if (n !== nej) kanon[n] = nej; });
+    }
+    const k = n => kanon[n] || n;
+    matches.forEach(m => {
+        (m.lu || []).forEach(r => { r[0] = k(r[0]); if (r[5]) r[5] = k(r[5]); });
+        (m.g || []).forEach(g => { if (!g[3]) g[0] = k(g[0]); });
+        (m.ga || []).forEach(g => { if (g[3]) g[0] = k(g[0]); });
+    });
+    return k;
+}
+
 /** Statistiky soutěží ze starého IS FAČR: řádek [id, jméno, příjmení, tým, G, Z, ŽK, ČK, min] → skupiny podle týmu. */
-function nactiIS(souteze) {
+function nactiIS(souteze, k = n => n) {
     /* jmenovci (otec a syn …) mají v IS různé ID: čisté jméno dostane ten, kdo hrál nejpozději (navazuje na zápisy
        od 2020/21, kde ID není), ostatní „(ročník RRRR)“ – ročník = první dvě číslice ID */
     const podleJmena = {};
     souteze.forEach(c => c.rows.forEach(r => {
-        const n = `${r[2]} ${r[1]}`.trim(), x = (podleJmena[n] = podleJmena[n] || {});
+        const n = k(`${r[2]} ${r[1]}`.trim()), x = (podleJmena[n] = podleJmena[n] || {});
         x[r[0]] = x[r[0]] || { s: 0, z: 0 }; x[r[0]].s = Math.max(x[r[0]].s, c.s); x[r[0]].z += +r[5] || 0;
     }));
     const jmeno = {};
@@ -77,7 +106,7 @@ function nactiIS(souteze) {
         for (const r of c.rows) {
             const vn = r[3];
             if (!tymy.has(vn)) tymy.set(vn, []);
-            tymy.get(vn).push([jmeno[r[0]] || `${r[2]} ${r[1]}`.trim(), +r[4] || 0, +r[6] || 0, +r[7] || 0, +r[5] || 0, +r[8] || 0]);
+            tymy.get(vn).push([jmeno[r[0]] || k(`${r[2]} ${r[1]}`.trim()), +r[4] || 0, +r[6] || 0, +r[7] || 0, +r[5] || 0, +r[8] || 0]);
         }
         for (const [vn, rows] of tymy) st.old.push({ s: c.s, c: c.c, vn, rows });
     }
@@ -123,7 +152,12 @@ function cas(row) {
     return { tin, tout, min: tout - tin };
 }
 
-function vysledek(m) { return m.f == null ? null : m.f > m.a ? "V" : m.f === m.a ? "R" : "P"; }
+/** V / R / P z pohledu Vnorov; pohárový zápas po remíze rozhodnou penalty (m.pen = [naše, soupeře]). */
+function vysledek(m) {
+    if (m.f == null) return null;
+    const [x, y] = m.f === m.a && m.pen ? m.pen : [m.f, m.a];
+    return x > y ? "V" : x === y ? "R" : "P";
+}
 
 /** Spočítá statistiky všech hráčů pro zvolený filtr. */
 function compute(matches, old = []) {
@@ -255,10 +289,13 @@ function renderOverview() {
     document.getElementById("loadInfo").hidden = true;
     ["teamsSec", "recordsSec", "seasonTopSec", "tableSec"].forEach(id => document.getElementById(id).hidden = false);
     DETAIL.length = 0;
+    const rod = rodiny(ms);
     renderPopis(ms);
     renderTeams(ms);
-    renderRecords(ms);
+    renderTabulky();
+    renderRecords(ms, rod);
     renderSeasonTop(ms, filteredOld());
+    renderRodiny(rod);
     renderTable();
 }
 
@@ -272,11 +309,16 @@ document.addEventListener("click", (e) => {
     if (d) { otevriDetail(DETAIL[+d.dataset.det]); return; }
     const z = e.target.closest("[data-zap]");
     if (z) { prepniZapis(z); return; }
+    const t = e.target.closest("[data-tab]");
+    if (t) { prepniTabulku(t); return; }
     if (e.target.closest("[data-zavrit]") || e.target.id === "detailOverlay") zavriDetail();
 });
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") zavriDetail();
-    if (e.key === "Enter" && e.target.matches && e.target.matches(".st-rec")) otevriDetail(DETAIL[+e.target.dataset.det]);
+    if (e.key !== "Enter" || !e.target.matches) return;
+    if (e.target.matches(".st-rec")) otevriDetail(DETAIL[+e.target.dataset.det]);
+    if (e.target.matches("[data-zap]")) prepniZapis(e.target);
+    if (e.target.matches("[data-tab]")) prepniTabulku(e.target);
 });
 function zavriDetail() { const o = document.getElementById("detailOverlay"); if (o) o.classList.remove("is-open"); document.body.style.overflow = ""; }
 
@@ -321,7 +363,8 @@ function otevriDetail(det) {
 function zapisHtml(m) {
     const domaci = m.h ? m.vn : m.o, hoste = m.h ? m.o : m.vn;
     const sk = m.f == null ? "?" : m.h ? `${m.f}:${m.a}` : `${m.a}:${m.f}`;
-    const pol = m.hf != null ? (m.h ? ` (${m.hf}:${m.ha})` : ` (${m.ha}:${m.hf})`) : "";
+    const pol = (m.hf != null ? (m.h ? ` (${m.hf}:${m.ha})` : ` (${m.ha}:${m.hf})`) : "")
+        + (m.pen ? ` · na penalty ${m.h ? m.pen[0] : m.pen[1]}:${m.h ? m.pen[1] : m.pen[0]}` : "");
     const vse = [...(m.g || []).map(g => ({ g, nas: 1 })), ...(m.ga || []).map(g => ({ g, nas: 0 }))].sort((a, b) => a.g[1] - b.g[1]);
     let a = 0, b = 0;
     const casova = vse.map(({ g, nas }) => {
@@ -366,7 +409,7 @@ function renderPopis(ms) {
     const b = bilance(ms);
     el.hidden = false;
     el.innerHTML = `<div class="st-popis__t">Vybráno: ${esc(tym)} · ${sez} · ${esc(sout)}</div>
-        <div class="st-popis__nums"><span><b>${P.filter(p => p.apps || p.goals).length}</b> hráčů</span><span><b>${fmt(sum("goals"))}</b> gólů</span>
+        <div class="st-popis__nums"><span><b>${P.filter(p => p.apps || p.goals).length}</b> hráčů${P.some(p => !p.apps && !p.goals) ? ` (+ ${P.filter(p => !p.apps && !p.goals).length} jen na lavičce)` : ""}</span><span><b>${fmt(sum("goals"))}</b> gólů</span>
         <span><b>${fmt(sum("min"))}</b> odehraných minut</span>${b.z ? `<span><b>${b.z}</b> zápasů se zápisem (${b.v} V · ${b.r} R · ${b.p} P)</span>` : ""}</div>
         <div class="st-popis__src">Odkud jsou čísla: ${zdroje.join("; ")}.</div>`;
 }
@@ -429,7 +472,7 @@ function kratce(o) { return String(o || "").replace(/,?\s*z\.\s*s\.?/g, "").repl
 const golyHrace = (m, n) => (m.g || []).filter(g => g[0] === n && !g[3]);
 const rowOf = (m, n) => (m.lu || []).find(r => r[0] === n);
 
-function renderRecords(ms) {
+function renderRecords(ms, rod) {
     const P = [...st.players.values()];
     const os = filteredOld();
     const stare = st.from < 2020;                      // výběr obsahuje sezóny bez zápisů
@@ -439,10 +482,11 @@ function renderRecords(ms) {
     /* det = {titul, zapasy, souhrny (řádky textu), kdo (popisky řádků), otevrit (rovnou zápis jediného zápasu)} */
     const add = (ico, title, p, val, sub = "", det = null, zdroj = "") => {
         if (!p) return;
-        DETAIL.push({ hrac: p, ...(det || {}), titul: (det && det.titul) || `${title} – ${p.name}` });
+        const popisek = typeof p === "string";             // místo hráče jen text (rodinné góly)
+        DETAIL.push({ hrac: popisek ? null : p, ...(det || {}), titul: (det && det.titul) || `${title} – ${popisek ? p : p.name}` });
         cards.push(`<div class="st-rec" data-det="${DETAIL.length - 1}" role="button" tabindex="0"><div class="st-rec__ico">${ico}</div><div class="st-rec__b">
             <div class="st-rec__t">${title}${zdroj && stare ? ` <span class="st-rec__src">${zdroj}</span>` : ""}</div>
-            <div class="st-rec__p">${link(p)}</div><div class="st-rec__v">${val}${sub ? ` · ${sub}` : ""}</div></div>
+            <div class="st-rec__p">${popisek ? esc(p) : link(p)}</div><div class="st-rec__v">${val}${sub ? ` · ${sub}` : ""}</div></div>
             <div class="st-rec__more">›</div></div>`);
     };
     const golZapasy = (p, f = () => true) => ms.filter(m => golyHrace(m, p.name).length && f(m));
@@ -469,6 +513,9 @@ function renderRecords(ms) {
     const best = P.filter(x => x.best).sort((a, b) => b.best.k - a.best.k)[0];
     if (best) add("🔥", "Nejvíc gólů v zápase", best, goly(best.best.k), `${kratce(best.best.m.o)} ${best.best.m.f}:${best.best.m.a}, ${czd(best.best.m.d)}`,
         { zapasy: [best.best.m], otevrit: true }, "od 2020/21");
+    const rz = rod.flatMap(r => r.zapasy.filter(z => z.strelcu > 1).map(z => ({ ...z, k: r.k }))).sort((a, b) => b.g - a.g || (b.m.d || "").localeCompare(a.m.d || ""));
+    if (rz.length) add("👨‍👦", "Rodinné góly v zápase", `${rz[0].k} – ${kdoDal(rz[0].kdo)}`, goly(rz[0].g), `${kratce(rz[0].m.o)} ${rz[0].m.f}:${rz[0].m.a}, ${czd(rz[0].m.d)}`,
+        { titul: "Rodinné góly – nejvíc gólů hráčů se stejným příjmením v zápase", zapasy: rz.slice(0, 30).map(z => z.m), kdo: rz.slice(0, 30).map(z => `${z.k}: ${kdoDal(z.kdo)} = ${goly(z.g)}`) }, "od 2020/21");
     let fast = null;
     ms.forEach(m => (m.g || []).forEach(g => { if (!g[3] && g[1] >= 1 && (!fast || g[1] < fast.g[1])) fast = { g, m }; }));
     if (fast) add("⚡", "Nejrychlejší gól", st.players.get(fast.g[0]), `${fast.g[1]}. minuta`, `${kratce(fast.m.o)}, ${czd(fast.m.d)}`, { zapasy: [fast.m], otevrit: true }, "od 2020/21");
@@ -483,6 +530,86 @@ function renderRecords(ms) {
     document.getElementById("records").innerHTML = cards.join("") || `<div class="st-empty">Pro tento výběr nejsou data.</div>`;
 }
 
+/* ------------------------------------------ rodiny (stejné příjmení) ---- */
+
+const bezRocniku = n => n.replace(/\s*\(ročník \d+\)$/, "");
+const prijmeni = n => { const t = bezRocniku(n).split(" "); return t.length > 1 ? t.slice(0, -1).join(" ") : t[0]; };
+const krestni = n => n.slice(prijmeni(n).length + 1) || n;
+const kdoDal = kdo => Object.entries(kdo).filter(x => x[1]).sort((a, b) => b[1] - a[1]).map(([n, g]) => `${krestni(n)} ${g}`).join(" + ");
+
+/** Příjmení s víc hráči ve výběru: hráči, součty a zápasy, kde byli aspoň dva (na hřišti nebo mezi střelci). */
+function rodiny(ms) {
+    const R = new Map();
+    for (const p of st.players.values()) {
+        if (!p.apps && !p.goals) continue;
+        const k = prijmeni(p.name);
+        if (!R.has(k)) R.set(k, { k, hraci: [], zapasy: [] });
+        R.get(k).hraci.push(p);
+    }
+    for (const [k, r] of R) if (r.hraci.length < 2) R.delete(k);
+    for (const m of ms) {
+        const by = {};                                   // příjmení → {hráč: góly v zápase}
+        const pridej = (n, g) => { const k = prijmeni(n); if (R.has(k)) { by[k] = by[k] || {}; by[k][n] = (by[k][n] || 0) + g; } };
+        (m.lu || []).forEach(row => { if (cas(row)) pridej(row[0], 0); });
+        (m.g || []).forEach(g => { if (!g[3]) pridej(g[0], 1); });
+        for (const [k, kdo] of Object.entries(by)) {
+            const jm = Object.keys(kdo);
+            if (jm.length > 1) R.get(k).zapasy.push({ m, kdo, g: jm.reduce((a, n) => a + kdo[n], 0), strelcu: jm.filter(n => kdo[n]).length });
+        }
+    }
+    return [...R.values()].map(r => {
+        r.hraci.sort((a, b) => b.goals - a.goals || b.apps - a.apps);
+        r.zapasy.sort((a, b) => b.g - a.g || b.strelcu - a.strelcu || (b.m.d || "").localeCompare(a.m.d || ""));
+        return { ...r, goly: r.hraci.reduce((a, p) => a + p.goals, 0), apps: r.hraci.reduce((a, p) => a + p.apps, 0) };
+    }).sort((a, b) => b.goly - a.goly || b.apps - a.apps);
+}
+
+function renderRodiny(rod) {
+    document.getElementById("rodinySec").hidden = !rod.length;
+    document.getElementById("rodiny").innerHTML = `<table class="ptable st-small">
+        <thead><tr><th>Příjmení</th><th>Hráči (góly)</th><th class="ptable__num">Góly</th><th class="ptable__num">Zápasů</th><th>Nejlepší společný zápas</th></tr></thead>
+        <tbody>${rod.map(r => {
+            const spolu = r.zapasy.filter(z => z.g);
+            const b = spolu[0];
+            if (b) DETAIL.push({ titul: `${r.k} – společné zápasy s gólem (${spolu.length})`, zapasy: spolu.slice(0, 40).map(z => z.m), kdo: spolu.slice(0, 40).map(z => `${kdoDal(z.kdo)} = ${goly(z.g)}`) });
+            return `<tr><td><b>${esc(r.k)}</b></td>
+            <td class="st-rodina">${r.hraci.map(p => `<a href="#hrac=${encodeURIComponent(p.id)}">${esc(krestni(p.name))}</a> <small>${p.goals}</small>`).join(", ")}</td>
+            <td class="ptable__num ptable__points">${r.goly}</td><td class="ptable__num">${r.apps}</td>
+            <td>${b ? `<button type="button" class="st-zlink" data-det="${DETAIL.length - 1}">${goly(b.g)} (${esc(kdoDal(b.kdo))}) · ${esc(kratce(b.m.o))} ${b.m.f}:${b.m.a}, ${czd(b.m.d)}</button>` : `<span class="st-dim">–</span>`}</td></tr>`;
+        }).join("")}</tbody></table>`;
+}
+
+/* ------------------------------------------------- ligové tabulky ---- */
+
+let TAB = [];                 // tabulky pro aktuální výběr (index v data-tab)
+const STAV = { p: "průběžná", n: "nedohráno" };
+
+function renderTabulky() {
+    TAB = st.tables.filter(vyber).sort((a, b) => b.s - a.s || a.t.localeCompare(b.t));
+    document.getElementById("tabulkySec").hidden = !TAB.length;
+    document.getElementById("tabulky").innerHTML = `<table class="ptable st-small st-tabs">
+        <thead><tr><th>Sezóna</th><th>Soutěž</th><th class="ptable__num">Místo</th><th class="ptable__num">Z</th><th class="ptable__num">V</th><th class="ptable__num">R</th><th class="ptable__num">P</th><th class="ptable__num">Skóre</th><th class="ptable__num">Body</th><th></th></tr></thead>
+        <tbody>${TAB.map((t, i) => { const r = t.nas; return `<tr class="st-row" data-tab="${i}" tabindex="0">
+            <td>${seasonLbl(t.s)}</td>
+            <td><span class="st-chip st-chip--${t.t}">${t.t === "D" ? "Dor" : t.t}</span> ${esc(t.c)}${t.stav ? ` <span class="st-stav">${STAV[t.stav]}</span>` : ""}</td>
+            <td class="ptable__num"><b class="st-misto${r[0] <= 3 ? " is-top" : ""}">${r[0]}.</b> <span class="st-dim">/ ${t.rows.length}</span></td>
+            <td class="ptable__num">${r[2]}</td><td class="ptable__num">${r[3]}</td><td class="ptable__num">${r[4]}</td><td class="ptable__num">${r[5]}</td>
+            <td class="ptable__num">${esc(r[6])}</td><td class="ptable__num ptable__points">${r[7]}</td><td class="st-zrow__x">▾</td></tr>`; }).join("")}</tbody></table>`;
+}
+
+function prepniTabulku(tr) {
+    const next = tr.nextElementSibling;
+    if (next && next.classList.contains("st-tfull")) { next.remove(); tr.classList.remove("is-open"); return; }
+    const t = TAB[+tr.dataset.tab];
+    if (!t) return;
+    tr.insertAdjacentHTML("afterend", `<tr class="st-tfull"><td colspan="10"><table class="ptable st-small st-liga">
+        <thead><tr><th>#</th><th>Tým</th><th class="ptable__num">Z</th><th class="ptable__num">V</th><th class="ptable__num">R</th><th class="ptable__num">P</th><th class="ptable__num">Skóre</th><th class="ptable__num">Body</th></tr></thead>
+        <tbody>${t.rows.map(r => `<tr class="${r === t.nas ? "is-nas" : ""}"><td>${r[0]}.</td><td>${esc(kratce(r[1]))}</td><td class="ptable__num">${r[2]}</td><td class="ptable__num">${r[3]}</td>
+            <td class="ptable__num">${r[4]}</td><td class="ptable__num">${r[5]}</td><td class="ptable__num">${esc(r[6])}</td><td class="ptable__num"><b>${r[7]}</b></td></tr>`).join("")}</tbody></table>
+        <a class="st-zapis__ext" href="https://www.fotbal.cz/souteze/turnaje/table/${encodeURIComponent(t.id)}" target="_blank" rel="noopener">Tabulka na fotbal.cz ↗</a></td></tr>`);
+    tr.classList.add("is-open");
+}
+
 const COLS = [
     ["name", "Hráč", false], ["team", "Tým", false], ["apps", "Z", true], ["starts", "Základ", true], ["subIn", "Střídal", true],
     ["min", "Minuty", true], ["goals", "Góly", true], ["g90", "G/90", true], ["zk", "ŽK", true], ["ck", "ČK", true]
@@ -492,8 +619,8 @@ function renderTable() {
     const P = [...st.players.values()].filter(p => !st.q || p.name.toLowerCase().includes(st.q));
     const key = st.sort;
     P.sort((a, b) => {
-        if (key === "name") return st.dir * -1 * a.name.localeCompare(b.name, "cs");
-        if (key === "team") return st.dir * -1 * [...a.teams].join().localeCompare([...b.teams].join());
+        if (key === "name") return st.dir * a.name.localeCompare(b.name, "cs");
+        if (key === "team") return st.dir * [...a.teams].sort().join().localeCompare([...b.teams].sort().join());
         return st.dir * (((a[key] ?? -1) - (b[key] ?? -1)) || (a.goals - b.goals) || (a.min - b.min));
     });
     const th = COLS.map(([k, l, num]) => `<th data-k="${k}" class="${num ? "ptable__num" : ""} st-sort ${k === key ? "is-sorted" : ""}">${l}${k === key ? (st.dir < 0 ? " ▾" : " ▴") : ""}</th>`).join("");
@@ -527,7 +654,7 @@ function renderPlayer(id) {
     const radek = (fm, fo) => {
         const ms = st.matches.filter(fm), os = st.old.filter(fo);
         const x = compute(ms, os).get(p.name);
-        return x && (x.apps || x.goals || x.bench || x.zk || os.length) ? { x, lu: os.length > 0 || ms.some(m => (m.lu || []).length) } : null;
+        return x && (x.apps || x.goals || x.bench || x.zk) ? { x, lu: os.length > 0 || ms.some(m => (m.lu || []).length) } : null;
     };
     const bySeason = [...klice.values()].sort((a, b) => b.s - a.s || a.t.localeCompare(b.t) || poradi(a.u) - poradi(b.u))
         .map(k => ({ ...k, ...(radek(m => m.s === k.s && m.t === k.t && m.u === k.u, o => o.s === k.s && o.t === k.t && o.u === k.u) || {}) }))
@@ -540,14 +667,15 @@ function renderPlayer(id) {
     });
 
     // tým s ním a bez něj (jen zápasy se sestavou, v týmech, kde hrál)
-    const luMs = st.matches.filter(m => (m.lu || []).length && p.teams.has(m.t) && p.seasons.has(m.s));
+    const kde = new Set(p.perMatch.filter(x => x.row).map(x => x.m.s + "|" + x.m.t));      // sezóna a tým, kde byl v sestavě
+    const luMs = st.matches.filter(m => (m.lu || []).length && kde.has(m.s + "|" + m.t));
     const s_ = luMs.filter(m => m.lu.some(r => r[0] === p.name && cas(r)));
     const bez = luMs.filter(m => !m.lu.some(r => r[0] === p.name && cas(r)));
     const bS = bilance(s_), bB = bilance(bez);
 
     // série zápasů s gólem
     let ser = 0, maxSer = 0;
-    p.perMatch.filter(x => x.c || x.g.length).forEach(x => { ser = x.g.length ? ser + 1 : 0; maxSer = Math.max(maxSer, ser); });
+    p.perMatch.filter(x => x.c).forEach(x => { ser = x.g.length ? ser + 1 : 0; maxSer = Math.max(maxSer, ser); });      // jen zápasy se sestavou – jinde nevíme, kdy hrál bez gólu
 
     const partners = Object.entries(p.partners).sort((a, b) => b[1] - a[1]).slice(0, 3);
     const opp = Object.entries(p.vsOpp).sort((a, b) => b[1] - a[1])[0];
@@ -558,13 +686,13 @@ function renderPlayer(id) {
     const fakta = [];
     if (p.best && p.best.k >= 2) fakta.push(`Nejlepší zápas: <b>${goly(p.best.k)}</b> proti ${esc(kratce(p.best.m.o))} (${p.best.m.f}:${p.best.m.a}, ${czd(p.best.m.d)}).`);
     if (p.hat) fakta.push(`Hattrick nebo víc: <b>${p.hat}×</b>.`);
-    if (maxSer >= 2) fakta.push(`Nejdelší série zápasů s gólem: <b>${maxSer}</b> v řadě.`);
+    if (maxSer >= 2) fakta.push(`Nejdelší série zápasů s gólem: <b>${maxSer}</b> v řadě (od 2023/24).`);
     if (opp && opp[1] >= 2) fakta.push(`Nejradši střílí týmu <b>${esc(kratce(opp[0]))}</b> (${goly(opp[1])}).`);
     if (p.gMin.some(x => x >= 1)) fakta.push(`Nejrychlejší gól v <b>${Math.min(...p.gMin.filter(x => x >= 1))}. minutě</b>, nejpozdější v ${Math.max(...p.gMin)}. minutě.`);
     if (p.subGoals) fakta.push(`Po příchodu z lavičky dal <b>${goly(p.subGoals)}</b>.`);
     if (p.og) fakta.push(`Vlastní góly: ${p.og} (i to se počítá 😅).`);
     if (p.kap) fakta.push(`Kapitánskou pásku měl <b>${p.kap}×</b>.`);
-    if (firstG) fakta.push(`První zapsaný gól: ${czd(firstG.m.d)} proti ${esc(kratce(firstG.m.o))}.`);
+    if (firstG) fakta.push(`První gól v zápisech${p.oldGoals ? " (ty jsou od 2020/21)" : ""}: ${czd(firstG.m.d)} proti ${esc(kratce(firstG.m.o))}.`);
     if (partners.length) fakta.push(`Nejčastěji se střídal s: ${partners.map(([n, k]) => `<a href="#hrac=${encodeURIComponent(slug(n))}">${esc(n)}</a> (${k}×)`).join(", ")}.`);
 
     DETAIL.length = 0;
@@ -629,7 +757,7 @@ function renderPlayer(id) {
             <div class="st-split">
                 <div><b>${p.h1}</b> v 1. poločase</div><div><b>${p.h2}</b> ve 2. poločase</div>
                 <div><b>${p.home}</b> doma</div><div><b>${p.away}</b> venku</div>
-            </div>` : `<p class="st-empty">Zatím bez zapsaného gólu.</p>`}
+            </div>${p.oldGoals ? `<p class="st-note">Jen ${goly(p.goals - p.oldGoals)} ze zápisů od 2020/21 – u starších ${p.oldGoals} známe jen součet za sezónu.</p>` : ""}` : `<p class="st-empty">Zatím bez zapsaného gólu.</p>`}
         </section>
     </div>
 

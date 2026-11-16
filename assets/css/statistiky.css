@@ -188,7 +188,38 @@
 .st-card--y { background: #f5c518; }
 .st-card--r { background: var(--danger); }
 
+/* --- ligové tabulky a rodiny --- */
+.st-dim { color: var(--dim); font-weight: 600; }
+.st-misto { font-size: 15px; }
+.st-misto.is-top { color: var(--accent); }
+.st-stav { display: inline-block; margin-left: 4px; padding: 1px 7px; border-radius: 20px; font-size: 10.5px; font-weight: 800; background: var(--accent-tint); color: var(--accent); white-space: nowrap; }
+.st-tabs tr.is-open td { background: var(--accent-tint); }
+.st-tabs tr.is-open .st-zrow__x { transform: rotate(180deg); }
+.st-tfull > td { padding: 6px 10px 14px; background: var(--bg-soft); }
+.st-liga { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.st-liga tr.is-nas td { background: var(--accent-tint); font-weight: 900; }
+.st-rodina a { color: var(--text); font-weight: 700; text-decoration: none; }
+.st-rodina a:hover { color: var(--accent); }
+.st-rodina small { color: var(--muted); font-weight: 700; }
+.st-zlink { border: 0; background: none; padding: 0; font: inherit; color: var(--accent); font-weight: 700; cursor: pointer; text-align: left; }
+.st-zlink:hover { text-decoration: underline; }
+
 @media (max-width: 640px) {
+    .st-tabs td, .st-tabs th { padding: 8px 5px; }
+    .st-liga td, .st-liga th { padding: 7px 4px; }
+    .st-tabs .ptable__num, .st-liga .ptable__num { width: auto; }
+    .st-liga { font-size: 12.5px; }
+    .st-tabs > thead th:nth-child(n+5):nth-child(-n+7), .st-tabs > tbody > tr > td:nth-child(n+5):nth-child(-n+7) { display: none; }   /* V, R, P jsou v rozbalené tabulce */
+    .st-tfull > td { padding: 4px 4px 12px; }
+    #rodiny th:nth-child(4), #rodiny td:nth-child(4) { display: none; }
+    #rodiny td, #rodiny th { padding: 8px 5px; overflow-wrap: anywhere; }
+    #rodiny .st-zlink { display: block; white-space: normal; }
+    #rodiny table { table-layout: fixed; }
+    #rodiny th { white-space: normal; }
+    #rodiny th:nth-child(1) { width: 24%; } #rodiny th:nth-child(2) { width: 30%; } #rodiny th:nth-child(3) { width: 14%; }
+    .st-tabs > thead th:last-child, .st-tabs > tbody > tr:not(.st-tfull) > td:last-child { display: none; }   /* šipka */
+    .st-liga th:nth-child(n+4):nth-child(-n+6), .st-liga td:nth-child(n+4):nth-child(-n+6) { display: none; }   /* V, R, P */
+    .st-zlink { font-size: 12px; }
     .st-zrow { grid-template-columns: 1fr auto 18px; }
     .st-zrow__d { grid-column: 1 / -1; }
     .st-zrow .st-chip { display: none; }

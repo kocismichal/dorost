@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/statistiky.css?v=4">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=8">
 </head>
 <body>
 
@@ -79,6 +79,12 @@
             <div class="st-teams" id="teamCards"></div>
         </section>
 
+        <section class="section" id="tabulkySec" hidden>
+            <div class="section-head"><h2>Ligové tabulky</h2>
+                <p>Jak Vnorovy skončily v soutěžích z výběru nahoře (bez pohárů). Klik na řádek rozbalí celou tabulku.</p></div>
+            <div class="table-card"><div class="archive__scroll" id="tabulky"></div></div>
+        </section>
+
         <section class="section" id="recordsSec" hidden>
             <div class="section-head"><h2>Rekordy a zajímavosti</h2>
                 <p>Platí pro výběr nahoře (tým, sezóny, soutěže).</p></div>
@@ -89,6 +95,12 @@
             <div class="section-head"><h2>Nejvíc gólů za sezónu</h2>
                 <p>Kdo kolik nastřílel v jedné sezóně a za jaký tým. Klik na řádek otevře kartu hráče.</p></div>
             <div class="table-card"><div class="archive__scroll" id="seasonTop"></div></div>
+        </section>
+
+        <section class="section" id="rodinySec" hidden>
+            <div class="section-head"><h2>Rodinné góly – stejné příjmení</h2>
+                <p>Příjmení, která ve výběru nosí víc hráčů. Příbuzenství ověřené není, jde jen o shodu příjmení. Společný zápas = aspoň dva z nich na hřišti nebo mezi střelci (sestavy jsou v zápisech od 2023/24, střelci od 2020/21).</p></div>
+            <div class="table-card"><div class="archive__scroll" id="rodiny"></div></div>
         </section>
 
         <section class="section" id="tableSec" hidden>
@@ -111,6 +123,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/statistiky.js?v=6"></script>
+<script type="module" src="assets/js/statistiky.js?v=7"></script>
 </body>
 </html>

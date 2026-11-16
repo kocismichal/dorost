@@ -204,7 +204,13 @@ po sezónách, kdy dává góly, tým s ním a bez něj, zajímavosti, všechny 
 - **Aktualizace:** fotbal.cz pouští jen běžný prohlížeč (skript z Pythonu / GitHub Actions dostane 403), proto data
   stahuje Claude přes Chrome z archivu soutěží (`/souteze/subjekty/competition/315` kraj, `/320` Hodonín,
   `?seasonFilter-season-id=0..5`, aktuální ročník `/souteze/subjekty/subjekt/315` a `/320`) a zapisuje je přes REST
-  Firestore. Stačí říct „aktualizuj statistiky“.
+  Firestore. Stačí říct „aktualizuj statistiky“ – postup a skripty: skill `osobni-statistiky-fotbal`,
+  `CLAUDE_PRACOVNI\NASTROJE\fotbal\statistiky_vnorovy\`.
+- **Ligové tabulky:** dokument `statistiky/tabulky`, pole `tabulky` = JSON `[{s, org, c, id, stav, rows: [[pořadí, klub, Z, V,
+  R, P, skóre, body]]}]` (`stav` 'p' průběžná, 'n' nedohráno – covid 2019/20 a 2020/21); sekce Ligové tabulky (umístění,
+  klik rozbalí celou tabulku). Řádek Vnorov musí sedět s výsledky zápasů (16. 11. 2026 sedí 21/21).
+- **Rodinné góly:** sekce a rekord podle stejného příjmení (příbuzenství ověřené není); jména zapsaná různě (bez háčku, y/i,
+  pořadí slov) sjednocuje `sjednotJmena()`.
 - Tým se pozná ze soutěže (dorost) a z názvu Vnorov v zápise (B tým má v názvu „B“); pohár podle hráčů v sestavě.
 - **Sezóny do 2022/23** (zápisy bez sestav): dokument `statistiky/is`, pole `souhrny` = JSON
   `[{s, org, c, id, rows: [[ID hráče, jméno, příjmení, tým, G, Z, ŽK, ČK, minuty]]}]` ze starého IS FAČR
