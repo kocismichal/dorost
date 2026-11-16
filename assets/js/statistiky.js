@@ -20,10 +20,11 @@ const st = { matches: [], old: [], tables: [], team: "all", from: null, to: null
 whenReady(async () => {
     try {
         const snap = await getDocs(col("statistiky"));
-        let upd = "", is = [];
+        let upd = "", is = [], asist = [];
         snap.forEach(d => {
             const x = d.data();
             try {                                         // jeden poškozený dokument nesmí shodit celou stránku
+                if (d.id === "asistence") { asist = JSON.parse(x.data || "[]"); st.asistZdroj = String(x.zdroj || ""); return; }
                 if (d.id === "is" && x.souhrny) is = JSON.parse(x.souhrny).filter(c => c && Array.isArray(c.rows));
                 if (d.id === "tabulky" && x.tabulky) st.tables = JSON.parse(x.tabulky);
                 if (x.data) JSON.parse(x.data).forEach(m => st.matches.push(m));
@@ -31,6 +32,7 @@ whenReady(async () => {
             } catch (e) { console.warn("Statistiky: dokument", d.id, "se nedá přečíst", e); }
         });
         cistaData();
+        asistence(asist);
         nactiIS(is, sjednotJmena(st.matches, is));
         st.matches.forEach(m => { m.t = teamOf(m); m.u = uroven(m.c); });
         pohary();
@@ -83,6 +85,20 @@ function cistaData() {
     }));
 }
 
+/** Asistence z vlastní evidence (FAČR je nevede): [{id zápasu, a: [[minuta gólu, kdo přihrál, nejisté]]}]. */
+function asistence(seznam) {
+    const podleId = new Map(st.matches.map(m => [m.id, m]));
+    for (const z of Array.isArray(seznam) ? seznam : []) {
+        const m = podleId.get(String(z && z.id));
+        if (!m) continue;
+        m.asist = 1;
+        for (const [min, kdo, nej] of z.a || []) {
+            const g = m.g.find(g => g[1] === +min && !g[3] && !g[4]);
+            if (g) { g[4] = String(kdo || ""); g[5] = nej ? 1 : 0; }
+        }
+    }
+}
+
 /** Stejný hráč bývá v zápisech zapsaný různě (bez háčku, i/y, jméno před příjmením) a měl by pak dvě karty.
     Zápisy se stejným klíčem (bez diakritiky, y = i, slova podle abecedy) se sjednotí na ten naposledy použitý.
     Přepíše jména v zápasech a vrátí funkci pro jména z IS. */
@@ -102,7 +118,7 @@ function sjednotJmena(matches, souteze) {
     const k = n => kanon[n] || n;
     matches.forEach(m => {
         (m.lu || []).forEach(r => { r[0] = k(r[0]); if (r[5]) r[5] = k(r[5]); });
-        (m.g || []).forEach(g => { if (!g[3]) g[0] = k(g[0]); });
+        (m.g || []).forEach(g => { if (!g[3]) g[0] = k(g[0]); if (g[4]) g[4] = k(g[4]); });
         (m.ga || []).forEach(g => { if (g[3]) g[0] = k(g[0]); });
     });
     return k;
@@ -186,7 +202,7 @@ function compute(matches, old = []) {
     const get = (n) => {
         if (!P.has(n)) P.set(n, {
             name: n, id: slug(n), teams: new Set(), seasons: new Set(), apps: 0, starts: 0, subIn: 0, bench: 0, min: 0, full: 0,
-            goals: 0, goalsLu: 0, pens: 0, subGoals: 0, og: 0, zk: 0, ck: 0, kap: 0, pos: {}, gMin: [], home: 0, away: 0,
+            goals: 0, goalsLu: 0, assists: 0, kbG: 0, kbApps: 0, kbMin: 0, prihral: {}, odKoho: {}, pens: 0, subGoals: 0, og: 0, zk: 0, ck: 0, kap: 0, pos: {}, gMin: [], home: 0, away: 0,
             h1: 0, h2: 0, bands: [0, 0, 0, 0, 0, 0], perMatch: [], vsOpp: {}, partners: {}, multi: 0, hat: 0, best: null
         });
         return P.get(n);
@@ -208,6 +224,7 @@ function compute(matches, old = []) {
             if (row[1]) p.starts++; else p.subIn++;
             if (c.tin === 0 && c.tout === DELKA) p.full++;
             if (row[5]) { const k = row[5]; p.partners[k] = (p.partners[k] || 0) + 1; }
+            if (m.asist) { p.kbApps++; p.kbMin += c.min; }
         }
         const gBy = {};
         for (const [n, mn, pen, own] of (m.g || [])) {
@@ -225,6 +242,14 @@ function compute(matches, old = []) {
             const im = inMatch.get(n);
             if (im && im.c && !im.row[1]) p.subGoals++;
         }
+        if (m.asist) for (const g of m.g) {
+            if (g[3]) continue;
+            get(g[0]).kbG++;
+            if (!g[4]) continue;
+            const a = get(g[4]);
+            a.assists++; a.prihral[g[0]] = (a.prihral[g[0]] || 0) + 1;
+            const s = get(g[0]); s.odKoho[g[4]] = (s.odKoho[g[4]] || 0) + 1;
+        }
         for (const [n, , , own] of (m.ga || [])) if (own && inMatch.has(n)) get(n).og++;
         for (const [n, k] of Object.entries(gBy)) {
             const p = get(n);
@@ -232,7 +257,7 @@ function compute(matches, old = []) {
             if (k >= 3) p.hat++;
             if (!p.best || k > p.best.k) p.best = { k, m };
         }
-        const names = new Set([...inMatch.keys(), ...Object.keys(gBy)]);
+        const names = new Set([...inMatch.keys(), ...Object.keys(gBy), ...m.g.filter(g => g[4]).map(g => g[4])]);
         for (const n of names) {
             const im = inMatch.get(n);
             get(n).perMatch.push({ m, c: im ? im.c : null, row: im ? im.row : null, g: (m.g || []).filter(x => x[0] === n && !x[3]) });
@@ -253,6 +278,7 @@ function compute(matches, old = []) {
     }
     for (const p of P.values()) {
         p.g90 = p.min >= MIN_PRO_POMER ? p.goalsLu * 90 / p.min : null;
+        p.kb = p.kbG + p.assists;
         p.posMain = Object.entries(p.pos).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
     }
     return P;
@@ -317,6 +343,7 @@ function renderOverview() {
     renderTabulky();
     renderRecords(ms, rod);
     renderSeasonTop(ms, filteredOld());
+    renderKanadske(ms);
     renderRodiny(rod);
     renderTable();
 }
@@ -394,7 +421,7 @@ function zapisHtml(m) {
         const stav = m.h ? `${a}:${b}` : `${b}:${a}`;
         const hracSoupere = nas ? g[3] : !g[3];
         return `<div class="st-gl ${nas ? "is-nas" : ""}"><span class="st-gl__m">${esc(g[1])}'</span><span class="st-gl__s">${stav}</span>
-            <span>${esc(g[0])}${g[2] ? " (pen.)" : ""}${g[3] ? " (vlastní)" : ""}${hracSoupere ? ` <small>${esc(kratce(m.o))}</small>` : ""}</span></div>`;
+            <span>${esc(g[0])}${g[2] ? " (pen.)" : ""}${g[3] ? " (vlastní)" : ""}${nas && g[4] ? ` <small>asistence ${esc(g[4])}${g[5] ? " (nejisté)" : ""}</small>` : ""}${hracSoupere ? ` <small>${esc(kratce(m.o))}</small>` : ""}</span></div>`;
     }).join("");
     const lu = m.lu || [];
     const hrac = r => {
@@ -545,12 +572,39 @@ function renderRecords(ms, rod) {
     let late = null;
     ms.forEach(m => (m.g || []).forEach(g => { if (!g[3] && (!late || g[1] > late.g[1])) late = { g, m }; }));
     if (late) add("🕐", "Nejpozdější gól", st.players.get(late.g[0]), `${late.g[1]}. minuta`, `${kratce(late.m.o)}, ${czd(late.m.d)}`, { zapasy: [late.m], otevrit: true }, "od 2020/21");
+    if ((p = top("assists"))) add("🅰️", "Nejvíc asistencí", p, `${p.assists} asistencí`, p.kb ? `${p.kb} kanadských bodů` : "",
+        { zapasy: ms.filter(m => m.g.some(g => g[4] === p.name)), kdo: ms.filter(m => m.g.some(g => g[4] === p.name)).map(m => m.g.filter(g => g[4] === p.name).map(g => `🅰️ ${g[1]}' → ${g[0]}`).join(", ")) }, "vlastní evidence");
+    if ((p = top("kb"))) add("🍁", "Kanadské body", p, `${p.kb} bodů`, `${p.kbG} G + ${p.assists} A`);
     if ((p = top("zk"))) add("🟨", "Nejvíc žlutých", p, `${p.zk} žlutých`, p.ck ? `${p.ck}× červená` : "",
         { zapasy: ms.filter(m => { const r = rowOf(m, p.name); return r && (r[3] != null || r[4] != null); }) });
     if ((p = top("kap"))) add("©️", "Kapitán", p, `${p.kap}× s páskou`, "", { zapasy: ms.filter(m => { const r = rowOf(m, p.name); return r && r[7]; }) }, "od 2023/24");
     if ((p = top("apps"))) add("👟", "Nejvíc zápasů", p, `${p.apps} zápasů`, p.starts ? `od 2023/24 ${p.starts}× v základu` : "");
     if ((p = P.filter(x => x.teams.size > 1).sort((a, b) => b.teams.size - a.teams.size || b.apps - a.apps)[0])) add("🔀", "Za víc týmů", p, [...p.teams].map(t => TEAMS[t]).join(" + "));
     document.getElementById("records").innerHTML = cards.join("") || `<div class="st-empty">Pro tento výběr nejsou data.</div>`;
+}
+
+/* ------------------------------------------- kanadské bodování ---- */
+
+/** Góly + asistence jen ze zápasů, ke kterým je vlastní evidence asistencí (FAČR je nevede). */
+function renderKanadske(ms) {
+    const sMs = ms.filter(m => m.asist);
+    const sec = document.getElementById("kanadskeSec");
+    sec.hidden = !sMs.length;
+    if (!sMs.length) return;
+    const P = [...st.players.values()].filter(p => p.kb || p.kbMin).sort((a, b) => b.kb - a.kb || (b.kb / (b.kbMin || 1)) - (a.kb / (a.kbMin || 1)) || b.kbG - a.kbG);
+    const f = (x, d = 2) => x ? (Math.round(x * 10 ** d) / 10 ** d).toLocaleString("cs-CZ", { minimumFractionDigits: d }) : "–";
+    const sum = k => P.reduce((a, p) => a + p[k], 0);
+    const seas = [...new Set(sMs.map(m => `${TEAMS[m.t]} ${seasonLbl(m.s)}`))].join(", ");
+    const radek = (i, jm, z, min, g, a, kb, cls = "") => `<tr class="${cls}">${i}<td>${jm}</td><td class="ptable__num">${z}</td><td class="ptable__num">${fmt(min)}</td>
+        <td class="ptable__num">${g}</td><td class="ptable__num">${a}</td><td class="ptable__num ptable__points">${kb}</td>
+        <td class="ptable__num">${f(g * 90 / min)}</td><td class="ptable__num">${f(a * 90 / min)}</td><td class="ptable__num"><b>${f(kb * 90 / min)}</b></td>
+        <td class="ptable__num">${kb ? Math.round(min / kb) : "–"}</td></tr>`;
+    document.getElementById("kanadskePopis").textContent = `Góly + asistence v přepočtu na odehrané minuty. Asistence jsou z vlastní evidence (FAČR je nevede) – zatím ${seas} (${sMs.length} zápasů); góly a minuty jsou proto jen z těchto zápasů. Klik na hráče otevře kartu.`;
+    document.getElementById("kanadske").innerHTML = `<table class="ptable st-small st-kb">
+        <thead><tr><th>#</th><th>Hráč</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">G</th><th class="ptable__num">A</th><th class="ptable__num">Body</th>
+        <th class="ptable__num">G/90</th><th class="ptable__num">A/90</th><th class="ptable__num">B/90</th><th class="ptable__num">Min/bod</th></tr></thead>
+        <tbody>${P.filter(p => p.kb).map((p, i) => radek(`<td class="ptable__rank">${i + 1}</td>`, `<a class="st-kb__n" href="#hrac=${encodeURIComponent(p.id)}">${esc(p.name)}</a>`, p.kbApps, p.kbMin, p.kbG, p.assists, p.kb)).join("")}
+        ${radek("<td></td>", "<b>Celkem tým</b>", sMs.length, sum("kbMin"), sum("kbG"), sum("assists"), sum("kb"), "st-kb__sum")}</tbody></table>`;
 }
 
 /* ------------------------------------------ rodiny (stejné příjmení) ---- */
@@ -716,6 +770,9 @@ function renderPlayer(id) {
     if (p.og) fakta.push(`Vlastní góly: ${p.og} (i to se počítá 😅).`);
     if (p.kap) fakta.push(`Kapitánskou pásku měl <b>${p.kap}×</b>.`);
     if (firstG) fakta.push(`První gól v zápisech${p.oldGoals ? " (ty jsou od 2020/21)" : ""}: ${czd(firstG.m.d)} proti ${esc(kratce(firstG.m.o))}.`);
+    const naKoho = Object.entries(p.prihral).sort((a, b) => b[1] - a[1])[0], odKoho = Object.entries(p.odKoho).sort((a, b) => b[1] - a[1])[0];
+    if (naKoho) fakta.push(`Nejčastěji přihrál na gól hráči <a href="#hrac=${encodeURIComponent(slug(naKoho[0]))}">${esc(naKoho[0])}</a> (${naKoho[1]}×).`);
+    if (odKoho) fakta.push(`Nejvíc gólů mu přihrál <a href="#hrac=${encodeURIComponent(slug(odKoho[0]))}">${esc(odKoho[0])}</a> (${odKoho[1]}×).`);
     if (partners.length) fakta.push(`Nejčastěji se střídal s: ${partners.map(([n, k]) => `<a href="#hrac=${encodeURIComponent(slug(n))}">${esc(n)}</a> (${k}×)`).join(", ")}.`);
 
     DETAIL.length = 0;
@@ -726,7 +783,7 @@ function renderPlayer(id) {
         <td>${m.h ? "" : "@ "}${esc(kratce(m.o))}</td>
         <td class="st-res st-res--${v}">${m.f ?? "?"}:${m.a ?? "?"}</td>
         <td class="ptable__num">${c ? (c.tin === 0 ? (c.tout === DELKA ? "90'" : `0–${c.tout}'`) : `${c.tin}–${c.tout}'`) : row ? "lavička" : (m.lu || []).length ? "" : "?"}</td>
-        <td>${g.map(x => `⚽${x[1]}'${x[2] ? " (pen.)" : ""}`).join(" ")}${row && row[3] != null ? ` <span class="st-card st-card--y"></span>` : ""}${row && row[4] != null ? ` <span class="st-card st-card--r"></span>` : ""}</td></tr>`;
+        <td>${g.map(x => `⚽${x[1]}'${x[2] ? " (pen.)" : ""}`).join(" ")}${m.g.filter(x => x[4] === p.name).map(x => ` 🅰️${x[1]}'`).join("")}${row && row[3] != null ? ` <span class="st-card st-card--y"></span>` : ""}${row && row[4] != null ? ` <span class="st-card st-card--r"></span>` : ""}</td></tr>`;
     }).join("");
 
     el.innerHTML = `
@@ -744,6 +801,7 @@ function renderPlayer(id) {
         ${tile(p.apps || "–", "zápasů", p.starts + p.subIn ? `od 2023/24: ${p.starts} v základu · ${p.subIn} střídal` : "")}
         ${tile(p.min ? fmt(p.min) : "–", "minut", p.apps ? `${Math.round(p.min / p.apps)} min na zápas` : "")}
         ${tile(p.goals, "gólů", p.pens ? `${p.pens} z penalty (od 2020/21)` : "")}
+        ${p.kb || p.kbMin ? tile(p.assists, "asistencí", `kanadské body ${p.kb} (${p.kbG} G + ${p.assists} A) · vlastní evidence`) : ""}
         ${tile(p.g90 != null ? r1(p.g90) : "–", "gólů na 90 min", p.goalsLu && p.min ? `gól každých ${Math.round(p.min / p.goalsLu)} min` : "")}
         ${tile(p.starts + p.subIn ? p.full : "–", "celých 90 minut", p.starts + p.subIn ? "od 2023/24" : "známe až ze sestav od 2023/24")}
         ${tile(`${p.zk} / ${p.ck}`, "žluté / červené")}

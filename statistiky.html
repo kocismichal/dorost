@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/statistiky.css?v=8">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=9">
 </head>
 <body>
 
@@ -103,6 +103,11 @@
             <div class="table-card"><div class="archive__scroll" id="rodiny"></div></div>
         </section>
 
+        <section class="section" id="kanadskeSec" hidden>
+            <div class="section-head"><h2>Kanadské bodování</h2><p id="kanadskePopis"></p></div>
+            <div class="table-card"><div class="archive__scroll" id="kanadske"></div></div>
+        </section>
+
         <section class="section" id="tableSec" hidden>
             <div class="section-head"><h2>Všichni hráči</h2>
                 <p>Řadit jde klikem na záhlaví sloupce. Góly na 90 minut se ukazují od 300 odehraných minut.</p></div>
@@ -123,6 +128,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/statistiky.js?v=8"></script>
+<script type="module" src="assets/js/statistiky.js?v=10"></script>
 </body>
 </html>

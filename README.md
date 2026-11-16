@@ -209,6 +209,11 @@ po sezónách, kdy dává góly, tým s ním a bez něj, zajímavosti, všechny 
 - **Ligové tabulky:** dokument `statistiky/tabulky`, pole `tabulky` = JSON `[{s, org, c, id, stav, rows: [[pořadí, klub, Z, V,
   R, P, skóre, body]]}]` (`stav` 'p' průběžná, 'n' nedohráno – covid 2019/20 a 2020/21); sekce Ligové tabulky (umístění,
   klik rozbalí celou tabulku). Řádek Vnorov musí sedět s výsledky zápasů (16. 11. 2026 sedí 21/21).
+- **Kanadské bodování:** dokument `statistiky/asistence`, pole `data` = JSON `[{id zápasu, d, a: [[minuta gólu, kdo přihrál,
+  nejisté]]}]` z Michalovy vlastní evidence (FAČR asistence nevede) – zatím A tým 2025/26 (PDF `OSOBNI\fotbal\dokumenty\
+  Vnorovy-statistiky-sezony.pdf`, 34 asistencí, kolo 15 Vojkovice přiřazení nejisté). Zápas se záznamem = `m.asist`; sekce
+  Kanadské bodování (G, A, body, G/90, A/90, B/90, min/bod) bere góly a minuty jen z těchto zápasů; rekordy Nejvíc asistencí
+  a Kanadské body, asistence na kartě hráče a v zápisu. Ověřeno proti PDF na číslo (tým 25 720 min, 38 G, 34 A).
 - **Rodinné góly:** sekce a rekord podle stejného příjmení (příbuzenství ověřené není); jména zapsaná různě (bez háčku, y/i,
   pořadí slov) sjednocuje `sjednotJmena()`.
 - Tým se pozná ze soutěže (dorost) a z názvu Vnorov v zápise (B tým má v názvu „B“); pohár podle hráčů v sestavě.

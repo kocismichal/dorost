@@ -188,6 +188,11 @@
 .st-card--y { background: #f5c518; }
 .st-card--r { background: var(--danger); }
 
+/* --- kanadské bodování --- */
+.st-kb__n { color: var(--text); font-weight: 800; text-decoration: none; }
+.st-kb__n:hover { color: var(--accent); }
+.st-kb__sum td { background: var(--bg-soft); font-weight: 800; }
+
 /* --- ligové tabulky a rodiny --- */
 .st-dim { color: var(--dim); font-weight: 600; }
 .st-misto { font-size: 15px; }
@@ -205,6 +210,9 @@
 .st-zlink:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
+    .st-kb th:nth-child(3), .st-kb td:nth-child(3), .st-kb th:nth-child(8), .st-kb td:nth-child(8),
+    .st-kb th:nth-child(9), .st-kb td:nth-child(9), .st-kb th:nth-child(11), .st-kb td:nth-child(11) { display: none; }
+    .st-kb td, .st-kb th { padding: 8px 5px; }
     .st-tabs td, .st-tabs th { padding: 8px 5px; }
     .st-liga td, .st-liga th { padding: 7px 4px; }
     .st-tabs .ptable__num, .st-liga .ptable__num { width: auto; }
