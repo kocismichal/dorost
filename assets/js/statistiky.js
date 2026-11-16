@@ -94,7 +94,7 @@ function asistence(seznam) {
         if (!m) continue;
         m.asist = 1;
         for (const [min, kdo, nej, oprava] of z.a || []) {
-            const g = m.g.find(g => g[1] === +min && !g[3] && !g[4] && !g[6]);
+            const g = m.g.find(g => g[1] === +min && !g[3] && !g[4] && !g[6]) || m.g.find(g => g[1] === +min && g[3] && !g[4]);
             if (!g) continue;
             if (oprava) { g[6] = g[0]; g[0] = String(oprava); }        // střelec opravený podle Michala, g[6] = jméno ze zápisu FAČR
             if (kdo) { g[4] = String(kdo); g[5] = nej ? 1 : 0; }
@@ -246,11 +246,12 @@ function compute(matches, old = []) {
             if (im && im.c && !im.row[1]) p.subGoals++;
         }
         if (m.asist) for (const g of m.g) {
-            if (g[3]) continue;
-            get(g[0]).kbG++;
+            if (!g[3]) get(g[0]).kbG++;
             if (!g[4]) continue;
             const a = get(g[4]);
-            a.assists++; a.prihral[g[0]] = (a.prihral[g[0]] || 0) + 1;
+            a.assists++;
+            if (g[3]) continue;                          // vlastní gól soupeře: asistence ano, „přihrál komu“ ne
+            a.prihral[g[0]] = (a.prihral[g[0]] || 0) + 1;
             const s = get(g[0]); s.odKoho[g[4]] = (s.odKoho[g[4]] || 0) + 1;
         }
         for (const [n, , , own] of (m.ga || [])) if (own && inMatch.has(n)) get(n).og++;
@@ -576,7 +577,7 @@ function renderRecords(ms, rod) {
     ms.forEach(m => (m.g || []).forEach(g => { if (!g[3] && (!late || g[1] > late.g[1])) late = { g, m }; }));
     if (late) add("🕐", "Nejpozdější gól", st.players.get(late.g[0]), `${late.g[1]}. minuta`, `${kratce(late.m.o)}, ${czd(late.m.d)}`, { zapasy: [late.m], otevrit: true }, "od 2020/21");
     if ((p = top("assists"))) add("🅰️", "Nejvíc asistencí", p, `${p.assists} asistencí`, p.kb ? `${p.kb} kanadských bodů` : "",
-        { zapasy: ms.filter(m => m.g.some(g => g[4] === p.name)), kdo: ms.filter(m => m.g.some(g => g[4] === p.name)).map(m => m.g.filter(g => g[4] === p.name).map(g => `🅰️ ${g[1]}' → ${g[0]}`).join(", ")) }, "vlastní evidence");
+        { zapasy: ms.filter(m => m.g.some(g => g[4] === p.name)), kdo: ms.filter(m => m.g.some(g => g[4] === p.name)).map(m => m.g.filter(g => g[4] === p.name).map(g => `🅰️ ${g[1]}' → ${g[0]}${g[3] ? " (vlastní gól soupeře)" : ""}`).join(", ")) }, "vlastní evidence");
     if ((p = top("kb"))) add("🍁", "Kanadské body", p, `${p.kb} bodů`, `${p.kbG} G + ${p.assists} A`);
     if ((p = top("zk"))) add("🟨", "Nejvíc žlutých", p, `${p.zk} žlutých`, p.ck ? `${p.ck}× červená` : "",
         { zapasy: ms.filter(m => { const r = rowOf(m, p.name); return r && (r[3] != null || r[4] != null); }) });
