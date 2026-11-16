@@ -594,7 +594,7 @@ function renderKanadske(ms) {
     const sec = document.getElementById("kanadskeSec");
     sec.hidden = !sMs.length;
     if (!sMs.length) return;
-    const P = [...st.players.values()].filter(p => p.kb || p.kbMin).sort((a, b) => b.kb - a.kb || (b.kb / (b.kbMin || 1)) - (a.kb / (a.kbMin || 1)) || b.kbG - a.kbG);
+    const P = [...st.players.values()].filter(p => p.kb || p.kbMin).sort((a, b) => b.kb - a.kb || b.kbG - a.kbG || (b.kb / (b.kbMin || 1)) - (a.kb / (a.kbMin || 1)));   // při shodě bodů víc gólů, pak lepší B/90
     const f = (x, d = 2) => x ? (Math.round(x * 10 ** d) / 10 ** d).toLocaleString("cs-CZ", { minimumFractionDigits: d }) : "–";
     const sum = k => P.reduce((a, p) => a + p[k], 0);
     const seas = [...new Set(sMs.map(m => `${TEAMS[m.t]} ${seasonLbl(m.s)}`))].join(", ");
