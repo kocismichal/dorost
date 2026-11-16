@@ -13,7 +13,7 @@ const TEAMS = { A: "A tým", B: "B tým", D: "Dorost" };
 const MIN_PRO_POMER = 300;          // od kolika minut ukazovat góly na 90 min
 const DELKA = 90;                   // délka zápasu (dospělí i starší dorost)
 
-const st = { matches: [], team: "all", season: "all", q: "", sort: "min", dir: -1, players: new Map() };
+const st = { matches: [], old: [], team: "all", season: "all", comp: "all", q: "", sort: "min", dir: -1, players: new Map() };
 
 /* ------------------------------------------------------------ načtení ---- */
 
@@ -23,12 +23,13 @@ whenReady(async () => {
         let upd = "";
         snap.forEach(d => {
             const x = d.data();
-            if (!x.data) return;
-            JSON.parse(x.data).forEach(m => st.matches.push(m));
+            if (x.souhrny) JSON.parse(x.souhrny).forEach(o => st.old.push(o));
+            if (x.data) JSON.parse(x.data).forEach(m => st.matches.push(m));
             if (x.aktualizovano && x.aktualizovano > upd) upd = x.aktualizovano;
         });
-        st.matches.forEach(m => { m.t = teamOf(m); });
+        st.matches.forEach(m => { m.t = teamOf(m); m.u = uroven(m.c); });
         pohary();
+        st.old.forEach(o => { o.t = teamOf(o); o.u = uroven(o.c); });
         st.matches.sort((a, b) => (a.d || "").localeCompare(b.d || ""));
         document.getElementById("updInfo").textContent = upd ? "aktualizováno " + new Date(upd).toLocaleDateString("cs-CZ") : "";
         setStatus("online");
@@ -57,6 +58,27 @@ function pohary() {
     });
 }
 
+/** Soutěž sjednocená přes přejmenování (od 2025/26 se krajské a okresní třídy jmenují „N. liga“). */
+function uroven(c) {
+    c = c || "";
+    if (/dorost/i.test(c)) {
+        const druh = /mladší/i.test(c) ? "ml. dorost" : "dorost";
+        if (/4\. liga|krajský přebor|KP/i.test(c)) return `Krajský přebor – ${druh}`;
+        if (/5\. liga|I\.\s*tř|I\.\s*A|krajská/i.test(c)) return `Krajská soutěž – ${druh}`;
+        return `Okresní přebor – ${druh}`;
+    }
+    if (/pohár/i.test(c)) return /krajsk/i.test(c) ? "Krajský pohár" : "Okresní pohár";
+    if (/5\. liga|krajský přebor/i.test(c)) return "Krajský přebor (5. liga)";
+    if (/9\. liga|III/.test(c)) return "III. třída (9. liga)";      // před I.A/I.B – „III.A“ obsahuje „I.A“
+    if (/IV\./.test(c)) return "IV. třída";
+    if (/6\. liga|I\.\s*A/.test(c)) return "I.A třída (6. liga)";
+    if (/7\. liga|I\.\s*B/.test(c)) return "I.B třída (7. liga)";
+    if (/8\. liga|OP muži|okresní přebor/i.test(c)) return "Okresní přebor (8. liga)";
+    return c;
+}
+const UROVNE_PORADI = ["Krajský přebor (5. liga)", "I.A třída (6. liga)", "I.B třída (7. liga)", "Okresní přebor (8. liga)", "III. třída (9. liga)", "IV. třída", "Krajský pohár", "Okresní pohár"];
+const poradi = u => { const i = UROVNE_PORADI.indexOf(u); return i < 0 ? 50 + u.charCodeAt(0) : i; };
+
 const seasonLbl = s => `${s}/${String((s + 1) % 100).padStart(2, "0")}`;
 const czd = iso => { if (!iso) return ""; const [y, mo, d] = iso.split("-"); return `${+d}. ${+mo}. ${y}`; };
 const fmt = n => n.toLocaleString("cs-CZ");
@@ -79,7 +101,7 @@ function cas(row) {
 function vysledek(m) { return m.f == null ? null : m.f > m.a ? "V" : m.f === m.a ? "R" : "P"; }
 
 /** Spočítá statistiky všech hráčů pro zvolený filtr. */
-function compute(matches) {
+function compute(matches, old = []) {
     const P = new Map();
     const get = (n) => {
         if (!P.has(n)) P.set(n, {
@@ -136,6 +158,15 @@ function compute(matches) {
             get(n).perMatch.push({ m, c: im ? im.c : null, row: im ? im.row : null, g: (m.g || []).filter(x => x[0] === n && !x[3]) });
         }
     }
+    /* starší sezóny jen ze statistik soutěží: góly do 2019/20, karty do 2022/23 (dřív nejsou sestavy) */
+    for (const o of old) for (const [n, g, zk, ck] of o.rows) {
+        const goals = o.s < 2020 ? g : 0, karty = o.s < 2023;
+        if (!goals && !(karty && (zk || ck)) && !P.has(n) && o.s >= 2020) continue;
+        const p = get(n);
+        p.teams.add(o.t); p.seasons.add(o.s);
+        p.goals += goals; p.oldGoals = (p.oldGoals || 0) + goals;
+        if (karty) { p.zk += zk; p.ck += ck; }
+    }
     for (const p of P.values()) {
         p.g90 = p.min >= MIN_PRO_POMER ? p.goalsLu * 90 / p.min : null;
         p.posMain = Object.entries(p.pos).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
@@ -143,9 +174,9 @@ function compute(matches) {
     return P;
 }
 
-function filtered() {
-    return st.matches.filter(m => (st.team === "all" || m.t === st.team) && (st.season === "all" || m.s === +st.season));
-}
+const vyber = x => (st.team === "all" || x.t === st.team) && (st.season === "all" || x.s === +st.season) && (st.comp === "all" || x.u === st.comp);
+function filtered() { return st.matches.filter(vyber); }
+function filteredOld() { return st.old.filter(vyber); }
 
 /* ----------------------------------------------------------- filtry ---- */
 
@@ -154,7 +185,11 @@ function buildFilters() {
     const opts = [["all", "Všechny týmy"], ...Object.entries(TEAMS)];
     seg.innerHTML = opts.map(([k, l]) => `<button type="button" data-k="${k}" class="${k === st.team ? "is-on" : ""}">${l}</button>`).join("");
     seg.onclick = (e) => { const b = e.target.closest("button"); if (!b) return; st.team = b.dataset.k; seg.querySelectorAll("button").forEach(x => x.classList.toggle("is-on", x === b)); renderOverview(); };
-    const seasons = [...new Set(st.matches.map(m => m.s))].sort((a, b) => b - a);
+    const seasons = [...new Set([...st.matches, ...st.old].map(m => m.s))].sort((a, b) => b - a);
+    const comps = [...new Set([...st.matches, ...st.old].map(m => m.u))].sort((a, b) => poradi(a) - poradi(b) || a.localeCompare(b, "cs"));
+    const cs = document.getElementById("compSel");
+    cs.innerHTML = `<option value="all">Všechny soutěže</option>` + comps.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    cs.onchange = () => { st.comp = cs.value; renderOverview(); };
     const sel = document.getElementById("seasonSel");
     sel.innerHTML = `<option value="all">Všechny sezóny</option>` + seasons.map(s => `<option value="${s}">${seasonLbl(s)}</option>`).join("");
     sel.onchange = () => { st.season = sel.value; renderOverview(); };
@@ -174,7 +209,7 @@ function route() {
 
 function renderOverview() {
     const ms = filtered();
-    st.players = compute(ms);
+    st.players = compute(ms, filteredOld());
     document.getElementById("loadInfo").hidden = true;
     ["teamsSec", "recordsSec", "tableSec"].forEach(id => document.getElementById(id).hidden = false);
     renderTeams(ms);
@@ -276,17 +311,28 @@ const POZICE = { B: "brankář", O: "obránce", Z: "záložník", Ú: "útoční
 
 function renderPlayer(id) {
     const el = document.getElementById("viewPlayer");
-    const all = compute(st.matches);
+    const all = compute(st.matches, st.old);
     const p = [...all.values()].find(x => x.id === id);
     if (!p) { el.innerHTML = `<a class="st-back" href="#">← Zpět na přehled</a><p class="st-empty">Hráč nenalezen.</p>`; return; }
 
-    // po sezónách a týmech
-    const bySeason = new Map();
-    for (const s of [...p.seasons].sort((a, b) => b - a)) for (const t of Object.keys(TEAMS)) {
-        const ms = st.matches.filter(m => m.s === s && m.t === t);
-        const x = compute(ms).get(p.name);
-        if (x && (x.apps || x.goals || x.bench)) bySeason.set(s + t, { s, t, x, lu: ms.some(m => (m.lu || []).length) });
-    }
+    // po sezónách, týmech a soutěžích + součet za každou soutěž
+    const klice = new Map();
+    p.perMatch.forEach(({ m }) => klice.set(`${m.s}|${m.t}|${m.u}`, { s: m.s, t: m.t, u: m.u }));
+    st.old.forEach(o => { if (o.rows.some(r => r[0] === p.name)) klice.set(`${o.s}|${o.t}|${o.u}`, { s: o.s, t: o.t, u: o.u }); });
+    const radek = (fm, fo) => {
+        const ms = st.matches.filter(fm), os = st.old.filter(fo);
+        const x = compute(ms, os).get(p.name);
+        return x && (x.apps || x.goals || x.bench || x.zk || os.length) ? { x, lu: ms.some(m => (m.lu || []).length) } : null;
+    };
+    const bySeason = [...klice.values()].sort((a, b) => b.s - a.s || a.t.localeCompare(b.t) || poradi(a.u) - poradi(b.u))
+        .map(k => ({ ...k, ...(radek(m => m.s === k.s && m.t === k.t && m.u === k.u, o => o.s === k.s && o.t === k.t && o.u === k.u) || {}) }))
+        .filter(r => r.x);
+    const urovne = [...new Set(bySeason.map(r => r.u))].sort((a, b) => poradi(a) - poradi(b));
+    const byComp = urovne.map(u => {
+        const rs = bySeason.filter(r => r.u === u);
+        const z = radek(m => m.u === u, o => o.u === u);
+        return { u, sez: new Set(rs.map(r => r.s)).size, x: z.x, lu: rs.some(r => r.lu), vsechnyLu: rs.every(r => r.lu) };
+    });
 
     // tým s ním a bez něj (jen zápasy se sestavou, v týmech, kde hrál)
     const luMs = st.matches.filter(m => (m.lu || []).length && p.teams.has(m.t) && p.seasons.has(m.s));
@@ -339,7 +385,7 @@ function renderPlayer(id) {
     <div class="st-tiles">
         ${tile(p.apps || "–", "zápasů", p.apps ? `${p.starts} v základu · ${p.subIn} střídal` : "sestavy jsou od 2023/24")}
         ${tile(p.min ? fmt(p.min) : "–", "minut", p.apps ? `${Math.round(p.min / p.apps)} min na zápas` : "")}
-        ${tile(p.goals, "gólů", p.pens ? `${p.pens} z penalty` : "")}
+        ${tile(p.goals, "gólů", [p.oldGoals ? `${p.oldGoals} před 2020/21` : "", p.pens ? `${p.pens} z penalty` : ""].filter(Boolean).join(" · "))}
         ${tile(p.g90 != null ? r1(p.g90) : "–", "gólů na 90 min", p.goalsLu && p.min ? `gól každých ${Math.round(p.min / p.goalsLu)} min` : "")}
         ${tile(p.full, "celých 90 minut")}
         ${tile(`${p.zk} / ${p.ck}`, "žluté / červené")}
@@ -349,12 +395,25 @@ function renderPlayer(id) {
         <section class="st-box">
             <h3>Po sezónách</h3>
             <div class="archive__scroll"><table class="ptable st-small">
-                <thead><tr><th>Sezóna</th><th>Tým</th><th class="ptable__num">Z</th><th class="ptable__num">Zákl.</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">ŽK</th></tr></thead>
-                <tbody>${[...bySeason.values()].map(({ s, t, x, lu }) => `<tr><td>${seasonLbl(s)}</td><td>${TEAMS[t]}</td>
-                    <td class="ptable__num">${lu ? x.apps : "?"}</td><td class="ptable__num">${lu ? x.starts : "?"}</td>
-                    <td class="ptable__num">${lu ? fmt(x.min) : "?"}</td><td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${lu ? x.zk : "?"}</td></tr>`).join("")}</tbody>
+                <thead><tr><th>Sezóna</th><th>Soutěž</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">ŽK</th></tr></thead>
+                <tbody>${bySeason.map(({ s, t, u, x, lu }) => `<tr><td>${seasonLbl(s)}</td>
+                    <td><span class="st-chip st-chip--${t}">${t === "D" ? "Dor" : t}</span> ${esc(u)}</td>
+                    <td class="ptable__num">${lu ? x.apps : "?"}</td>
+                    <td class="ptable__num">${lu ? fmt(x.min) : "?"}</td><td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${x.zk}</td></tr>`).join("")}</tbody>
             </table></div>
-            <p class="st-note">„?“ = v zápisech té sezóny ještě nejsou sestavy, známe jen střelce.</p>
+            <p class="st-note">„?“ = zápisy té sezóny nemají sestavy. Do 2019/20 jsou góly a karty ze statistik soutěže, 2020/21–2022/23 góly ze zápisů a karty ze statistik soutěže.</p>
+        </section>
+
+        <section class="st-box">
+            <h3>Podle soutěže</h3>
+            <div class="archive__scroll"><table class="ptable st-small">
+                <thead><tr><th>Soutěž</th><th class="ptable__num">Sezón</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">G/90</th></tr></thead>
+                <tbody>${byComp.map(({ u, sez, x, lu, vsechnyLu }) => `<tr><td>${esc(u)}</td><td class="ptable__num">${sez}</td>
+                    <td class="ptable__num">${lu ? x.apps + (vsechnyLu ? "" : "+") : "?"}</td>
+                    <td class="ptable__num">${lu ? fmt(x.min) + (vsechnyLu ? "" : "+") : "?"}</td>
+                    <td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${x.g90 != null ? r1(x.g90) : "–"}</td></tr>`).join("")}</tbody>
+            </table></div>
+            <p class="st-note">„+“ = část sezón té soutěže je bez sestav, skutečný počet je vyšší. G/90 jen ze zápasů se sestavou.</p>
         </section>
 
         <section class="st-box">
