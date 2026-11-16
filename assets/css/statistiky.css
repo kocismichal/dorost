@@ -44,6 +44,39 @@
 .st-fbar .st-seg button { padding: 7px 11px; }
 .st-fbar .st-search { min-height: 36px; min-width: 160px; }
 
+/* --- lepivá lišta filtrů (kompaktní řádky, čipy se posouvají do strany) --- */
+.st-fbar { position: sticky; top: 0; z-index: 60; box-shadow: 0 4px 12px -8px rgba(16, 20, 26, .25); }
+.st-fbar__in { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 6px; padding: 8px 22px; }
+.st-frow { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.st-flbl { flex: none; width: 92px; font-size: 10.5px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; flex-direction: column; gap: 1px; }
+.st-flbl .st-link { text-transform: none; letter-spacing: 0; text-align: left; }
+.st-chips--row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding-bottom: 2px; min-width: 0; flex: 1; }
+.st-chips--row .st-cchip { flex: none; padding: 5px 10px; }
+.st-cchip--g { background: var(--ink); border-color: var(--ink); color: #fff; }
+.st-cchip--g.is-on { background: var(--accent); border-color: var(--accent); }
+.st-chips__sep { flex: none; width: 1px; background: var(--line); margin: 2px 2px; }
+.st-frow .st-search { min-height: 34px; max-width: 260px; margin-left: auto; }
+.st-frow .st-seg { flex: none; }
+
+/* --- levá lišta se sekcemi --- */
+.st-layout { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 26px; align-items: start; }
+.st-layout.is-hrac { display: block; }
+.st-main { min-width: 0; }
+.st-side { position: sticky; top: calc(var(--fbar-h, 150px) + 14px); }
+.st-side__btn { display: none; }
+.st-side__list { display: flex; flex-direction: column; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px; box-shadow: var(--shadow); }
+.st-side__list a { padding: 7px 10px; border-radius: 8px; color: var(--text-soft); font-size: 13px; font-weight: 700; text-decoration: none; }
+.st-side__list a:hover { background: var(--bg-soft); color: var(--text); }
+.st-side__list a.is-on { background: var(--accent-tint); color: var(--accent); }
+.section { scroll-margin-top: calc(var(--fbar-h, 150px) + 12px); }
+@media (max-width: 1100px) {
+    .st-layout { display: block; }
+    .st-side { position: fixed; left: 12px; bottom: 14px; top: auto; z-index: 70; }
+    .st-side__btn { display: block; border: 0; background: var(--ink); color: #fff; font-weight: 800; font-size: 13px; padding: 10px 14px; border-radius: 22px; box-shadow: var(--shadow-up); cursor: pointer; }
+    .st-side__list { display: none; position: absolute; bottom: 48px; left: 0; width: 210px; max-height: 70vh; overflow-y: auto; }
+    .st-side.is-open .st-side__list { display: flex; }
+}
+
 /* --- popis výběru --- */
 .st-popis { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px; padding: 12px 16px; box-shadow: var(--shadow); }
 .st-popis__t { font-weight: 900; font-size: 15px; }
@@ -293,8 +326,10 @@
     .st-zrow__d { grid-column: 1 / -1; }
     .st-zrow .st-chip { display: none; }
     .st-modal { padding: 16px; }
-    .st-fbar__in { padding: 10px 12px; }
-    .st-fbar__in > .st-ftile { flex: 1 1 100%; }
+    .st-fbar__in { padding: 6px 12px; gap: 5px; }
+    .st-flbl { width: 64px; font-size: 9.5px; }
+    .st-frow:first-child { flex-wrap: wrap; }
+    .st-frow .st-search { max-width: none; flex: 1; min-width: 120px; margin-left: 0; }
     .st-fbar .st-search { width: 100%; }
     .st-hero { padding: 16px; gap: 12px; }
     .st-hero__av { width: 56px; height: 56px; font-size: 20px; }

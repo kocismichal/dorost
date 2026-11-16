@@ -294,6 +294,52 @@ function filteredOld() { return st.old.filter(vyber); }
 
 /* ----------------------------------------------------------- filtry ---- */
 
+/* rychlé skupiny soutěží (úrovně): kraj = I.B třída a výš, okres = okresní přebor a níž, dorost */
+const SKUPINY = {
+    "I.B a výš": c => /^(Krajský přebor \(|I\.A |I\.B |Krajský pohár)/.test(c),
+    "Okres": c => /^(Okresní přebor \(|III\. |IV\. |Okresní pohár)/.test(c),
+    "Dorost": c => / – (ml\. )?dorost$/.test(c)
+};
+
+/* ------------------------------------------------- levá lišta sekcí ---- */
+
+const SEKCE = [["teamsSec", "Týmy"], ["recordsSec", "Rekordy"], ["tableSec", "Všichni hráči"], ["kanadskeSec", "Kanadské bodování"],
+    ["brankariSec", "Brankáři"], ["plusminusSec", "+/− na hřišti"], ["seasonTopSec", "Góly za sezónu"], ["rodinySec", "Rodinné góly"], ["tabulkySec", "Ligové tabulky"]];
+
+function renderNav() {
+    const nav = document.getElementById("sideNav");
+    nav.innerHTML = `<button type="button" class="st-side__btn" aria-expanded="false">☰ Sekce</button><div class="st-side__list">
+        <a href="#" data-sek="top">↑ Nahoru (filtry)</a>
+        ${SEKCE.filter(([id]) => !document.getElementById(id).hidden).map(([id, l]) => `<a href="#" data-sek="${id}">${l}</a>`).join("")}</div>`;
+    nav.onclick = (e) => {
+        if (e.target.closest(".st-side__btn")) { nav.classList.toggle("is-open"); return; }
+        const a = e.target.closest("[data-sek]"); if (!a) return;
+        e.preventDefault(); nav.classList.remove("is-open");
+        if (a.dataset.sek === "top") { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+        const sec = document.getElementById(a.dataset.sek);
+        const det = sec.querySelector("details"); if (det) det.open = true;         // sbalenou sekci rovnou rozbalit
+        sec.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    hlidejSekce();
+}
+
+/** Výška lepivých filtrů → odsazení sekcí při skoku a pozice levé lišty; zvýraznění sekce, kde právě jsem. */
+let pozorovatel = null;
+function hlidejSekce() {
+    const bar = document.getElementById("filterBar");
+    const nastav = () => document.documentElement.style.setProperty("--fbar-h", (bar.hidden ? 0 : bar.offsetHeight) + "px");
+    nastav();
+    if (!window.__fbarHlidac) { window.__fbarHlidac = 1; window.addEventListener("resize", nastav); }
+    if (pozorovatel) pozorovatel.disconnect();
+    pozorovatel = new IntersectionObserver((zaznamy) => {
+        zaznamy.forEach(z => {
+            if (!z.isIntersecting) return;
+            document.querySelectorAll("#sideNav [data-sek]").forEach(a => a.classList.toggle("is-on", a.dataset.sek === z.target.id));
+        });
+    }, { rootMargin: "-30% 0px -60% 0px" });
+    SEKCE.forEach(([id]) => { const s = document.getElementById(id); if (s && !s.hidden) pozorovatel.observe(s); });
+}
+
 function buildFilters() {
     const seg = document.getElementById("teamSeg");
     const opts = [["all", "Všechny"], ...Object.entries(TEAMS)];
@@ -310,12 +356,25 @@ function buildFilters() {
         [...st.comps].forEach(c => { if (!comps.includes(c)) st.comps.delete(c); });
         st.allSeasons = seasons;
         sChips.innerHTML = seasons.map(s => `<button type="button" class="st-cchip st-cchip--s ${st.seasons.has(s) ? "is-on" : ""}" data-s="${s}">${seasonLbl(s)}</button>`).join("");
-        cChips.innerHTML = comps.map(c => `<button type="button" class="st-cchip ${st.comps.has(c) ? "is-on" : ""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+        const skupiny = Object.entries(SKUPINY).map(([nazev, f]) => [nazev, comps.filter(f)]).filter(([, cs]) => cs.length);
+        const stejne = cs => cs.length === st.comps.size && cs.every(c => st.comps.has(c));
+        cChips.innerHTML = skupiny.map(([nazev, cs]) => `<button type="button" class="st-cchip st-cchip--g ${stejne(cs) ? "is-on" : ""}" data-g="${esc(nazev)}" title="${esc(cs.join(", "))}">${esc(nazev)}</button>`).join("")
+            + `<span class="st-chips__sep"></span>`
+            + comps.map(c => `<button type="button" class="st-cchip ${st.comps.has(c) ? "is-on" : ""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+        st.skupinyAkt = Object.fromEntries(skupiny);
     };
     window.__drawChips = drawChips;
     drawChips();
     sChips.onclick = (e) => { const b = e.target.closest("button"); if (!b) return; const s = +b.dataset.s; st.seasons.has(s) ? st.seasons.delete(s) : st.seasons.add(s); drawChips(); renderOverview(); };
-    cChips.onclick = (e) => { const b = e.target.closest("button"); if (!b) return; const c = b.dataset.c; st.comps.has(c) ? st.comps.delete(c) : st.comps.add(c); drawChips(); renderOverview(); };
+    cChips.onclick = (e) => {
+        const b = e.target.closest("button"); if (!b) return;
+        if (b.dataset.g) {                                  // skupina: zapne právě její soutěže, druhý klik zruší
+            const cs = st.skupinyAkt[b.dataset.g] || [];
+            const uz = cs.length === st.comps.size && cs.every(c => st.comps.has(c));
+            st.comps = new Set(uz ? [] : cs);
+        } else { const c = b.dataset.c; st.comps.has(c) ? st.comps.delete(c) : st.comps.add(c); }
+        drawChips(); renderOverview();
+    };
     document.getElementById("seasonAll").onclick = () => { st.seasons.clear(); drawChips(); renderOverview(); };
     document.getElementById("compAll").onclick = () => { st.comps.clear(); drawChips(); renderOverview(); };
     document.getElementById("searchInp").oninput = (e) => { st.q = e.target.value.trim().toLowerCase(); renderTable(); };
@@ -327,6 +386,8 @@ function route() {
     const m = location.hash.match(/^#hrac=(.+)$/);
     const ov = document.getElementById("viewOverview"), pv = document.getElementById("viewPlayer");
     document.getElementById("filterBar").hidden = !!m;
+    document.getElementById("sideNav").hidden = !!m;
+    document.getElementById("stLayout").classList.toggle("is-hrac", !!m);
     if (m) { ov.hidden = true; pv.hidden = false; let id = m[1]; try { id = decodeURIComponent(id); } catch { /* poškozený odkaz → „Hráč nenalezen“ */ } renderPlayer(id); window.scrollTo(0, 0); }
     else { pv.hidden = true; ov.hidden = false; renderOverview(); }
 }
@@ -352,6 +413,7 @@ function renderOverview() {
     renderPlusMinus(ms);
     renderRodiny(rod);
     renderTable();
+    renderNav();
 }
 
 /* ------------------------------------------- rozkliknutí a zápis ---- */

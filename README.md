@@ -218,6 +218,9 @@ po sezónách, kdy dává góly, tým s ním a bez něj, zajímavosti, všechny 
   mívá N); góly dané/obdržené v době na hřišti (minuta > příchod, ≤ odchod, do konce včetně nastavení), čisté konto = celý
   zápas bez obdrženého gólu. Ověřeno proti PDF A 2025/26 na číslo (Havelka 16/15/1 365/27/4, Motyčka 11/975/34; +/− hráčů).
   Na kartě hráče řádek „když byl na hřišti“.
+- **Ovládání:** lišta filtrů je lepivá (zůstává nahoře při rolování, čipy sezón a soutěží se posouvají do strany), ve
+  soutěžích rychlé skupiny „I.B a výš“ (KP, I.A, I.B, krajský pohár), „Okres“ (OP, III., IV., okresní pohár), „Dorost“;
+  vlevo lepivá lišta sekcí (na úzké obrazovce tlačítko „☰ Sekce“ dole), sbalenou sekci při skoku rozbalí.
 - **Rekordy:** přepínač Přehled / TOP 3 (pamatuje se v prohlížeči), shoda na 1. místě = všichni (sdílená místa 1., 1., 3.);
   klik → okno s pořadím TOP 5 (rozbalit do 10.), u rekordů za zápas TOP 10 zápasů se zápisem.
 - **Rodinné góly:** sbalená sekce pro zajímavost a rekord podle příjmení; potvrzené rodiny v dokumentu `statistiky/rodiny` (pole `data` = JSON {příjmení: [jména]} – u nich se počítají jen vypsaní, štítek „rodina“), ostatní jen „stejné příjmení“; jména zapsaná různě (bez háčku, y/i,

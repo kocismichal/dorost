@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/statistiky.css?v=17">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=19">
 </head>
 <body>
 
@@ -39,30 +39,30 @@
     </div>
 </nav>
 
-<!-- filtry jako samostatná lišta s dlaždicemi -->
+<!-- filtry: lišta, která při rolování zůstává nahoře -->
 <div class="st-fbar" id="filterBar">
     <div class="st-fbar__in">
-        <div class="st-ftile">
-            <div class="st-ftile__l">Tým</div>
-            <div class="st-seg" id="teamSeg"></div>
-        </div>
-        <div class="st-ftile st-ftile--wide st-ftile--s">
-            <div class="st-ftile__l">Sezóny <button type="button" class="st-link" id="seasonAll">všechny</button></div>
-            <div class="st-chips" id="seasonChips"></div>
-        </div>
-        <div class="st-ftile st-ftile--wide">
-            <div class="st-ftile__l">Soutěže <button type="button" class="st-link" id="compAll">vybrat vše</button></div>
-            <div class="st-chips" id="compChips"></div>
-        </div>
-        <div class="st-ftile">
-            <div class="st-ftile__l">Hráč</div>
+        <div class="st-frow">
+            <span class="st-flbl">Tým</span>
+            <div class="st-seg st-seg--sm" id="teamSeg"></div>
             <input id="searchInp" class="st-select st-search" type="search" placeholder="Hledat hráče…" aria-label="Hledat hráče">
+        </div>
+        <div class="st-frow">
+            <span class="st-flbl">Sezóny <button type="button" class="st-link" id="seasonAll">všechny</button></span>
+            <div class="st-chips st-chips--row" id="seasonChips"></div>
+        </div>
+        <div class="st-frow">
+            <span class="st-flbl">Soutěže <button type="button" class="st-link" id="compAll">všechny</button></span>
+            <div class="st-chips st-chips--row" id="compChips"></div>
         </div>
     </div>
 </div>
 
 <main class="wrap">
 
+    <div class="st-layout" id="stLayout">
+    <nav class="st-side" id="sideNav" aria-label="Sekce stránky"></nav>
+    <div class="st-main">
     <!-- ====================================================== přehled -->
     <div id="viewOverview">
         <section class="section">
@@ -137,6 +137,9 @@
         </section>
     </div>
 
+    </div>
+    </div>
+
     <!-- ===================================================== karta hráče -->
     <div id="viewPlayer" hidden></div>
 
@@ -148,6 +151,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/statistiky.js?v=23"></script>
+<script type="module" src="assets/js/statistiky.js?v=24"></script>
 </body>
 </html>
