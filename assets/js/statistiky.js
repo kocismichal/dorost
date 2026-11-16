@@ -13,7 +13,7 @@ const TEAMS = { A: "A tým", B: "B tým", D: "Dorost" };
 const MIN_PRO_POMER = 300;          // od kolika minut ukazovat góly na 90 min
 const DELKA = 90;                   // délka zápasu (dospělí i starší dorost)
 
-const st = { matches: [], old: [], tables: [], tabTeam: "all", team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
+const st = { matches: [], old: [], tables: [], rodiny: {}, tabTeam: "all", team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
 
 /* ------------------------------------------------------------ načtení ---- */
 
@@ -24,6 +24,7 @@ whenReady(async () => {
         snap.forEach(d => {
             const x = d.data();
             try {                                         // jeden poškozený dokument nesmí shodit celou stránku
+                if (d.id === "rodiny") { const r = JSON.parse(x.data || "{}"); if (r && typeof r === "object") st.rodiny = r; return; }
                 if (d.id === "asistence") { asist = JSON.parse(x.data || "[]"); st.asistZdroj = String(x.zdroj || ""); return; }
                 if (d.id === "is" && x.souhrny) is = JSON.parse(x.souhrny).filter(c => c && Array.isArray(c.rows));
                 if (d.id === "tabulky" && x.tabulky) st.tables = JSON.parse(x.tabulky);
@@ -619,8 +620,11 @@ const kdoDal = kdo => Object.entries(kdo).filter(x => x[1]).sort((a, b) => b[1] 
 /** Příjmení s víc hráči ve výběru: hráči, součty a zápasy, kde byli aspoň dva (na hřišti nebo mezi střelci). */
 function rodiny(ms) {
     const R = new Map();
+    /* u příjmení, která jsou v dokumentu `rodiny`, se počítají jen tam vypsaní hráči (potvrzená rodina) */
+    const clen = n => { const pot = st.rodiny[prijmeni(n)]; return !Array.isArray(pot) || pot.includes(n); };
     for (const p of st.players.values()) {
         if (!p.apps && !p.goals) continue;
+        if (!clen(p.name)) continue;
         const k = prijmeni(p.name);
         if (!R.has(k)) R.set(k, { k, hraci: [], zapasy: [] });
         R.get(k).hraci.push(p);
@@ -628,7 +632,7 @@ function rodiny(ms) {
     for (const [k, r] of R) if (r.hraci.length < 2) R.delete(k);
     for (const m of ms) {
         const by = {};                                   // příjmení → {hráč: góly v zápase}
-        const pridej = (n, g) => { const k = prijmeni(n); if (R.has(k)) { by[k] = by[k] || {}; by[k][n] = (by[k][n] || 0) + g; } };
+        const pridej = (n, g) => { const k = prijmeni(n); if (R.has(k) && clen(n)) { by[k] = by[k] || {}; by[k][n] = (by[k][n] || 0) + g; } };
         (m.lu || []).forEach(row => { if (cas(row)) pridej(row[0], 0); });
         (m.g || []).forEach(g => { if (!g[3]) pridej(g[0], 1); });
         for (const [k, kdo] of Object.entries(by)) {
@@ -639,19 +643,20 @@ function rodiny(ms) {
     return [...R.values()].map(r => {
         r.hraci.sort((a, b) => b.goals - a.goals || b.apps - a.apps);
         r.zapasy.sort((a, b) => b.g - a.g || b.strelcu - a.strelcu || (b.m.d || "").localeCompare(a.m.d || ""));
-        return { ...r, goly: r.hraci.reduce((a, p) => a + p.goals, 0), apps: r.hraci.reduce((a, p) => a + p.apps, 0) };
-    }).sort((a, b) => b.goly - a.goly || b.apps - a.apps);
+        return { ...r, overeno: Array.isArray(st.rodiny[r.k]), goly: r.hraci.reduce((a, p) => a + p.goals, 0), apps: r.hraci.reduce((a, p) => a + p.apps, 0) };
+    }).sort((a, b) => b.overeno - a.overeno || b.goly - a.goly || b.apps - a.apps);
 }
 
 function renderRodiny(rod) {
     document.getElementById("rodinySec").hidden = !rod.length;
+    document.getElementById("rodinyPocet").textContent = rod.length ? `${rod.length} příjmení` : "";
     document.getElementById("rodiny").innerHTML = `<table class="ptable st-small">
         <thead><tr><th>Příjmení</th><th>Hráči (góly)</th><th class="ptable__num">Góly</th><th class="ptable__num">Zápasů</th><th>Nejlepší společný zápas</th></tr></thead>
         <tbody>${rod.map(r => {
             const spolu = r.zapasy.filter(z => z.g);
             const b = spolu[0];
             if (b) DETAIL.push({ titul: `${r.k} – společné zápasy s gólem (${spolu.length})`, zapasy: spolu.slice(0, 40).map(z => z.m), kdo: spolu.slice(0, 40).map(z => `${kdoDal(z.kdo)} = ${goly(z.g)}`) });
-            return `<tr><td><b>${esc(r.k)}</b></td>
+            return `<tr><td><b>${esc(r.k)}</b><br><span class="st-rod ${r.overeno ? "is-ok" : ""}">${r.overeno ? "rodina" : "stejné příjmení"}</span></td>
             <td class="st-rodina">${r.hraci.map(p => `<a href="#hrac=${encodeURIComponent(p.id)}">${esc(krestni(p.name))}</a> <small>${p.goals}</small>`).join(", ")}</td>
             <td class="ptable__num ptable__points">${r.goly}</td><td class="ptable__num">${r.apps}</td>
             <td>${b ? `<button type="button" class="st-zlink" data-det="${DETAIL.length - 1}">${goly(b.g)} (${esc(kdoDal(b.kdo))}) · ${esc(kratce(b.m.o))} ${b.m.f}:${b.m.a}, ${czd(b.m.d)}</button>` : `<span class="st-dim">–</span>`}</td></tr>`;

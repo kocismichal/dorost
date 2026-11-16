@@ -188,10 +188,16 @@
 .st-card--y { background: #f5c518; }
 .st-card--r { background: var(--danger); }
 
+/* číselné sloupce: záhlaví zarovnané doprava stejně jako čísla (.ptable th má jinak text-align: left) */
+.ptable th.ptable__num { text-align: right; }
+.st-rod { display: inline-block; margin-top: 3px; padding: 1px 7px; border-radius: 20px; font-size: 10.5px; font-weight: 800; background: var(--bg-soft); border: 1px solid var(--line); color: var(--muted); }
+.st-rod.is-ok { background: var(--ok-tint); border-color: #b7e2c9; color: var(--ok-dark); }
+
 /* --- kanadské bodování --- */
 .st-kb__n { color: var(--text); font-weight: 800; text-decoration: none; }
 .st-kb__n:hover { color: var(--accent); }
 .st-kb__sum td { background: var(--bg-soft); font-weight: 800; }
+@media (min-width: 641px) { .st-kb td:nth-child(2), .st-table td:first-child { white-space: nowrap; } }
 
 /* --- ligové tabulky a rodiny --- */
 .st-fold { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 0 16px; }

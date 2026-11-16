@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/statistiky.css?v=11">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=13">
 </head>
 <body>
 
@@ -105,9 +105,11 @@
         </section>
 
         <section class="section" id="rodinySec" hidden>
-            <div class="section-head"><h2>Rodinné góly – stejné příjmení</h2>
-                <p>Příjmení, která ve výběru nosí víc hráčů. Příbuzenství ověřené není, jde jen o shodu příjmení. Společný zápas = aspoň dva z nich na hřišti nebo mezi střelci (sestavy jsou v zápisech od 2023/24, střelci od 2020/21).</p></div>
-            <div class="table-card"><div class="archive__scroll" id="rodiny"></div></div>
+            <details class="st-fold">
+                <summary><span class="st-fold__h">Rodinné góly</span> <span class="st-fold__n" id="rodinyPocet"></span> <span class="st-fold__n">· pro zajímavost</span><span class="st-fold__x">▾</span></summary>
+                <p class="st-fold__p">Hráči se stejným příjmením. „Rodina“ = potvrzené příbuzenství, u ostatních jde jen o shodu příjmení. Společný zápas = aspoň dva z nich na hřišti nebo mezi střelci (sestavy jsou v zápisech od 2023/24, střelci od 2020/21).</p>
+                <div class="table-card"><div class="archive__scroll" id="rodiny"></div></div>
+            </details>
         </section>
 
         <section class="section" id="tabulkySec" hidden>
@@ -131,6 +133,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/statistiky.js?v=12"></script>
+<script type="module" src="assets/js/statistiky.js?v=14"></script>
 </body>
 </html>
