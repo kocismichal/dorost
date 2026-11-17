@@ -13,7 +13,7 @@ const TEAMS = { A: "A tým", B: "B tým", D: "Dorost" };
 const MIN_PRO_POMER = 300;          // od kolika minut ukazovat góly na 90 min
 const DELKA = 90;                   // délka zápasu (dospělí i starší dorost)
 
-const st = { matches: [], old: [], tables: [], rodiny: {}, recMode: (() => { try { return localStorage.getItem("statRecMode") || "prehled"; } catch { return "prehled"; } })(), tabTeam: "all", team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
+const st = { matches: [], old: [], tables: [], rodiny: {}, recMode: (() => { try { return localStorage.getItem("statRecMode") || "prehled"; } catch { return "prehled"; } })(), tabTeam: "all", benfika: [], bfSez: null, bfCast: "vse", bfSort: "b", bfOtevreny: null, team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
 
 /* ------------------------------------------------------------ načtení ---- */
 
@@ -25,6 +25,7 @@ whenReady(async () => {
             const x = d.data();
             try {                                         // jeden poškozený dokument nesmí shodit celou stránku
                 if (d.id === "rodiny") { const r = JSON.parse(x.data || "{}"); if (r && typeof r === "object") st.rodiny = r; return; }
+                if (d.id === "benfika") { const b = JSON.parse(x.benfika || "[]"); if (Array.isArray(b)) st.benfika = b; return; }
                 if (d.id === "asistence") { asist = JSON.parse(x.data || "[]"); st.asistZdroj = String(x.zdroj || ""); return; }
                 if (d.id === "is" && x.souhrny) is = JSON.parse(x.souhrny).filter(c => c && Array.isArray(c.rows));
                 if (d.id === "tabulky" && x.tabulky) st.tables = JSON.parse(x.tabulky);
@@ -303,7 +304,7 @@ const SKUPINY = {
 
 /* ------------------------------------------------- levá lišta sekcí ---- */
 
-const SEKCE = [["teamsSec", "Týmy"], ["recordsSec", "Rekordy"], ["tableSec", "Všichni hráči"], ["kanadskeSec", "Kanadské bodování"],
+const SEKCE = [["teamsSec", "Týmy"], ["recordsSec", "Rekordy"], ["tableSec", "Všichni hráči"], ["kanadskeSec", "Kanadské bodování"], ["benfikaSec", "Benfika – evidence"],
     ["brankariSec", "Brankáři"], ["plusminusSec", "+/− na hřišti"], ["seasonTopSec", "Góly za sezónu"], ["rodinySec", "Rodinné góly"], ["tabulkySec", "Ligové tabulky"]];
 
 function renderNav() {
@@ -409,6 +410,7 @@ function renderOverview() {
     renderRecords(ms, rod);
     renderSeasonTop(ms, filteredOld());
     renderKanadske(ms);
+    renderBenfika();
     renderBrankari(ms);
     renderPlusMinus(ms);
     renderRodiny(rod);
@@ -804,6 +806,90 @@ function renderKanadske(ms) {
         <th class="ptable__num">G/90</th><th class="ptable__num">A/90</th><th class="ptable__num">B/90</th><th class="ptable__num">Min/bod</th></tr></thead>
         <tbody>${P.filter(p => p.kb).map((p, i) => radek(`<td class="ptable__rank">${i + 1}</td>`, `<a class="st-kb__n" href="#hrac=${encodeURIComponent(p.id)}">${esc(p.name)}</a>`, p.kbApps, p.kbMin, p.kbG, p.assists, p.kb)).join("")}
         ${radek("<td></td>", "<b>Celkem tým</b>", sMs.length, sum("kbMin"), sum("kbG"), sum("assists"), sum("kb"), "st-kb__sum")}</tbody></table>`;
+}
+
+/* ------------------------------------- Benfika – Michalova evidence ----
+   Dokument statistiky/benfika (pole `benfika` = JSON): sezóny → části (podzim, jaro) → soupeři a hráči
+   { n, b: body po zápasech (null = nehrál), min: minuty po zápasech, bil: [V, R, P], g, a, zk, ck }.
+   Body a minuty jsou z Michalových Excelů, ne ze zápisů – proto samostatná sekce. */
+
+const klicJmena = n => String(n || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().split(/\s+/).filter(Boolean).sort().join(" ");
+let JMENA_WEBU = null;    // klíč jména → jméno, jak ho zná zbytek stránky (pro odkaz na kartu hráče)
+function jmenoWebu(n) {
+    if (!JMENA_WEBU) {
+        JMENA_WEBU = new Map();
+        st.matches.forEach(m => { (m.lu || []).forEach(r => JMENA_WEBU.set(klicJmena(r[0]), r[0])); (m.g || []).forEach(g => JMENA_WEBU.set(klicJmena(g[0]), g[0])); });
+    }
+    return JMENA_WEBU.get(klicJmena(n)) || null;
+}
+
+/** Hráči vybrané části (vse = podzim + jaro sečtené). */
+function benfikaHraci(sez, cast) {
+    const casti = sez.casti.filter((c, i) => cast === "vse" || String(i) === cast);
+    const P = new Map();
+    casti.forEach(c => c.hraci.forEach(h => {
+        const k = klicJmena(h.n);
+        const p = P.get(k) || { n: h.n, z: 0, min: 0, b: 0, g: 0, a: 0, v: 0, r: 0, p: 0, zk: 0, ck: 0, zapasy: [] };
+        (h.b || []).forEach((b, i) => {
+            const min = (h.min || [])[i] || 0;
+            const hral = b !== null && b !== undefined;
+            if (hral) { p.z++; p.b += b; }
+            if (hral || min) p.zapasy.push({ c: c.nazev, s: c.zapasy[i], b: hral ? b : null, min });
+        });
+        p.min += (h.min || []).reduce((a, x) => a + (x || 0), 0);
+        p.g += h.g || 0; p.a += h.a || 0; p.zk += h.zk || 0; p.ck += h.ck || 0;
+        if (Array.isArray(h.bil)) { p.v += h.bil[0]; p.r += h.bil[1]; p.p += h.bil[2]; }
+        P.set(k, p);
+    }));
+    return [...P.values()];
+}
+
+function renderBenfika() {
+    const sec = document.getElementById("benfikaSec");
+    const sezony = st.benfika.filter(s => s && Array.isArray(s.casti) && (!st.seasons.size || st.seasons.has(s.s)));
+    sec.hidden = !(sezony.length && (st.team === "all" || st.team === "B"));
+    if (sec.hidden) return;
+    if (!sezony.some(s => s.s === st.bfSez)) st.bfSez = sezony[sezony.length - 1].s;
+    const sez = sezony.find(s => s.s === st.bfSez);
+    if (st.bfCast !== "vse" && !sez.casti[+st.bfCast]) st.bfCast = "vse";
+    const P = benfikaHraci(sez, st.bfCast);
+    const klice = { b: p => p.b, z: p => p.z, min: p => p.min, g: p => p.g, a: p => p.a, ga: p => p.g + p.a, prum: p => (p.z ? p.b / p.z : -99), n: null };
+    const kl = klice[st.bfSort];
+    P.sort((x, y) => kl ? (kl(y) - kl(x) || y.b - x.b || x.n.localeCompare(y.n, "cs")) : x.n.localeCompare(y.n, "cs"));
+    const seg = (pol, akt, attr) => pol.map(([k, l]) => `<button type="button" data-${attr}="${k}" class="${String(k) === String(akt) ? "is-on" : ""}">${esc(l)}</button>`).join("");
+    const sum = k => P.reduce((a, p) => a + p[k], 0);
+    const th = (k, l, num = true) => `<th class="${num ? "ptable__num " : ""}st-bf__th${st.bfSort === k ? " is-on" : ""}" data-bfsort="${k}">${l}</th>`;
+    const radky = P.map((p, i) => {
+        const web = jmenoWebu(p.n);
+        const jm = web ? `<a class="st-kb__n" href="#hrac=${encodeURIComponent(slug(web))}">${esc(p.n)}</a>` : `<span class="st-kb__n">${esc(p.n)}</span>`;
+        const otevreny = st.bfOtevreny === klicJmena(p.n);
+        const detail = otevreny ? `<tr class="st-bf__det"><td colspan="11"><div class="st-bf__zapasy">${p.zapasy.map(z =>
+            `<span class="st-bf__z${z.b === null ? " is-nehral" : z.b > 0 ? " is-plus" : z.b < 0 ? " is-minus" : ""}"><small>${esc(z.c.split(" ")[0])}</small> ${esc(z.s)}
+             <b>${z.b === null ? "–" : z.b === 0 ? "0" : pm(z.b)}</b><small>${z.min ? z.min + "′" : ""}</small></span>`).join("")}</div></td></tr>` : "";
+        return `<tr class="st-bf__radek${otevreny ? " is-open" : ""}" data-bfhrac="${esc(klicJmena(p.n))}"><td class="ptable__rank">${i + 1}</td><td>${jm} <span class="st-bf__sip">${otevreny ? "▴" : "▾"}</span></td>
+            <td class="ptable__num">${p.z}</td><td class="ptable__num">${fmt(p.min)}</td><td class="ptable__num">${p.g}</td><td class="ptable__num">${p.a}</td>
+            <td class="ptable__num">${p.g + p.a}</td><td class="ptable__num ptable__points">${p.b === 0 ? "0" : pm(p.b)}</td><td class="ptable__num">${p.z ? f2(p.b / p.z, 1) : "–"}</td>
+            <td class="ptable__num st-bf__vrp">${p.v}–${p.r}–${p.p}</td><td class="ptable__num">${p.zk ? `<span class="st-bf__k st-bf__k--y">${p.zk}</span>` : ""}${p.ck ? `<span class="st-bf__k st-bf__k--r">${p.ck}</span>` : ""}</td></tr>${detail}`;
+    }).join("");
+    const vybraneCasti = st.bfCast === "vse" ? sez.casti : [sez.casti[+st.bfCast]];
+    const zap = vybraneCasti.reduce((a, c) => a + c.zapasy.length, 0);
+    const pohar = vybraneCasti.some(c => c.zapasy.some(z => /\(P\)/.test(z)));
+    document.getElementById("benfikaPopis").textContent = `Benfika (B tým) ${seasonLbl(sez.s)} podle tvé evidence – ${zap} zápasů${pohar ? " (P = pohár)" : ""}. Body = tvoje hodnocení hráčů po zápasech; góly, asistence a karty z tvých souhrnů. Řadit jde klikem na záhlaví, klik na hráče ukáže body a minuty po zápasech.`;
+    document.getElementById("benfikaVolby").innerHTML = `<div class="st-seg st-seg--sm">${seg(sezony.map(s => [s.s, seasonLbl(s.s)]), st.bfSez, "bfsez")}</div>
+        <div class="st-seg st-seg--sm">${seg([["vse", "Celá sezóna"], ...sez.casti.map((c, i) => [i, c.nazev])], st.bfCast, "bfcast")}</div>`;
+    document.getElementById("benfika").innerHTML = `<table class="ptable st-small st-bf">
+        <thead><tr><th>#</th>${th("n", "Hráč", false)}${th("z", "Z")}${th("min", "Min")}${th("g", "G")}${th("a", "A")}${th("ga", "G+A")}${th("b", "Body")}${th("prum", "Ø")}<th class="ptable__num">V–R–P</th><th class="ptable__num">Karty</th></tr></thead>
+        <tbody>${radky}<tr class="st-kb__sum"><td></td><td><b>Celkem</b></td><td class="ptable__num">${zap}</td><td class="ptable__num">${fmt(sum("min"))}</td><td class="ptable__num">${sum("g")}</td>
+        <td class="ptable__num">${sum("a")}</td><td class="ptable__num">${sum("g") + sum("a")}</td><td></td><td></td><td></td><td class="ptable__num">${sum("zk") || sum("ck") ? `${sum("zk")} ŽK · ${sum("ck")} ČK` : ""}</td></tr></tbody></table>`;
+    sec.onclick = (e) => {
+        const b = e.target.closest("[data-bfsez], [data-bfcast], [data-bfsort], [data-bfhrac]");
+        if (!b || e.target.closest("a")) return;
+        if (b.dataset.bfsez) { st.bfSez = +b.dataset.bfsez; st.bfCast = "vse"; st.bfOtevreny = null; }
+        else if (b.dataset.bfcast) st.bfCast = b.dataset.bfcast;
+        else if (b.dataset.bfsort) st.bfSort = b.dataset.bfsort;
+        else st.bfOtevreny = st.bfOtevreny === b.dataset.bfhrac ? null : b.dataset.bfhrac;
+        renderBenfika();
+    };
 }
 
 /* ------------------------------------------ rodiny (stejné příjmení) ---- */
