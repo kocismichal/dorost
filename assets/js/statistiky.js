@@ -13,7 +13,7 @@ const TEAMS = { A: "A tým", B: "B tým", D: "Dorost" };
 const MIN_PRO_POMER = 300;          // od kolika minut ukazovat góly na 90 min
 const DELKA = 90;                   // délka zápasu (dospělí i starší dorost)
 
-const st = { matches: [], old: [], tables: [], rodiny: {}, recMode: (() => { try { return localStorage.getItem("statRecMode") || "prehled"; } catch { return "prehled"; } })(), tabTeam: "all", benfika: [], bfSez: null, bfCast: "vse", bfSort: "b", bfOtevreny: null, team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
+const st = { matches: [], old: [], tables: [], rodiny: {}, recMode: (() => { try { return localStorage.getItem("statRecMode") || "prehled"; } catch { return "prehled"; } })(), tabTeam: "all", benfika: [], bfSez: null, bfCast: "vse", bfSort: "ga", bfOtevreny: null, team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "min", dir: -1, players: new Map() };
 
 /* ------------------------------------------------------------ načtení ---- */
 
@@ -811,7 +811,8 @@ function renderKanadske(ms) {
 /* ------------------------------------- Benfika – Michalova evidence ----
    Dokument statistiky/benfika (pole `benfika` = JSON): sezóny → části (podzim, jaro) → soupeři a hráči
    { n, b: body po zápasech (null = nehrál), min: minuty po zápasech, bil: [V, R, P], g, a, zk, ck }.
-   Body a minuty jsou z Michalových Excelů, ne ze zápisů – proto samostatná sekce. */
+   Minuty jsou z Michalových Excelů a jsou přesné (béčko a dorost střídají hokejově a zápis střídání nemá), proto se tady
+   počítá G/90, A/90 a (G+A)/90 z nich. Body z Excelu se ukládají, ale na stránce se nepoužívají (Michal: „zajímají jen góly a asistence“). */
 
 const klicJmena = n => String(n || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().split(/\s+/).filter(Boolean).sort().join(" ");
 let JMENA_WEBU = null;    // klíč jména → jméno, jak ho zná zbytek stránky (pro odkaz na kartu hráče)
@@ -853,9 +854,12 @@ function renderBenfika() {
     const sez = sezony.find(s => s.s === st.bfSez);
     if (st.bfCast !== "vse" && !sez.casti[+st.bfCast]) st.bfCast = "vse";
     const P = benfikaHraci(sez, st.bfCast);
-    const klice = { b: p => p.b, z: p => p.z, min: p => p.min, g: p => p.g, a: p => p.a, ga: p => p.g + p.a, prum: p => (p.z ? p.b / p.z : -99), n: null };
+    const na90 = (x, min) => (min >= MIN_PRO_POMER ? x * 90 / min : -1);
+    const klice = { z: p => p.z, min: p => p.min, g: p => p.g, a: p => p.a, ga: p => p.g + p.a, g90: p => na90(p.g, p.min), a90: p => na90(p.a, p.min),
+        b90: p => na90(p.g + p.a, p.min), mb: p => (p.g + p.a ? -p.min / (p.g + p.a) : -1e9), n: null };
     const kl = klice[st.bfSort];
-    P.sort((x, y) => kl ? (kl(y) - kl(x) || y.b - x.b || x.n.localeCompare(y.n, "cs")) : x.n.localeCompare(y.n, "cs"));
+    P.sort((x, y) => kl ? (kl(y) - kl(x) || (y.g + y.a) - (x.g + x.a) || y.g - x.g || y.min - x.min || x.n.localeCompare(y.n, "cs")) : x.n.localeCompare(y.n, "cs"));
+    const p90 = (x, min) => (min >= MIN_PRO_POMER ? f2(x * 90 / min) : "–");
     const seg = (pol, akt, attr) => pol.map(([k, l]) => `<button type="button" data-${attr}="${k}" class="${String(k) === String(akt) ? "is-on" : ""}">${esc(l)}</button>`).join("");
     const sum = k => P.reduce((a, p) => a + p[k], 0);
     const th = (k, l, num = true) => `<th class="${num ? "ptable__num " : ""}st-bf__th${st.bfSort === k ? " is-on" : ""}" data-bfsort="${k}">${l}</th>`;
@@ -863,24 +867,25 @@ function renderBenfika() {
         const web = jmenoWebu(p.n);
         const jm = web ? `<a class="st-kb__n" href="#hrac=${encodeURIComponent(slug(web))}">${esc(p.n)}</a>` : `<span class="st-kb__n">${esc(p.n)}</span>`;
         const otevreny = st.bfOtevreny === klicJmena(p.n);
-        const detail = otevreny ? `<tr class="st-bf__det"><td colspan="11"><div class="st-bf__zapasy">${p.zapasy.map(z =>
-            `<span class="st-bf__z${z.b === null ? " is-nehral" : z.b > 0 ? " is-plus" : z.b < 0 ? " is-minus" : ""}"><small>${esc(z.c.split(" ")[0])}</small> ${esc(z.s)}
-             <b>${z.b === null ? "–" : z.b === 0 ? "0" : pm(z.b)}</b><small>${z.min ? z.min + "′" : ""}</small></span>`).join("")}</div></td></tr>` : "";
+        const detail = otevreny ? `<tr class="st-bf__det"><td colspan="13"><div class="st-bf__zapasy">${p.zapasy.map(z =>
+            `<span class="st-bf__z${z.min ? "" : " is-nehral"}"><small>${esc(z.c.split(" ")[0])}</small> ${esc(z.s)} <b>${z.min ? z.min + "′" : "–"}</b></span>`).join("")}</div></td></tr>` : "";
         return `<tr class="st-bf__radek${otevreny ? " is-open" : ""}" data-bfhrac="${esc(klicJmena(p.n))}"><td class="ptable__rank">${i + 1}</td><td>${jm} <span class="st-bf__sip">${otevreny ? "▴" : "▾"}</span></td>
             <td class="ptable__num">${p.z}</td><td class="ptable__num">${fmt(p.min)}</td><td class="ptable__num">${p.g}</td><td class="ptable__num">${p.a}</td>
-            <td class="ptable__num">${p.g + p.a}</td><td class="ptable__num ptable__points">${p.b === 0 ? "0" : pm(p.b)}</td><td class="ptable__num">${p.z ? f2(p.b / p.z, 1) : "–"}</td>
+            <td class="ptable__num ptable__points">${p.g + p.a}</td><td class="ptable__num">${p90(p.g, p.min)}</td><td class="ptable__num">${p90(p.a, p.min)}</td>
+            <td class="ptable__num"><b>${p90(p.g + p.a, p.min)}</b></td><td class="ptable__num">${p.g + p.a ? fmt(Math.round(p.min / (p.g + p.a))) : "–"}</td>
             <td class="ptable__num st-bf__vrp">${p.v}–${p.r}–${p.p}</td><td class="ptable__num">${p.zk ? `<span class="st-bf__k st-bf__k--y">${p.zk}</span>` : ""}${p.ck ? `<span class="st-bf__k st-bf__k--r">${p.ck}</span>` : ""}</td></tr>${detail}`;
     }).join("");
     const vybraneCasti = st.bfCast === "vse" ? sez.casti : [sez.casti[+st.bfCast]];
     const zap = vybraneCasti.reduce((a, c) => a + c.zapasy.length, 0);
     const pohar = vybraneCasti.some(c => c.zapasy.some(z => /\(P\)/.test(z)));
-    document.getElementById("benfikaPopis").textContent = `Benfika (B tým) ${seasonLbl(sez.s)} podle tvé evidence – ${zap} zápasů${pohar ? " (P = pohár)" : ""}. Body = tvoje hodnocení hráčů po zápasech; góly, asistence a karty z tvých souhrnů. Řadit jde klikem na záhlaví, klik na hráče ukáže body a minuty po zápasech.`;
+    document.getElementById("benfikaPopis").textContent = `Benfika (B tým) ${seasonLbl(sez.s)} podle tvé evidence – ${zap} zápasů${pohar ? " (P = pohár)" : ""}. Minuty jsou přesné z tvé evidence (zápisy u béčka nemají střídání – střídá se hokejově), proto jsou tady přepočty na 90 minut spolehlivější než v tabulce Všichni hráči. G/90, A/90 a (G+A)/90 od ${MIN_PRO_POMER} minut. Řadit jde klikem na záhlaví, klik na hráče ukáže minuty po zápasech.`;
     document.getElementById("benfikaVolby").innerHTML = `<div class="st-seg st-seg--sm">${seg(sezony.map(s => [s.s, seasonLbl(s.s)]), st.bfSez, "bfsez")}</div>
         <div class="st-seg st-seg--sm">${seg([["vse", "Celá sezóna"], ...sez.casti.map((c, i) => [i, c.nazev])], st.bfCast, "bfcast")}</div>`;
     document.getElementById("benfika").innerHTML = `<table class="ptable st-small st-bf">
-        <thead><tr><th>#</th>${th("n", "Hráč", false)}${th("z", "Z")}${th("min", "Min")}${th("g", "G")}${th("a", "A")}${th("ga", "G+A")}${th("b", "Body")}${th("prum", "Ø")}<th class="ptable__num">V–R–P</th><th class="ptable__num">Karty</th></tr></thead>
+        <thead><tr><th>#</th>${th("n", "Hráč", false)}${th("z", "Z")}${th("min", "Min")}${th("g", "G")}${th("a", "A")}${th("ga", "G+A")}${th("g90", "G/90")}${th("a90", "A/90")}${th("b90", "(G+A)/90")}${th("mb", "Min/bod")}<th class="ptable__num">V–R–P</th><th class="ptable__num">Karty</th></tr></thead>
         <tbody>${radky}<tr class="st-kb__sum"><td></td><td><b>Celkem</b></td><td class="ptable__num">${zap}</td><td class="ptable__num">${fmt(sum("min"))}</td><td class="ptable__num">${sum("g")}</td>
-        <td class="ptable__num">${sum("a")}</td><td class="ptable__num">${sum("g") + sum("a")}</td><td></td><td></td><td></td><td class="ptable__num">${sum("zk") || sum("ck") ? `${sum("zk")} ŽK · ${sum("ck")} ČK` : ""}</td></tr></tbody></table>`;
+        <td class="ptable__num">${sum("a")}</td><td class="ptable__num">${sum("g") + sum("a")}</td><td class="ptable__num">${p90(sum("g"), sum("min"))}</td><td class="ptable__num">${p90(sum("a"), sum("min"))}</td>
+        <td class="ptable__num"><b>${p90(sum("g") + sum("a"), sum("min"))}</b></td><td class="ptable__num">${sum("g") + sum("a") ? fmt(Math.round(sum("min") / (sum("g") + sum("a")))) : "–"}</td><td></td><td class="ptable__num">${sum("zk") || sum("ck") ? `${sum("zk")} ŽK · ${sum("ck")} ČK` : ""}</td></tr></tbody></table>`;
     sec.onclick = (e) => {
         const b = e.target.closest("[data-bfsez], [data-bfcast], [data-bfsort], [data-bfhrac]");
         if (!b || e.target.closest("a")) return;

@@ -370,7 +370,8 @@
 .st-bf__z.is-minus b { color: var(--danger); }
 .st-bf__z.is-nehral { opacity: .6; }
 @media (max-width: 640px) {
-    .st-bf th:nth-child(4), .st-bf td:nth-child(4), .st-bf th:nth-child(7), .st-bf td:nth-child(7), .st-bf th:nth-child(10), .st-bf td:nth-child(10) { display: none; }
+    .st-bf th:nth-child(3), .st-bf td:nth-child(3), .st-bf th:nth-child(8), .st-bf td:nth-child(8), .st-bf th:nth-child(9), .st-bf td:nth-child(9),
+    .st-bf th:nth-child(11), .st-bf td:nth-child(11), .st-bf th:nth-child(12), .st-bf td:nth-child(12), .st-bf th:nth-child(13), .st-bf td:nth-child(13) { display: none; }
     .st-bf td, .st-bf th { padding: 8px 5px; }
     .st-bf__det td { display: table-cell !important; }
 }
