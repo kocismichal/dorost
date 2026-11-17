@@ -38,6 +38,7 @@ whenReady(async () => {
         nactiIS(is, sjednotJmena(st.matches, is));
         st.matches.forEach(m => { m.t = teamOf(m); m.u = uroven(m.c); });
         pohary();
+        minutyEvidence();
         st.old.forEach(o => { o.t = teamOf(o); o.u = uroven(o.c); });
         st.tables.forEach(t => { t.nas = t.rows.find(r => /vnorov/i.test(r[1])); t.t = teamOf({ c: t.c, vn: t.nas ? t.nas[1] : "" }); t.u = uroven(t.c); });
         st.tables = st.tables.filter(t => t.nas);
@@ -184,13 +185,40 @@ const goly = n => `${n} ${n === 1 ? "gól" : n >= 2 && n <= 4 ? "góly" : "gól�
 
 /** Kdo kdy hrál: z řádku sestavy udělá {in, out} nebo null (jen na lavičce). */
 function cas(row) {
-    const [, start, sub, , ck] = row;
+    const [, start, sub, , ck, , , , ev] = row;
+    if (ev != null) {                                  // přesné minuty z Michalovy evidence (béčko, hokejové střídání)
+        if (!(ev > 0)) return null;
+        if (ev >= DELKA) return { tin: 0, tout: DELKA, min: ev };
+        const z = cas(row.slice(0, 8));                // okno ze zápisu jen kvůli „byl na hřišti při gólu“
+        return z && z.min < DELKA ? { tin: z.tin, tout: z.tout, min: ev } : { tin: 0, tout: ev, min: ev };
+    }
     let tin = null, tout = null;
     if (start) { tin = 0; tout = sub != null ? Math.min(sub, DELKA) : DELKA; }
     else if (sub != null) { tin = Math.min(sub, DELKA); tout = DELKA; }
     if (tin == null) return null;
     if (ck != null) tout = Math.max(tin, Math.min(tout, ck));
     return { tin, tout, min: tout - tin };
+}
+
+/** Béčko 2024/25 a dál: zápisy nemají střídání (střídá se hokejově), přesné minuty jsou v Michalově evidenci (statistiky/benfika).
+    Zápasy béčka sezóny podle data = soupeři evidence za sebou (podzim, jaro); když nesedí počet, sezóna zůstane podle zápisů.
+    Minuty jdou do řádku sestavy jako 9. položka – hráč bez minut v evidenci se bere jako nenastoupivší, chybějící se do sestavy přidá. */
+function minutyEvidence() {
+    const kl = n => klicJmena(n).replace(/y/g, "i");
+    for (const sez of st.benfika) {
+        if (!sez || !Array.isArray(sez.casti)) continue;
+        const zap = [];
+        sez.casti.forEach(c => (c.zapasy || []).forEach((o, i) => zap.push({ c, i })));
+        const B = st.matches.filter(m => m.s === +sez.s && m.t === "B" && (m.lu || []).length).sort((a, b) => a.d.localeCompare(b.d));
+        if (B.length !== zap.length) { console.warn("Benfika: sezóna", sez.s, "má", B.length, "zápasů béčka, evidence", zap.length); continue; }
+        B.forEach((m, j) => {
+            const { c, i } = zap[j], ev = new Map();
+            (c.hraci || []).forEach(h => { const x = +((h.min || [])[i]) || 0; if (x > 0) ev.set(kl(h.n), [h.n, x]); });
+            m.lu.forEach(r => { const e = ev.get(kl(r[0])); r[8] = e ? e[1] : 0; ev.delete(kl(r[0])); });
+            for (const [n, x] of ev.values()) m.lu.push([jmenoWebu(n) || String(n), 0, null, null, null, null, "", 0, x]);
+            m.minEv = 1;
+        });
+    }
 }
 
 /** V / R / P z pohledu Vnorov; pohárový zápas po remíze rozhodnou penalty (m.pen = [naše, soupeře]). */
@@ -505,7 +533,7 @@ function zapisHtml(m) {
     const hrac = r => {
         const c = cas(r);
         const g = golyHrace(m, r[0]).map(x => `⚽${esc(x[1])}'`).join(" ");
-        const stridani = r[1] ? (r[2] != null ? `↓ ${esc(r[2])}'` : "") : c ? `↑ ${esc(r[2])}'` : "nenastoupil";
+        const stridani = r[8] != null ? (c ? `${c.min}′` : "nenastoupil") : r[1] ? (r[2] != null ? `↓ ${esc(r[2])}'` : "") : c ? `↑ ${esc(r[2])}'` : "nenastoupil";
         return `<div class="st-lu"><span class="st-lu__n"><a href="#hrac=${encodeURIComponent(slug(r[0]))}" data-zavrit>${esc(r[0])}</a>${r[7] ? " ©" : ""}</span>
             <span class="st-lu__i">${stridani}${r[3] != null ? ` <span class="st-card st-card--y"></span>` : ""}${r[4] != null ? ` <span class="st-card st-card--r"></span>` : ""} ${g}</span></div>`;
     };
@@ -878,7 +906,7 @@ function renderBenfika() {
     const vybraneCasti = st.bfCast === "vse" ? sez.casti : [sez.casti[+st.bfCast]];
     const zap = vybraneCasti.reduce((a, c) => a + c.zapasy.length, 0);
     const pohar = vybraneCasti.some(c => c.zapasy.some(z => /\(P\)/.test(z)));
-    document.getElementById("benfikaPopis").textContent = `Benfika (B tým) ${seasonLbl(sez.s)} podle tvé evidence – ${zap} zápasů${pohar ? " (P = pohár)" : ""}. Minuty jsou přesné z tvé evidence (zápisy u béčka nemají střídání – střídá se hokejově), proto jsou tady přepočty na 90 minut spolehlivější než v tabulce Všichni hráči. G/90, A/90 a (G+A)/90 od ${MIN_PRO_POMER} minut. Řadit jde klikem na záhlaví, klik na hráče ukáže minuty po zápasech.`;
+    document.getElementById("benfikaPopis").textContent = `Benfika (B tým) ${seasonLbl(sez.s)} podle tvé evidence – ${zap} zápasů${pohar ? " (P = pohár)" : ""}. Minuty jsou přesné z tvé evidence (zápisy u béčka nemají střídání – střídá se hokejově); z nich počítá béčko od 2024/25 i tabulka Všichni hráči. G/90, A/90 a (G+A)/90 od ${MIN_PRO_POMER} minut. Řadit jde klikem na záhlaví, klik na hráče ukáže minuty po zápasech.`;
     document.getElementById("benfikaVolby").innerHTML = `<div class="st-seg st-seg--sm">${seg(sezony.map(s => [s.s, seasonLbl(s.s)]), st.bfSez, "bfsez")}</div>
         <div class="st-seg st-seg--sm">${seg([["vse", "Celá sezóna"], ...sez.casti.map((c, i) => [i, c.nazev])], st.bfCast, "bfcast")}</div>`;
     document.getElementById("benfika").innerHTML = `<table class="ptable st-small st-bf">
