@@ -603,3 +603,70 @@
     .st-side__hrac[data-tip]:hover::after { display: none; }
     .st-side__list a.st-side__hrac::after { content: attr(data-tip); display: block; position: static; transform: none; background: none; color: var(--muted); font-size: 11px; font-weight: 600; padding: 0; box-shadow: none; width: auto; }
 }
+
+/* v37: hráč měsíce, milníky, dvojice, doma/venku, vývoj sezóny, graf na kartě, obrázek */
+.st-mesic__volba { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 12px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.st-mesic__volba label { display: flex; gap: 8px; align-items: center; }
+.st-mesic__volba .st-select { min-height: 36px; }
+.st-mesic { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 14px; align-items: stretch; }
+.st-mesic__vit { background: var(--ink); color: #fff; border-radius: var(--radius-lg); padding: 18px 20px; border-left: 5px solid var(--accent); box-shadow: var(--shadow); }
+.st-mesic__l { font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.st-mesic__vit .st-mesic__l { color: rgba(255,255,255,.65); }
+.st-mesic__jm { font-size: 26px; font-weight: 900; margin: 4px 0 8px; }
+.st-mesic__jm a, .st-mesic__top a { color: #fff; text-decoration: none; }
+.st-mesic__cisla { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: rgba(255,255,255,.75); }
+.st-mesic__cisla b { color: #fff; font-size: 17px; }
+.st-mesic__top { margin: 12px 0 0; padding-left: 22px; font-size: 13px; color: rgba(255,255,255,.75); line-height: 1.7; counter-reset: list-item 1; }
+.st-mesic__top small { color: rgba(255,255,255,.55); }
+.st-mesic__kat { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.st-mesic__k { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); }
+.st-mesic__i { font-size: 24px; width: 42px; height: 42px; display: grid; place-items: center; background: var(--accent-tint); border-radius: 10px; flex: none; }
+.st-mesic__k b a { color: var(--text); text-decoration: none; font-size: 15px; }
+.st-mesic__k small { display: block; color: var(--muted); font-size: 12px; }
+.st-milniky { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.st-milnik { display: flex; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; text-decoration: none; color: var(--text); box-shadow: var(--shadow); }
+.st-milnik:hover { border-color: var(--accent); }
+.st-milnik__i { font-size: 22px; flex: none; }
+.st-milnik b { display: block; font-size: 14px; }
+.st-milnik__cil { display: block; color: var(--accent); font-weight: 900; font-size: 13px; }
+.st-milnik small { color: var(--muted); font-size: 12px; }
+.st-dvojice, .st-dv { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+.st-dvoj h3, .st-dv__box h3 { margin-bottom: 2px; }
+.st-dvoj .st-note { margin: 0 0 8px; }
+.st-dvoj a { color: var(--text); font-weight: 700; text-decoration: none; }
+.st-dvoj a:hover { color: var(--accent); }
+.st-dv__box td:first-child { white-space: nowrap; }
+.st-vyv { width: 100%; height: auto; display: block; }
+.st-vyv__mr { stroke: var(--line); stroke-width: 1; }
+.st-vyv__osa { font-size: 11px; fill: var(--muted); font-weight: 700; }
+.st-vyv__leg { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--text-soft); margin-bottom: 8px; }
+.st-vyv__leg i { display: inline-block; width: 14px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+#vyvojTym { margin-top: 10px; }
+.st-ig { margin-left: auto; align-self: flex-start; border: 1px solid rgba(255,255,255,.35); background: rgba(255,255,255,.08); color: #fff; font-weight: 800; font-size: 13px; padding: 9px 14px; border-radius: 10px; cursor: pointer; }
+.st-ig:hover { background: var(--accent); border-color: var(--accent); }
+.st-hv { display: flex; gap: 10px; align-items: flex-end; height: 190px; overflow-x: auto; padding-bottom: 2px; }
+.st-hv__s { flex: 1 0 44px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr auto; gap: 3px; height: 100%; }
+.st-hv__sl { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; min-height: 0; }
+.st-hv__b { width: 100%; border-radius: 5px 5px 0 0; min-height: 2px; }
+.st-hv__b--g { background: var(--accent); }
+.st-hv__b--m { background: #c9d1da; }
+.st-hv__v { font-size: 12px; font-weight: 900; color: var(--text); }
+.st-hv__v--m { font-size: 10.5px; color: var(--muted); font-weight: 700; }
+.st-hv__l { grid-column: 1 / -1; text-align: center; font-size: 11px; font-weight: 800; color: var(--muted); }
+.st-hv__k { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; }
+.st-hv__k--g { background: var(--accent); }
+.st-hv__k--m { background: #c9d1da; }
+@media (max-width: 900px) { .st-mesic { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+    .st-mesic__kat { grid-template-columns: 1fr; }
+    .st-hero { flex-wrap: wrap; }
+    .st-ig { margin-left: 0; }
+    .st-hv__s { flex-basis: 38px; }
+}
+
+.st-dvojice, .st-dv { grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+.st-mesic__top { counter-reset: none; }
+@media (max-width: 640px) {
+    .st-dv__box td:first-child { white-space: normal; }
+    .st-dv__box td, .st-dv__box th, .st-dvoj td, .st-dvoj th { padding: 7px 5px; }
+}

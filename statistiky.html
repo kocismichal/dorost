@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/statistiky.css?v=29">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=31">
 </head>
 <body>
 
@@ -83,6 +83,11 @@
         <div class="st-empty st-castempty" id="castEmpty" hidden>Pro tenhle výběr tu nic není – zkus nahoře jiný tým nebo sezónu.</div>
 
         <!-- ============================================ část: Hráči -->
+        <section class="section" id="mesicSec" data-cast="hraci" hidden>
+            <div class="section-head"><h2>Hráč měsíce</h2></div>
+            <div id="mesic"></div>
+        </section>
+
         <section class="section" id="recordsSec" data-cast="hraci" hidden>
             <div class="section-head"><h2>Rekordy hráčů</h2>
                 <p>Platí pro výběr nahoře (tým, sezóny, soutěže). Pod názvem každé dlaždice je, co rekord znamená. Klik na dlaždici ukáže pořadí a zápasy.</p>
@@ -105,10 +110,22 @@
             <div class="st-pager" id="playersPager"></div>
         </section>
 
+        <section class="section" id="milnikySec" data-cast="hraci" hidden>
+            <div class="section-head"><h2>Blížící se milníky</h2>
+                <p>Komu chybí málo do kulatého čísla – zápasy, góly a minuty za celou dobu u nás (bez ohledu na výběr nahoře), jen hráči z poslední sezóny. Klik otevře kartu.</p></div>
+            <div class="st-milniky" id="milniky"></div>
+        </section>
+
         <section class="section" id="seasonTopSec" data-cast="hraci" hidden>
             <div class="section-head"><h2>Nejvíc gólů za sezónu</h2>
                 <p>Kdo kolik nastřílel v jedné sezóně a za jaký tým. Klik na řádek otevře kartu hráče.</p></div>
             <div class="table-card"><div class="archive__scroll" id="seasonTop"></div></div>
+        </section>
+
+        <section class="section" id="dvojiceSec" data-cast="hraci" hidden>
+            <div class="section-head"><h2>Dvojice</h2>
+                <p>Kdo spolu hrál nejčastěji, se kterou dvojicí se týmu nejvíc daří a kdo komu přihrává. Pro výběr nahoře. U béčka a dorostu bez zapsaného střídání znamená „spolu“, že oba nastoupili.</p></div>
+            <div class="st-dvojice" id="dvojice"></div>
         </section>
 
         <section class="section" id="brankariSec" data-cast="hraci" hidden>
@@ -146,6 +163,12 @@
             <div class="st-records" id="teamRecords"></div>
         </section>
 
+        <section class="section" id="domaVenkuSec" data-cast="tym" hidden>
+            <div class="section-head"><h2>Doma a venku</h2>
+                <p>Bilance každého týmu doma a venku, na podzim a na jaře a proti silnějším a slabším soupeřům – pro výběr nahoře.</p></div>
+            <div id="domaVenku"></div>
+        </section>
+
         <section class="section" id="h2hSec" data-cast="tym" hidden>
             <div class="section-head"><h2>Proti soupeřům</h2>
                 <p>Jak se Vnorovům vede proti jednotlivým soupeřům – všechny zápasy ze zápisů pro výběr nahoře. Řadit jde klikem na záhlaví, klik na soupeře ukáže vzájemné zápasy a naše střelce proti němu.</p></div>
@@ -157,6 +180,13 @@
         </section>
 
         <!-- ===================================== část: Ligové tabulky -->
+        <section class="section" id="vyvojSec" data-cast="tabulky" hidden>
+            <div class="section-head"><h2>Vývoj v sezóně</h2>
+                <p>Body po jednotlivých mistrovských zápasech – jak se sezóna vyvíjela a jak si vede proti minulým.</p>
+                <div class="st-seg st-seg--sm" id="vyvojTym"></div></div>
+            <div class="st-box" id="vyvoj"></div>
+        </section>
+
         <section class="section" id="tabulkySec" data-cast="tabulky" hidden>
             <div class="section-head"><h2>Ligové tabulky <span class="st-fold__n" id="tabulkyPocet"></span></h2>
                 <p>Jak Vnorovy skončily v ligových soutěžích z výběru nahoře (bez pohárů). Klik na řádek rozbalí celou tabulku.</p>
@@ -198,6 +228,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/statistiky.js?v=36"></script>
+<script type="module" src="assets/js/statistiky.js?v=37"></script>
 </body>
 </html>
