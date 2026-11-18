@@ -42,7 +42,8 @@ function kresli() {
     const max = Math.max(1, ...dny.map(d => (DNY.find(x => x.d === d) || {}).celkem || 0));
     const graf = dny.map(d => { const x = DNY.find(y => y.d === d) || {}; const n = x.celkem || 0, u = Object.keys(x.zarizeni || {}).length;
         return `<div class="nv-sl" title="${czd(d)}: ${n} návštěv, ${u} zařízení"><b>${n || ""}</b><i style="height:${Math.round(n / max * 100)}%"></i><small>${czd(d)}</small></div>`; }).join("");
-    const radky = (o, nazvy) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<tr><td>${esc(nazvy ? nazvy[k] || k : k)}</td><td class="n"><b>${fmt(n)}</b></td></tr>`).join("");
+    const hezky = k => k.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");     // „bacik-michal“ → „Bacik Michal“ (bez háčků, jak je v odkazu)
+    const radky = (o, nazvy) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<tr><td>${nazvy === 1 ? `<a href="statistiky.html#hrac=${encodeURIComponent(k)}">${esc(hezky(k))}</a>` : esc(nazvy ? nazvy[k] || k : k)}</td><td class="n"><b>${fmt(n)}</b></td></tr>`).join("");
     document.getElementById("obsah").innerHTML = !DNY.length ? `<p class="nv-p">Zatím žádná návštěva – data přibudou, jakmile někdo web otevře.</p>` : `
         <div class="nv-tiles">
             <div class="nv-tile"><span>Návštěv</span><b>${fmt(celkem)}</b><small>${obdobi ? `za posledních ${obdobi} dní` : "od začátku počítání"}</small></div>
@@ -53,7 +54,7 @@ function kresli() {
         <div class="nv-box"><h3>Návštěvy po dnech</h3><div class="nv-graf">${graf}</div></div>
         <div class="nv-grid">
             <div class="nv-box"><h3>Stránky</h3><table><thead><tr><th>Stránka</th><th class="n">Návštěv</th></tr></thead><tbody>${radky(str, STRANKY)}</tbody></table></div>
-            ${Object.keys(karty).length ? `<div class="nv-box"><h3>Nejotevíranější karty hráčů</h3><table><thead><tr><th>Hráč</th><th class="n">Otevřeno</th></tr></thead><tbody>${radky(karty).split("</tr>").slice(0, 20).join("</tr>")}</tbody></table></div>` : ""}
+            ${Object.keys(karty).length ? `<div class="nv-box"><h3>Nejotevíranější karty hráčů</h3><table><thead><tr><th>Hráč</th><th class="n">Otevřeno</th></tr></thead><tbody>${radky(karty, 1).split("</tr>").slice(0, 20).join("</tr>")}</tbody></table></div>` : ""}
         </div>`;
     /* moje zařízení nepočítat */
     let vyp = false; try { vyp = localStorage.getItem("navstevyNepocitat") === "1"; } catch { /* nic */ }
