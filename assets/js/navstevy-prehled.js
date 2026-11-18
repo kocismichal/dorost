@@ -36,7 +36,7 @@ function kresli() {
     /* graf po dnech (i dny bez návštěv) */
     const dny = [];
     if (DNY.length) {
-        const start = obdobi ? od : DNY[0].d;
+        const start = obdobi && od > DNY[0].d ? od : DNY[0].d;      // graf až od prvního dne počítání
         for (let t = new Date(start + "T12:00"); t <= new Date(); t = new Date(t.getTime() + 864e5)) dny.push(t.toLocaleDateString("sv-SE"));
     }
     const max = Math.max(1, ...dny.map(d => (DNY.find(x => x.d === d) || {}).celkem || 0));
