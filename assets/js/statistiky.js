@@ -1541,17 +1541,8 @@ function renderPlayer(id) {
         </section>
     </div>
 
+    <div class="st-grid2 st-grid2--fakta">
     ${fakta.length ? `<section class="st-box"><h3>Zajímavosti</h3><ul class="st-facts">${fakta.map(f => `<li>${f}</li>`).join("")}</ul></section>` : ""}
-
-    ${souperi.length ? `<details class="st-box st-fold2" id="hracSouperi"><summary><h3>Proti soupeřům <small>${souperi.length} soupeřů${strelene.length ? ` · nejvíc gólů: ${strelene.slice(0, 3).map(o => `${esc(o.n)} ${o.g}`).join(", ")}` : ""}</small></h3><span class="st-fold__x">▾</span></summary>
-        <div class="archive__scroll"><table class="ptable st-small st-psouper">
-            <thead><tr><th>Soupeř</th><th class="ptable__num">Zápasy</th><th class="ptable__num">Góly</th><th class="ptable__num">V–R–P</th><th></th></tr></thead>
-            <tbody>${souperi.map(o => `<tr class="st-row" data-popp="${esc(o.n)}" tabindex="0"><td><b>${esc(o.n)}</b></td><td class="ptable__num">${o.z}</td><td class="ptable__num ptable__points">${o.g || "–"}</td>
-                <td class="ptable__num"><span class="c-plus">${o.v}</span>–${o.r}–<span class="c-minus">${o.p}</span></td><td class="st-zrow__x">▾</td></tr>`).join("")}</tbody>
-        </table></div>
-        <p class="st-note">Zápasy, kde hrál (sestavy od 2023/24) nebo dal gól (střelci od 2020/21). V–R–P = výsledky těch zápasů. Klik na soupeře ukáže zápasy.</p>
-    </details>` : ""}
-
     ${bS.z && bB.z ? `<section class="st-box st-vsbox">
         <h3>Tým s ním a bez něj <small>zápasy se sestavou v sezónách a týmech, kde hrál</small></h3>
         <div class="st-vs">
@@ -1564,6 +1555,17 @@ function renderPlayer(id) {
             (${f2((naH.gf - naH.ga) * 90 / naH.min)} na 90 min)${naH.b ? ` · v brance ${naH.bz}× · obdržel ${naH.bga} (${f2(naH.bga * 90 / naH.bmin)} na 90) · čistá konta ${naH.cista}` : ""}.</p>
             ${jenA ? "" : `<p class="st-note">⚠ U béčka a dorostu zápis střídání většinou nemá (střídá se hokejově), takže „na hřišti“ i +/− tam jsou jen odhad.</p>`}` : ""}
     </section>` : ""}
+    </div>
+
+    ${souperi.length ? `<details class="st-box st-fold2" id="hracSouperi"><summary><h3>Proti soupeřům <small>${souperi.length} soupeřů${strelene.length ? ` · nejvíc gólů: ${strelene.slice(0, 3).map(o => `${esc(o.n)} ${o.g}`).join(", ")}` : ""}</small></h3><span class="st-fold__x">▾</span></summary>
+        <div class="archive__scroll"><table class="ptable st-small st-psouper">
+            <thead><tr><th>Soupeř</th><th class="ptable__num">Zápasy</th><th class="ptable__num">Góly</th><th class="ptable__num">V–R–P</th><th></th></tr></thead>
+            <tbody>${souperi.map(o => `<tr class="st-row" data-popp="${esc(o.n)}" tabindex="0"><td><b>${esc(o.n)}</b></td><td class="ptable__num">${o.z}</td><td class="ptable__num ptable__points">${o.g || "–"}</td>
+                <td class="ptable__num"><span class="c-plus">${o.v}</span>–${o.r}–<span class="c-minus">${o.p}</span></td><td class="st-zrow__x">▾</td></tr>`).join("")}</tbody>
+        </table></div>
+        <p class="st-note">Zápasy, kde hrál (sestavy od 2023/24) nebo dal gól (střelci od 2020/21). V–R–P = výsledky těch zápasů. Klik na soupeře ukáže zápasy.</p>
+    </details>` : ""}
+
 
     <section class="st-box">
         <h3>Zápasy <small>${p.perMatch.length}</small></h3>
