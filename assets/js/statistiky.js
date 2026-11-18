@@ -19,7 +19,7 @@ const uloz = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } cat
 
 const st = { matches: [], old: [], tables: [], rodiny: {}, recMode: (() => { try { return localStorage.getItem("statRecMode") || "prehled"; } catch { return "prehled"; } })(), tabTeam: "all", benfika: [], bfSez: null, bfCast: "vse", bfSort: "ga", bfOtevreny: null, team: "all", from: null, to: null, seasons: new Set(), allSeasons: [], comps: new Set(), q: "", sort: "goals", dir: -1, players: new Map(),
     cast: ulozene("statCast", "hraci"), page: 0, perPage: ulozene("statPerPage", 20), fav: new Set(ulozene("statOblibeni", [])), cmp: ulozene("statPorovnani", []), jenFav: false,
-    gkSort: "b90", gkDir: 1, hracTym: "all", h2hSort: "z", h2hDir: -1, h2hQ: "", h2hPage: 0, mPage: 0 };
+    gkSort: "b90", gkDir: 1, hracTym: "all", psSort: "g", psDir: -1, h2hSort: "z", h2hDir: -1, h2hQ: "", h2hPage: 0, mPage: 0 };
 
 /* ------------------------------------------------------------ načtení ---- */
 
@@ -465,12 +465,13 @@ function hlidejSekce() {
     nastav();
     if (!window.__fbarHlidac) { window.__fbarHlidac = 1; window.addEventListener("resize", nastav); }
     if (pozorovatel) pozorovatel.disconnect();
+    /* zvýrazní všechny sekce, které jsou právě vidět na obrazovce (pod lepivou lištou filtrů) */
+    const vidim = new Set();
+    const nahore = bar.hidden || getComputedStyle(bar).position !== "sticky" ? 0 : bar.offsetHeight;
     pozorovatel = new IntersectionObserver((zaznamy) => {
-        zaznamy.forEach(z => {
-            if (!z.isIntersecting) return;
-            document.querySelectorAll("#sideNav [data-sek]").forEach(a => a.classList.toggle("is-on", a.dataset.sek === z.target.id));
-        });
-    }, { rootMargin: "-30% 0px -60% 0px" });
+        zaznamy.forEach(z => { if (z.isIntersecting) vidim.add(z.target.id); else vidim.delete(z.target.id); });
+        document.querySelectorAll("#sideNav [data-sek]").forEach(a => a.classList.toggle("is-on", vidim.has(a.dataset.sek)));
+    }, { rootMargin: `-${nahore}px 0px -8% 0px` });
     aktSekce().forEach(([id]) => pozorovatel.observe(document.getElementById(id)));
 }
 
@@ -584,7 +585,7 @@ document.addEventListener("keydown", (e) => {
     if (e.target.matches("[data-zap]")) prepniZapis(e.target);
     if (e.target.matches("[data-tab]")) prepniTabulku(e.target);
 });
-function zavriDetail() { const o = document.getElementById("detailOverlay"); if (o) o.classList.remove("is-open"); document.body.style.overflow = ""; }
+function zavriDetail() { const o = document.getElementById("detailOverlay"); if (o) o.classList.remove("is-open"); document.getElementById("detailBox").classList.remove("st-modal--ig"); document.body.style.overflow = ""; }
 
 const ZAP = new Map();        // id zápasu → zápas (pro rozbalení zápisu)
 function radekZapasu(m, extra = "") {
@@ -724,6 +725,9 @@ function bilance(ms) {
 
 function renderTeams(ms) {
     const el = document.getElementById("teamCards");
+    const ig = document.getElementById("teamIg");
+    ig.innerHTML = `<button type="button" class="btn btn--ghost st-ig2">📷 Obrázky týmů za sezónu ${seasonLbl(Math.max(...st.matches.map(m => m.s)))}</button>`;
+    ig.onclick = (e) => { if (e.target.closest("button")) obrazkyTymu(); };
     const os = filteredOld();
     const teams = st.team === "all" ? Object.keys(TEAMS) : [st.team];
     el.innerHTML = teams.map(t => {
@@ -1580,13 +1584,18 @@ function renderPlayer(id) {
             <div class="st-hv__l">${seasonLbl(x.s).replace(/^20/, "")}</div></div>`).join("")}</div></section>` : "";
     const poslS = Math.max(...p.seasons);
     const xs = compute(M.filter(m => m.s === poslS), O.filter(o => o.s === poslS)).get(p.name) || { apps: 0, goals: 0, min: 0, zN: 0, kbApps: 0 };
+    /* do obrázku jen týmy, kde má víc než 5 zápasů (když nikde, tak všechny) */
+    const zapTymu = t => (compute(st.matches.filter(m => m.t === t), st.old.filter(o => o.t === t)).get(p.name) || { apps: 0 }).apps;
+    const hlavni = tymy.filter(t => zapTymu(t) > 5);
     const igData = {
-        jmeno: p.name, podtitul: "Statistiky hráče" + (tym === "all" ? "" : ` · ${TEAMS[tym]}`),
-        tym: (tym === "all" ? tymy : [tym]).map(t => TEAMS[t]).join(" · ") + (p.posMain ? ` · ${POZICE[p.posMain] || p.posMain}` : ""),
-        kariera: { titul: `Kariéra u nás ${seasonLbl(Math.min(...p.seasons))} – ${seasonLbl(poslS)}`, p: [[p.apps, "zápasů"], [p.goals, "gólů"], [fmt(p.min), "minut"],
-            [p.zN ? `${p.zV}–${p.zR}–${p.zP}` : "–", "V–R–P, když hrál"], p.kbApps ? [p.assists, "asistencí"] : [p.g90 != null ? r1(p.g90) : "–", "gólů na 90 min"], [p.zk, "žlutých karet"]] },
-        sezona: { titul: `Sezóna ${seasonLbl(poslS)}`, p: [[xs.apps, "zápasů"], [xs.goals, "gólů"], [fmt(xs.min), "minut"],
-            [xs.zN ? `${xs.zV}–${xs.zR}–${xs.zP}` : "–", "V–R–P, když hrál"], xs.kbApps ? [xs.assists, "asistencí"] : [xs.apps ? Math.round(xs.min / xs.apps) : "–", "minut na zápas"], [xs.zN ? r1(xs.bz) : "–", "bodů týmu na zápas"]] }
+        nad: "Statistiky hráče" + (tym === "all" ? "" : ` · ${TEAMS[tym]}`), jmeno: p.name, soubor: `${slug(p.name)}-statistiky.png`,
+        radek: (tym !== "all" ? [tym] : hlavni.length ? hlavni : tymy).map(t => TEAMS[t]).join(" · ") + (p.posMain ? ` · ${POZICE[p.posMain] || p.posMain}` : ""),
+        bloky: [
+            { titul: "Kariéra v Agru", podtitul: `${seasonLbl(Math.min(...p.seasons))} – ${seasonLbl(poslS)}`, p: [[p.apps, "zápasů"], [p.goals, "gólů"], [fmt(p.min), "minut"],
+                [p.zN ? `${p.zV}–${p.zR}–${p.zP}` : "–", "V–R–P, když hrál"], p.kbApps ? [p.assists, "asistencí"] : [p.g90 != null ? r1(p.g90) : "–", "gólů na 90 min"], [p.zk, "žlutých karet"]] },
+            { titul: `Sezóna ${seasonLbl(poslS)}`, p: [[xs.apps, "zápasů"], [xs.goals, "gólů"], [fmt(xs.min), "minut"],
+                [xs.zN ? `${xs.zV}–${xs.zR}–${xs.zP}` : "–", "V–R–P, když hrál"], xs.kbApps ? [xs.assists, "asistencí"] : [xs.apps ? Math.round(xs.min / xs.apps) : "–", "minut na zápas"], [xs.zN ? r1(xs.bz) : "–", "bodů týmu na zápas"]] }
+        ]
     };
 
     el.innerHTML = `
@@ -1665,12 +1674,8 @@ function renderPlayer(id) {
     </div>
 
     ${souperi.length ? `<details class="st-box st-fold2" id="hracSouperi"><summary><h3>Proti soupeřům <small>${souperi.length} soupeřů${strelene.length ? ` · nejvíc gólů: ${strelene.slice(0, 3).map(o => `${esc(o.n)} ${o.g}`).join(", ")}` : ""}</small></h3><span class="st-fold__x">▾</span></summary>
-        <div class="archive__scroll"><table class="ptable st-small st-psouper">
-            <thead><tr><th>Soupeř</th><th class="ptable__num">Zápasy</th><th class="ptable__num">Góly</th><th class="ptable__num">V–R–P</th><th></th></tr></thead>
-            <tbody>${souperi.map(o => `<tr class="st-row" data-popp="${esc(o.n)}" tabindex="0"><td><b>${esc(o.n)}</b></td><td class="ptable__num">${o.z}</td><td class="ptable__num ptable__points">${o.g || "–"}</td>
-                <td class="ptable__num"><span class="c-plus">${o.v}</span>–${o.r}–<span class="c-minus">${o.p}</span></td><td class="st-zrow__x">▾</td></tr>`).join("")}</tbody>
-        </table></div>
-        <p class="st-note">Zápasy, kde hrál (sestavy od 2023/24) nebo dal gól (střelci od 2020/21). V–R–P = výsledky těch zápasů. Klik na soupeře ukáže zápasy.</p>
+        <div class="archive__scroll" id="hracSouperiTab"></div>
+        <p class="st-note">Zápasy, kde hrál (sestavy od 2023/24) nebo dal gól (střelci od 2020/21). Řadit jde klikem na záhlaví (třeba Prohry = s kým nejvíc prohrál), klik na soupeře ukáže zápasy.</p>
     </details>` : ""}
 
 
@@ -1681,6 +1686,17 @@ function renderPlayer(id) {
         <p class="st-note">@ = venku. Skóre je z pohledu Vnorov. Klik na zápas ukáže jeho zápis.</p>
     </section>`;
 
+    const kreslSouperi = () => {
+        const el2 = document.getElementById("hracSouperiTab"); if (!el2) return;
+        const K = { n: null, z: o => o.z, g: o => o.g, v: o => o.v, r: o => o.r, p: o => o.p, u: o => (o.v + o.r + o.p ? o.v / (o.v + o.r + o.p) : -1) };
+        const kl = K[st.psSort];
+        const S = [...souperi].sort((a, b) => kl ? st.psDir * (kl(a) - kl(b)) || b.z - a.z || a.n.localeCompare(b.n, "cs") : st.psDir * a.n.localeCompare(b.n, "cs"));
+        const th = (k, l, num = 1) => `<th data-pss="${k}" class="${num ? "ptable__num " : ""}st-sort ${st.psSort === k ? "is-sorted" : ""}">${l}${st.psSort === k ? (st.psDir < 0 ? " ▾" : " ▴") : ""}</th>`;
+        el2.innerHTML = `<table class="ptable st-small st-psouper"><thead><tr>${th("n", "Soupeř", 0)}${th("z", "Zápasy")}${th("g", "Góly")}${th("v", "Výhry")}${th("r", "Remízy")}${th("p", "Prohry")}${th("u", "% výher")}<th></th></tr></thead>
+            <tbody>${S.map(o => { const n = o.v + o.r + o.p; return `<tr class="st-row" data-popp="${esc(o.n)}" tabindex="0"><td><b>${esc(o.n)}</b></td><td class="ptable__num">${o.z}</td><td class="ptable__num ptable__points">${o.g || "–"}</td>
+                <td class="ptable__num c-plus">${o.v}</td><td class="ptable__num">${o.r}</td><td class="ptable__num c-minus">${o.p}</td><td class="ptable__num"><b>${n ? Math.round(o.v * 100 / n) + " %" : "–"}</b></td><td class="st-zrow__x">▾</td></tr>`; }).join("")}</tbody></table>`;
+    };
+    kreslSouperi();
     const zapasy = [...p.perMatch].reverse();
     const kreslZapasy = () => {
         const NA = 20, pages = Math.max(1, Math.ceil(zapasy.length / NA));
@@ -1697,7 +1713,7 @@ function renderPlayer(id) {
         tr.classList.add("is-open");
     };
     el.onclick = (e) => {
-        if (e.target.closest("[data-ig]")) { obrazekHrace(igData); return; }
+        if (e.target.closest("[data-ig]")) { ukazObrazky([igData], `Obrázek – ${p.name}`); return; }
         const ht = e.target.closest("[data-ht]");
         if (ht) { st.hracTym = ht.dataset.ht; const y = window.scrollY; renderPlayer(id); renderNav(); window.scrollTo(0, y); return; }
         if (e.target.closest("a, [data-zap], .st-zapis")) return;
@@ -1707,8 +1723,10 @@ function renderPlayer(id) {
             rozbal(sz, zapasy.filter(x => x.m.s === +s && x.m.t === t && x.m.u === u), 10, "Za tuhle sezónu jsou jen součty ze statistik IS FAČR – zápisy po zápasech nejsou.");
             return;
         }
+        const ps = e.target.closest("[data-pss]");
+        if (ps) { const k = ps.dataset.pss; if (st.psSort === k) st.psDir *= -1; else { st.psSort = k; st.psDir = k === "n" ? 1 : -1; } kreslSouperi(); return; }
         const so = e.target.closest("[data-popp]");
-        if (so) { rozbal(so, zapasy.filter(x => kratce(x.m.o) === so.dataset.popp && (x.c || x.g.length)), 5, ""); return; }
+        if (so) { rozbal(so, zapasy.filter(x => kratce(x.m.o) === so.dataset.popp && (x.c || x.g.length)), 8, ""); return; }
         if (e.target.closest("[data-souperi]")) { const d = document.getElementById("hracSouperi"); d.open = true; d.scrollIntoView({ behavior: "smooth", block: "start" }); }
     };
 }
@@ -1875,40 +1893,104 @@ function renderVyvoj() {
         <p class="st-note">Osa vodorovně = pořadí mistrovského zápasu v sezóně, svisle = body celkem. Najetím na bod se ukáže zápas. Nahoře vybrané sezóny (jinak poslední čtyři); umístění je z konečné nebo průběžné tabulky.</p>`;
 }
 
-/** Karta hráče jako obrázek 1080 × 1350 na Instagram (kreslí se v prohlížeči, nic se neodesílá). */
-async function obrazekHrace(d) {
-    const c = document.createElement("canvas");
-    c.width = 1080; c.height = 1350;
+/** Obrázek 1080 × 1350 na Instagram (kreslí se v prohlížeči, nic se neodesílá).
+    d = {nad, jmeno, radek, bloky: [{titul, podtitul, p: [[hodnota, popisek]]}], soubor} */
+async function kresliObrazek(d) {
+    const W = 1080, H = 1350, c = document.createElement("canvas");
+    c.width = W; c.height = H;
     const g = c.getContext("2d");
     try { await document.fonts.ready; } catch { /* bez fontů */ }
     const F = (w, s) => `${w} ${s}px Inter, Arial, sans-serif`;
-    g.fillStyle = "#14171a"; g.fillRect(0, 0, 1080, 1350);
-    g.fillStyle = "#c8102e"; g.fillRect(0, 0, 1080, 14); g.fillRect(0, 1336, 1080, 14);
-    const logo = await new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = "assets/img/logo.png"; });
-    if (logo) g.drawImage(logo, 70, 70, 120, 120);
-    g.fillStyle = "#fff"; g.font = F(900, 34); g.fillText("FK AGRO VNOROVY", 215, 120);
-    g.fillStyle = "rgba(255,255,255,.6)"; g.font = F(700, 26); g.fillText(d.podtitul, 215, 162);
-    g.fillStyle = "#fff"; g.font = F(900, d.jmeno.length > 18 ? 74 : 88); g.fillText(d.jmeno, 70, 330);
-    g.fillStyle = "#ff8a9a"; g.font = F(800, 30); g.fillText(d.tym, 70, 385);
-    const blok = (titul, polozky, y0) => {
-        g.fillStyle = "rgba(255,255,255,.55)"; g.font = F(900, 24); g.fillText(titul.toUpperCase(), 70, y0);
-        polozky.slice(0, 6).forEach(([v, l], i) => {
-            const sx = 70 + (i % 3) * 320, sy = y0 + 30 + Math.floor(i / 3) * 190;
-            g.fillStyle = "rgba(255,255,255,.07)"; g.beginPath(); g.roundRect ? g.roundRect(sx, sy, 300, 170, 22) : g.rect(sx, sy, 300, 170); g.fill();
-            g.fillStyle = "#fff"; g.font = F(900, String(v).length > 7 ? 50 : 64); g.fillText(String(v), sx + 26, sy + 92);
-            g.fillStyle = "rgba(255,255,255,.65)"; g.font = F(700, 24); g.fillText(l, sx + 26, sy + 138);
-        });
+    const stred = (text, y, font, barva, max = 960) => {          // text na střed, zmenší se, když se nevejde
+        let [w, s] = font;
+        g.font = F(w, s);
+        while (g.measureText(text).width > max && s > 14) { s -= 2; g.font = F(w, s); }
+        g.fillStyle = barva; g.textAlign = "center"; g.fillText(text, W / 2, y);
     };
-    blok(d.kariera.titul, d.kariera.p, 450);
-    blok(d.sezona.titul, d.sezona.p, 860);
-    g.fillStyle = "rgba(255,255,255,.45)"; g.font = F(700, 24); g.fillText("statistiky ze zápisů fotbal.cz · kocismichal.github.io/dorost", 70, 1300);
-    const blob = await new Promise(r => c.toBlob(r, "image/png"));
-    const jmeno = `${slug(d.jmeno)}-statistiky.png`;
-    const soubor = new File([blob], jmeno, { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [soubor] }) && /Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-        try { await navigator.share({ files: [soubor], title: d.jmeno }); return; } catch { /* zrušeno → stáhnout */ }
+    g.fillStyle = "#14171a"; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#c8102e"; g.fillRect(0, 0, W, 14); g.fillRect(0, H - 14, W, 14);
+    const logo = await new Promise(res => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = "assets/img/logo.png"; });
+    if (logo) { const h = 130, w = h * logo.naturalWidth / logo.naturalHeight; g.drawImage(logo, (W - w) / 2, 50, w, h); }   // poměr stran zachovaný
+    stred("FK AGRO VNOROVY", 230, [900, 32], "#fff");
+    stred(d.nad.toUpperCase(), 268, [800, 22], "rgba(255,255,255,.55)");
+    stred(d.jmeno, 356, [900, 84], "#fff");
+    stred(d.radek, 404, [800, 30], "#ff8a9a");
+    /* bloky dlaždic: 3 v řadě, celé svisle vycentrované do volného místa */
+    const TW = 300, TH = 150, GX = 20, GY = 18, X0 = (W - (3 * TW + 2 * GX)) / 2;
+    const vyska = b => 40 + (b.podtitul ? 34 : 0) + Math.ceil(b.p.length / 3) * (TH + GY) - GY;
+    const celkem = d.bloky.reduce((a, b) => a + vyska(b), 0) + (d.bloky.length - 1) * 46;
+    let y = 450 + Math.max(0, (H - 50 - 450 - celkem) / 2);
+    for (const b of d.bloky) {
+        stred(b.titul.toUpperCase(), y + 22, [900, 24], "rgba(255,255,255,.6)");
+        if (b.podtitul) stred(b.podtitul, y + 58, [700, 26], "#fff");
+        let ty = y + 40 + (b.podtitul ? 34 : 0);
+        b.p.forEach(([v, l], i) => {
+            const radek = Math.floor(i / 3), vRadku = Math.min(3, b.p.length - radek * 3);
+            const x = (W - (vRadku * TW + (vRadku - 1) * GX)) / 2 + (i % 3) * (TW + GX);     // neúplná řada taky na střed
+            const yy = ty + radek * (TH + GY);
+            g.fillStyle = "rgba(255,255,255,.07)"; g.beginPath(); g.roundRect ? g.roundRect(x, yy, TW, TH, 22) : g.rect(x, yy, TW, TH); g.fill();
+            const text = String(v);
+            let s = 60; g.font = F(900, s);
+            while (g.measureText(text).width > TW - 36 && s > 22) { s -= 2; g.font = F(900, s); }
+            g.fillStyle = "#fff"; g.textAlign = "center"; g.fillText(text, x + TW / 2, yy + 62 + s / 3);
+            let s2 = 22; g.font = F(700, s2);
+            while (g.measureText(l).width > TW - 24 && s2 > 14) { s2 -= 1; g.font = F(700, s2); }
+            g.fillStyle = "rgba(255,255,255,.65)"; g.fillText(l, x + TW / 2, yy + TH - 24);
+        });
+        y += vyska(b) + 46;
     }
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = jmeno; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    void X0;
+    return new Promise(r => c.toBlob(r, "image/png"));
+}
+
+/** Náhled obrázků v okně – u každého Stáhnout (a na mobilu Sdílet). */
+async function ukazObrazky(seznam, titul) {
+    const box = document.getElementById("detailBox");
+    box.classList.add("st-modal--ig");
+    box.innerHTML = `<div class="st-modal__head"><h3>${esc(titul)}</h3><button type="button" class="st-modal__x" data-zavrit aria-label="Zavřít">✕</button></div><p class="st-note">Připravuju obrázek…</p>`;
+    document.getElementById("detailOverlay").classList.add("is-open");
+    document.body.style.overflow = "hidden";
+    const hotove = [];
+    for (const d of seznam) { const blob = await kresliObrazek(d); hotove.push({ d, blob, url: URL.createObjectURL(blob) }); }
+    const lzeSdilet = f => navigator.canShare && navigator.canShare({ files: [f] }) && /Mobi|Android|iPhone/i.test(navigator.userAgent);
+    box.innerHTML = `<div class="st-modal__head"><h3>${esc(titul)}</h3><button type="button" class="st-modal__x" data-zavrit aria-label="Zavřít">✕</button></div>
+        <div class="st-ig__grid">${hotove.map((h, i) => `<figure class="st-ig__fig"><img src="${h.url}" alt="${esc(h.d.jmeno)}">
+            <figcaption><a class="btn btn--primary" href="${h.url}" download="${esc(h.d.soubor)}">⬇️ Stáhnout</a>
+            ${lzeSdilet(new File([h.blob], h.d.soubor, { type: "image/png" })) ? `<button type="button" class="btn btn--ghost" data-sdilet="${i}">Sdílet</button>` : ""}</figcaption></figure>`).join("")}</div>`;
+    box.onclick = async (e) => {
+        const b = e.target.closest("[data-sdilet]"); if (!b) return;
+        const h = hotove[+b.dataset.sdilet];
+        try { await navigator.share({ files: [new File([h.blob], h.d.soubor, { type: "image/png" })], title: h.d.jmeno }); } catch { /* zrušeno */ }
+    };
+}
+
+/** Obrázky všech týmů za poslední sezónu. */
+function obrazkyTymu() {
+    const posl = Math.max(...st.matches.map(m => m.s));
+    const seznam = Object.keys(TEAMS).map(t => {
+        const tm = st.matches.filter(m => m.s === posl && m.t === t);
+        const b = bilance(tm);
+        if (!b.z) return null;
+        const tab = st.tables.find(x => x.s === posl && x.t === t);
+        const P = [...compute(tm).values()].filter(p => p.apps || p.goals);
+        const uz = new Set();          // každý hráč v obrázku jen jednou (další nejlepší v kategorii)
+        const nej = (f, ok = () => true) => { const p = P.filter(p => ok(p) && f(p) > 0 && !uz.has(p.name)).sort((a, c) => f(c) - f(a))[0]; if (p) uz.add(p.name); return p; };
+        const hraci = [
+            [nej(p => p.goals), p => `⚽ střelec · ${goly(p.goals)}`],
+            [nej(p => p.assists), p => `🅰️ asistence · ${p.assists}`],
+            [nej(p => p.kb, p => p.kbApps), p => `🍁 kanadské body · ${p.kb}`],
+            [nej(p => p.min), p => `⏱️ minuty · ${fmt(p.min)}`],
+            [nej(p => p.bz || 0, p => p.zN >= Math.max(3, b.z / 2)), p => `📈 bilance · ${r1(p.bz)} b/z`],
+            [nej(p => p.apps), p => `👟 zápasy · ${p.apps}`]
+        ].filter(x => x[0]).slice(0, 6).map(([p, l]) => [p.name, l(p)]);
+        return {
+            nad: `Sezóna ${seasonLbl(posl)}`, jmeno: TEAMS[t], radek: tab ? tab.c : (tm.find(m => !/pohár/i.test(m.c)) || tm[0]).c, soubor: `${slug(TEAMS[t])}-${posl}.png`,
+            bloky: [
+                { titul: "Bilance", p: [[b.z, "zápasů"], [`${b.v}–${b.r}–${b.p}`, "výhry–remízy–prohry"], [`${b.f}:${b.a}`, "skóre"],
+                    tab ? [`${tab.nas[0]}.`, `místo z ${tab.rows.length}${tab.stav === "p" ? " (průběžně)" : ""}`] : [b.body, "bodů"], tab ? [tab.nas[7], "bodů v tabulce"] : [b.v, "výher"], [r1(b.body / b.z), "bodů na zápas"]] },
+                { titul: "Nejlepší hráči", p: hraci }
+            ]
+        };
+    }).filter(Boolean);
+    ukazObrazky(seznam, `Týmy – sezóna ${seasonLbl(posl)}`);
 }
