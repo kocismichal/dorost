@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
-<link rel="stylesheet" href="assets/css/statistiky.css?v=22">
+<link rel="stylesheet" href="assets/css/statistiky.css?v=23">
 </head>
 <body>
 
@@ -42,14 +42,20 @@
 <!-- filtry: lišta, která při rolování zůstává nahoře -->
 <div class="st-fbar" id="filterBar">
     <div class="st-fbar__in">
+        <div class="st-frow st-frow--casti">
+            <div class="st-casti" id="castSeg" role="tablist" aria-label="Části statistik"></div>
+        </div>
         <div class="st-frow">
             <span class="st-flbl">Tým</span>
             <div class="st-seg st-seg--sm" id="teamSeg"></div>
-            <input id="searchInp" class="st-select st-search" type="search" placeholder="Hledat hráče…" aria-label="Hledat hráče">
         </div>
         <div class="st-frow">
             <span class="st-flbl">Sezóny <button type="button" class="st-link" id="seasonAll">všechny</button></span>
             <div class="st-chips st-chips--row" id="seasonChips"></div>
+        </div>
+        <div class="st-frow">
+            <span class="st-flbl">Úroveň <small>rychlý výběr</small></span>
+            <div class="st-chips st-chips--row" id="groupChips"></div>
         </div>
         <div class="st-frow">
             <span class="st-flbl">Soutěže <button type="button" class="st-link" id="compAll">všechny</button></span>
@@ -74,72 +80,107 @@
             <div id="loadInfo" class="st-load"><span class="loader"></span> Načítám zápisy…</div>
         </section>
 
-        <section class="section" id="teamsSec" hidden>
-            <div class="section-head"><h2>Týmy</h2></div>
-            <div class="st-teams" id="teamCards"></div>
-        </section>
+        <div class="st-empty st-castempty" id="castEmpty" hidden>Pro tenhle výběr tu nic není – zkus nahoře jiný tým nebo sezónu.</div>
 
-        <section class="section" id="recordsSec" hidden>
-            <div class="section-head"><h2>Rekordy a zajímavosti</h2>
-                <p>Platí pro výběr nahoře (tým, sezóny, soutěže). Klik na dlaždici ukáže TOP 5 a podrobnosti.</p>
+        <!-- ============================================ část: Hráči -->
+        <section class="section" id="recordsSec" data-cast="hraci" hidden>
+            <div class="section-head"><h2>Rekordy hráčů</h2>
+                <p>Platí pro výběr nahoře (tým, sezóny, soutěže). Pod názvem každé dlaždice je, co rekord znamená. Klik na dlaždici ukáže pořadí a zápasy.</p>
                 <div class="st-seg st-seg--sm st-recmode" id="recMode"></div></div>
             <div class="st-records" id="records"></div>
         </section>
 
-        <section class="section" id="tableSec" hidden>
+        <section class="section" id="tableSec" data-cast="hraci" hidden>
             <div class="section-head"><h2>Všichni hráči</h2>
-                <p>Řadit jde klikem na záhlaví sloupce. Góly na 90 minut se ukazují od 300 odehraných minut.</p></div>
+                <p>Řadit jde klikem na záhlaví sloupce. ☆ = přidat do oblíbených (pamatuje si to tento prohlížeč), ⇄ = přidat do porovnání (až 4 hráči vedle sebe). Góly na 90 minut od 300 odehraných minut.</p></div>
+            <div class="st-tbar">
+                <input id="searchInp" class="st-select st-search" type="search" placeholder="Hledat hráče…" aria-label="Hledat hráče">
+                <div class="st-seg st-seg--sm" id="favSeg"></div>
+                <label class="st-perpage">Na stránku <select id="perPage" class="st-select"><option>10</option><option>20</option><option>50</option><option value="0">vše</option></select></label>
+            </div>
+            <div id="compare"></div>
             <div class="table-card">
                 <div class="archive__scroll"><table class="ptable st-table" id="playersTable"></table></div>
             </div>
+            <div class="st-pager" id="playersPager"></div>
         </section>
 
-        <section class="section" id="kanadskeSec" hidden>
-            <div class="section-head"><h2>Kanadské bodování</h2><p id="kanadskePopis"></p></div>
-            <div class="table-card"><div class="archive__scroll" id="kanadske"></div></div>
-        </section>
-
-        <section class="section" id="benfikaSec" hidden>
-            <div class="section-head"><h2>Benfika – tvoje evidence</h2><p id="benfikaPopis"></p>
-                <div class="st-bf__volby" id="benfikaVolby"></div></div>
-            <div class="table-card"><div class="archive__scroll" id="benfika"></div></div>
-        </section>
-
-        <section class="section" id="brankariSec" hidden>
-            <div class="section-head"><h2>Brankáři</h2>
-                <p>Ze sestav v zápisech (od 2023/24) pro výběr nahoře. Obdržel = góly soupeře, když byl v brance; čisté konto = celý zápas bez obdrženého gólu; V–R–P = výsledky zápasů, kdy chytal.</p></div>
-            <div class="table-card"><div class="archive__scroll" id="brankari"></div></div>
-        </section>
-
-        <section class="section" id="plusminusSec" hidden>
-            <details class="st-fold">
-                <summary><span class="st-fold__h">+/− na hřišti</span> <span class="st-fold__n" id="plusminusPocet"></span><span class="st-fold__x">▾</span></summary>
-                <p class="st-fold__p">Góly, které tým dal (G+) a dostal (G−), zatímco byl hráč na hřišti – ze sestav a střídání v zápisech (od 2023/24), včetně vlastních gólů. Rozdíl/90 = +/− přepočtené na 90 minut. Klik na hráče otevře kartu.</p>
-                <div class="table-card"><div class="archive__scroll" id="plusminus"></div></div>
-            </details>
-        </section>
-
-        <section class="section" id="seasonTopSec" hidden>
+        <section class="section" id="seasonTopSec" data-cast="hraci" hidden>
             <div class="section-head"><h2>Nejvíc gólů za sezónu</h2>
                 <p>Kdo kolik nastřílel v jedné sezóně a za jaký tým. Klik na řádek otevře kartu hráče.</p></div>
             <div class="table-card"><div class="archive__scroll" id="seasonTop"></div></div>
         </section>
 
-        <section class="section" id="rodinySec" hidden>
+        <section class="section" id="brankariSec" data-cast="hraci" hidden>
+            <div class="section-head"><h2>Brankáři</h2>
+                <p>Ze sestav v zápisech (od 2023/24). <b>Obdržel</b> = góly soupeře, když byl v brance · <b>Ø na 90</b> = obdržené góly na 90 minut · <b>čisté konto</b> = odchytal celý zápas bez obdrženého gólu · <b>%</b> = podíl minut týmu, kdy chytal. Řadit jde klikem na záhlaví.</p></div>
+            <div class="table-card"><div class="archive__scroll" id="brankari"></div></div>
+        </section>
+
+        <section class="section" id="plusminusSec" data-cast="hraci" hidden>
+            <details class="st-fold">
+                <summary><span class="st-fold__h">+/− na hřišti</span> <span class="st-fold__n" id="plusminusPocet"></span><span class="st-fold__x">▾</span></summary>
+                <div class="st-varovani" id="plusminusVarovani"></div>
+                <div class="table-card"><div class="archive__scroll" id="plusminus"></div></div>
+            </details>
+        </section>
+
+        <section class="section" id="rodinySec" data-cast="hraci" hidden>
             <details class="st-fold">
                 <summary><span class="st-fold__h">Rodinné góly</span> <span class="st-fold__n" id="rodinyPocet"></span> <span class="st-fold__n">· pro zajímavost</span><span class="st-fold__x">▾</span></summary>
-                <p class="st-fold__p">Hráči se stejným příjmením. „Rodina“ = potvrzené příbuzenství, u ostatních jde jen o shodu příjmení. Společný zápas = aspoň dva z nich na hřišti nebo mezi střelci (sestavy jsou v zápisech od 2023/24, střelci od 2020/21).</p>
+                <p class="st-fold__p">Hráči se stejným příjmením. „Rodina“ = potvrzené příbuzenství, u ostatních jde jen o shodu příjmení. Společný zápas = aspoň dva z nich na hřišti nebo mezi střelci (sestavy jsou v zápisech od 2023/24, střelci od 2020/21).
+                    <b>Upravit, kdo patří do rodiny:</b> pravé tlačítko na řádek (na mobilu ✎).</p>
                 <div class="table-card"><div class="archive__scroll" id="rodiny"></div></div>
             </details>
         </section>
 
-        <section class="section" id="tabulkySec" hidden>
-            <details class="st-fold" id="tabulkyFold">
-                <summary><span class="st-fold__h">Ligové tabulky</span> <span class="st-fold__n" id="tabulkyPocet"></span><span class="st-fold__x">▾</span></summary>
-                <p class="st-fold__p">Jak Vnorovy skončily v ligových soutěžích z výběru nahoře (bez pohárů). Klik na řádek rozbalí celou tabulku.</p>
-                <div class="st-seg st-seg--sm" id="tabTeamSeg"></div>
-                <div class="table-card"><div class="archive__scroll" id="tabulky"></div></div>
-            </details>
+        <!-- ===================================== část: Tým a soupeři -->
+        <section class="section" id="teamsSec" data-cast="tym" hidden>
+            <div class="section-head"><h2>Týmy</h2></div>
+            <div class="st-teams" id="teamCards"></div>
+        </section>
+
+        <section class="section" id="teamRecSec" data-cast="tym" hidden>
+            <div class="section-head"><h2>Týmové rekordy</h2>
+                <p>Rekordy týmu ze zápisů (výsledky zápasů od 2020/21) pro výběr nahoře. Série se počítají zvlášť pro každý tým v pořadí zápasů podle data. Klik na dlaždici ukáže zápasy.</p></div>
+            <div class="st-records" id="teamRecords"></div>
+        </section>
+
+        <section class="section" id="h2hSec" data-cast="tym" hidden>
+            <div class="section-head"><h2>Proti soupeřům</h2>
+                <p>Jak se Vnorovům vede proti jednotlivým soupeřům – všechny zápasy ze zápisů pro výběr nahoře. Řadit jde klikem na záhlaví, klik na soupeře ukáže vzájemné zápasy a naše střelce proti němu.</p></div>
+            <div class="st-tbar">
+                <input id="h2hInp" class="st-select st-search" type="search" placeholder="Hledat soupeře…" aria-label="Hledat soupeře">
+            </div>
+            <div class="table-card"><div class="archive__scroll" id="h2h"></div></div>
+            <div class="st-pager" id="h2hPager"></div>
+        </section>
+
+        <!-- ===================================== část: Ligové tabulky -->
+        <section class="section" id="tabulkySec" data-cast="tabulky" hidden>
+            <div class="section-head"><h2>Ligové tabulky <span class="st-fold__n" id="tabulkyPocet"></span></h2>
+                <p>Jak Vnorovy skončily v ligových soutěžích z výběru nahoře (bez pohárů). Klik na řádek rozbalí celou tabulku.</p>
+                <div class="st-seg st-seg--sm" id="tabTeamSeg"></div></div>
+            <div class="table-card"><div class="archive__scroll" id="tabulky"></div></div>
+        </section>
+
+        <!-- ================================ část: Evidence 2024–26 -->
+        <section class="section" id="evidenceSec" data-cast="evidence" hidden>
+            <div class="st-popis st-popis--ev">
+                <div class="st-popis__t">Ručně vedená evidence posledních dvou let – i s asistencemi</div>
+                <div class="st-popis__src">FAČR asistence ani přesné minuty béčka nevede, proto jsou tady zvlášť: <b>kanadské bodování</b> (góly + asistence, zatím A tým od 2025/26) a <b>evidence Benfiky</b> (B tým 2024/25 a 2025/26 – vede ji Chuck, minuty jsou přesné i při hokejovém střídání).</div>
+            </div>
+        </section>
+
+        <section class="section" id="kanadskeSec" data-cast="evidence" hidden>
+            <div class="section-head"><h2>Kanadské bodování</h2><p id="kanadskePopis"></p></div>
+            <div class="table-card"><div class="archive__scroll" id="kanadske"></div></div>
+        </section>
+
+        <section class="section" id="benfikaSec" data-cast="evidence" hidden>
+            <div class="section-head"><h2>Benfika – evidence od Chucka</h2><p id="benfikaPopis"></p>
+                <div class="st-bf__volby" id="benfikaVolby"></div></div>
+            <div class="table-card"><div class="archive__scroll" id="benfika"></div></div>
         </section>
     </div>
 
@@ -157,6 +198,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module" src="assets/js/statistiky.js?v=27"></script>
+<script type="module" src="assets/js/statistiky.js?v=28"></script>
 </body>
 </html>

@@ -376,3 +376,149 @@
     .st-bf__det td { display: table-cell !important; }
 }
 @media (min-width: 641px) { .st-bf td:nth-child(2) { white-space: nowrap; } }
+
+/* ================================================= v23: části, porovnání, soupeři */
+/* lišta částí nahoře */
+.st-frow--casti { padding-bottom: 2px; }
+.st-casti { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+.st-casti button { flex: none; border: 0; border-bottom: 3px solid transparent; background: none; padding: 6px 12px 7px; font-size: 14px; font-weight: 900; color: var(--muted); cursor: pointer; border-radius: 8px 8px 0 0; }
+.st-casti button:hover { color: var(--text); background: var(--surface); }
+.st-casti button.is-on { color: var(--accent); border-bottom-color: var(--accent); background: var(--surface); }
+.st-flbl small { font-size: 9.5px; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--dim); }
+.st-cchip--g small { font-weight: 700; opacity: .7; margin-left: 2px; }
+.st-chips__hint { flex: none; align-self: center; font-size: 11.5px; color: var(--dim); font-weight: 600; white-space: nowrap; }
+#viewOverview[data-cast] .section[data-cast] { display: none; }
+#viewOverview[data-cast="hraci"] .section[data-cast="hraci"],
+#viewOverview[data-cast="tym"] .section[data-cast="tym"],
+#viewOverview[data-cast="tabulky"] .section[data-cast="tabulky"],
+#viewOverview[data-cast="evidence"] .section[data-cast="evidence"] { display: block; }
+#viewOverview .section[data-cast][hidden] { display: none !important; }
+.st-castempty { background: var(--surface); border: 1px dashed var(--line); border-radius: 12px; margin-top: 18px; }
+.st-popis--ev { border-left-color: var(--ink); }
+
+/* rekordy: co znamenají */
+.st-rec__d { font-size: 11.5px; color: var(--muted); line-height: 1.4; margin: 2px 0 6px; }
+.st-rec__top--dal { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--line); }
+.st-rec__top--dal li { font-size: 12px; }
+.st-modal__popis { margin: 4px 0 6px; font-size: 13.5px; color: var(--text-soft); line-height: 1.5; background: var(--bg-soft); border-radius: 10px; padding: 9px 12px; }
+
+/* zápis: skóre jako výsledková tabule, góly na časové ose */
+.st-zapis__score { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; background: var(--ink); color: #fff; border-radius: 10px; padding: 12px 14px; }
+.st-zapis__tm { font-weight: 800; font-size: 14px; opacity: .8; }
+.st-zapis__tm:last-child { text-align: right; }
+.st-zapis__tm.is-nas { opacity: 1; font-weight: 900; }
+.st-zapis__sk { font-size: 24px; font-weight: 900; text-align: center; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.st-zapis__sk small { display: block; font-size: 11.5px; font-weight: 700; opacity: .7; }
+.st-zapis__score--V { border-bottom: 4px solid var(--ok); }
+.st-zapis__score--P { border-bottom: 4px solid var(--danger); }
+.st-zapis__score--R { border-bottom: 4px solid #9aa3ad; }
+.st-zapis__m { margin-top: 8px; }
+.st-gls { display: flex; flex-direction: column; gap: 2px; }
+.st-gl { display: grid; grid-template-columns: 1fr 64px 1fr; gap: 8px; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--line); }
+.st-gl:last-child { border-bottom: 0; }
+.st-gl__l { text-align: right; }
+.st-gl__c { display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.st-gl__kdo { display: block; }
+.st-gl small { display: block; font-size: 11px; }
+.st-gl.is-nas .st-gl__kdo { color: var(--accent); }
+.st-zapis__lu { margin-top: 12px; }
+.st-zapis__lu > summary { cursor: pointer; font-weight: 800; color: var(--accent); font-size: 13px; list-style: none; }
+.st-zapis__lu > summary::-webkit-details-marker { display: none; }
+
+/* tabulka hráčů: hledání, oblíbení, porovnání, stránky */
+.st-tbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+.st-tbar .st-search { min-height: 38px; }
+.st-perpage { display: flex; gap: 6px; align-items: center; font-size: 12.5px; font-weight: 700; color: var(--muted); margin-left: auto; }
+.st-perpage .st-select { min-height: 34px; }
+.st-star, .st-cmpb { border: 0; background: none; cursor: pointer; font-size: 15px; padding: 0 3px; color: var(--dim); line-height: 1; }
+.st-star.is-on { color: #e8a400; }
+.st-cmpb { font-size: 13px; font-weight: 900; }
+.st-cmpb.is-on { color: #fff; background: var(--ink); border-radius: 5px; }
+.st-star:hover, .st-cmpb:hover { color: var(--accent); }
+.st-row.is-fav td:first-child { box-shadow: inset 3px 0 0 #e8a400; }
+.st-pager { display: flex; justify-content: center; gap: 4px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+.st-pager button { min-width: 36px; height: 36px; border: 1px solid var(--line); background: var(--surface); border-radius: 9px; font-weight: 800; cursor: pointer; color: var(--text-soft); }
+.st-pager button.is-on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.st-pager button:disabled { opacity: .35; cursor: default; }
+.st-pager__tecky { color: var(--dim); padding: 0 4px; }
+.st-cmp { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--ink); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.st-cmp__head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; margin-bottom: 6px; }
+.st-cmp__head span { font-size: 12px; color: var(--muted); }
+.st-cmp__head .st-link { margin-left: auto; font-size: 12px; }
+.st-cmp__t th:not(:first-child), .st-cmp__t td { text-align: right; }
+.st-cmp__t thead th { white-space: nowrap; }
+.st-cmp__t thead a { color: var(--text); font-weight: 900; text-decoration: none; }
+.st-cmp__t thead small { display: block; color: var(--dim); font-weight: 600; }
+.st-cmp__t tbody th { font-weight: 700; color: var(--muted); text-align: left; white-space: nowrap; }
+.st-cmp__t td.is-best { color: var(--ok-dark, var(--ok)); font-weight: 900; background: var(--ok-tint); }
+.st-cmp__x { border: 0; background: none; color: var(--dim); cursor: pointer; font-size: 12px; margin-left: 4px; }
+
+/* +/− varování, rodiny */
+.st-pozor { font-size: 13px; line-height: 1.55; color: var(--text-soft); background: #fff8e6; border: 1px solid #f1d99a; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+.st-pozor.is-silne { background: #fff1e6; border-color: #f0b98a; }
+.st-rod__edit { border: 0; background: none; color: var(--dim); cursor: pointer; font-size: 13px; padding: 0 2px; }
+.st-rod__edit:hover { color: var(--accent); }
+.st-rodedit { display: flex; flex-direction: column; gap: 6px; margin: 10px 0 14px; }
+.st-rodedit__r { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+.st-rodedit__r small { color: var(--muted); display: block; }
+.st-rodedit__r input { width: 18px; height: 18px; flex: none; }
+.st-rodedit__btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* soupeři (H2H) */
+.st-h2h__r.is-open td { background: var(--accent-tint); }
+.st-h2h__det > td { background: var(--bg-soft); padding: 10px 12px 14px; }
+.st-h2h__str { font-size: 13px; margin-bottom: 8px; line-height: 1.6; }
+.st-h2h__str a { color: var(--text); font-weight: 700; text-decoration: none; }
+.st-h2h__posl small { color: var(--muted); }
+@media (min-width: 641px) { .st-h2h td:first-child, .st-h2h__posl { white-space: nowrap; } }
+
+/* karta hráče */
+.st-tiles { grid-template-columns: repeat(var(--n, 7), minmax(0, 1fr)); }   /* všechny dlaždice v jedné řadě, stejně široké */
+@media (max-width: 1100px) { .st-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.st-tile { display: flex; flex-direction: column; }
+.st-tile__s { margin-top: auto; padding-top: 4px; }
+.st-box h3 small { font-size: 12px; font-weight: 700; color: var(--muted); margin-left: 6px; }
+.st-psez { cursor: pointer; }
+.st-psez td { border-top: 0; }
+.st-psez.is-first td { border-top: 2px solid var(--line); }
+.st-psez--a td { background: #fff; }
+.st-psez--b td { background: #f3f6fa; }
+.st-psez--a td:first-child { box-shadow: inset 4px 0 0 var(--accent); }
+.st-psez--b td:first-child { box-shadow: inset 4px 0 0 var(--ink); }
+.st-psez__s { font-weight: 900; white-space: nowrap; }
+.st-psez:hover td, .st-psez.is-open td { background: var(--accent-tint); }
+.st-psez.is-open .st-zrow__x, tr.is-open > .st-zrow__x { transform: rotate(180deg); }
+.st-rozbal > td { background: var(--bg-soft); padding: 8px 8px 12px; }
+.st-fold2 { padding: 0 18px; }
+.st-fold2 > summary { list-style: none; cursor: pointer; display: flex; align-items: center; padding: 16px 0; }
+.st-fold2 > summary::-webkit-details-marker { display: none; }
+.st-fold2 > summary h3 { margin: 0; }
+.st-fold2[open] > summary .st-fold__x { transform: rotate(180deg); }
+.st-fold2[open] { padding-bottom: 16px; }
+.st-vsbox .st-vs { gap: 10px; margin-top: 6px; }
+.st-vsbox .st-vs__col { padding: 10px 12px; text-align: left; }
+.st-vsbox .st-vs__big { font-size: 22px; margin-top: 2px; }
+.st-vsbox .st-vs__big small { font-size: 12px; font-weight: 700; color: var(--muted); }
+.st-vsbox .st-vs__row { font-size: 12px; }
+.st-vsbox .st-pmrow { font-size: 12.5px; margin-top: 10px; }
+
+@media (max-width: 640px) {
+    .st-fbar { position: static; }
+    .st-casti button { padding: 6px 9px 7px; font-size: 13px; }
+    .st-chips__hint { display: none; }
+    .st-perpage { margin-left: 0; }
+    .st-tbar .st-search { flex: 1 1 100%; max-width: none; }
+    .st-gl { grid-template-columns: 1fr 52px 1fr; gap: 5px; font-size: 12.5px; }
+    .st-zapis__sk { font-size: 20px; }
+    .st-zapis__tm { font-size: 12.5px; }
+    .st-h2h th:nth-child(3), .st-h2h td:nth-child(3), .st-h2h th:nth-child(4), .st-h2h td:nth-child(4), .st-h2h th:nth-child(5), .st-h2h td:nth-child(5),
+    .st-h2h th:nth-child(8), .st-h2h td:nth-child(8), .st-h2h th:nth-child(10), .st-h2h td:nth-child(10) { display: none; }
+    .st-h2h td, .st-h2h th { padding: 8px 5px; }
+    .st-h2h__posl small { display: block; }
+    .st-h2h__det > td { display: table-cell !important; }
+    .st-cmp__t td, .st-cmp__t th { padding: 7px 6px; }
+    .st-vsbox .st-vs { grid-template-columns: 1fr; }
+    .st-psezt th:nth-child(6), .st-psezt td:nth-child(6) { display: none; }
+    .st-rozbal > td { display: table-cell !important; }
+    .st-tiles { grid-template-columns: repeat(2, 1fr); }
+}
