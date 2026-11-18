@@ -29,8 +29,10 @@ try {
         let id = ulozeno("navstevyId");
         if (!id) { id = "z" + Math.random().toString(36).slice(2, 10); ulozeno("navstevyId", id); }
         const str = (location.pathname.split("/").pop() || "index").replace(/\.html$/, "") || "index";
-        if (jednou("navstevy:" + str)) {
-            zapis({ celkem: increment(1), stranky: { [str]: increment(1) }, zarizeni: { [id]: increment(1) },
+        const klub = /[?&]klub(=|&|$)/.test(location.search);                    // statistiky?klub = odkaz z nového letáku
+        const strK = str === "statistiky" && klub ? "statistiky-klub" : str;
+        if (jednou("navstevy:" + strK)) {
+            zapis({ celkem: increment(1), stranky: { [strK]: increment(1) }, zarizeni: { [id]: increment(1) },
                 typ: { [/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "mobil" : "pc"]: increment(1) } });
         }
         /* statistiky: která karta hráče se otevírá (#hrac=…) */

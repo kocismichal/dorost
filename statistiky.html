@@ -13,6 +13,9 @@
 <!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
 <link rel="stylesheet" href="assets/css/app.css?v=12">
 <link rel="stylesheet" href="assets/css/statistiky.css?v=33">
+<!-- odkaz statistiky?klub = jen statistiky bez lišty ostatních stránek webu dorostu (pro sdílení klukům) -->
+<script>try { if (/[?&]klub(=|&|$)/.test(location.search)) document.documentElement.classList.add("jen-stat"); } catch (e) { /* nic */ }</script>
+<style>.jen-stat .subnav { display: none; } .jen-stat .appbar__sub .st-sub-d { display: none; } .appbar__sub .st-sub-s { display: none; } .jen-stat .appbar__sub .st-sub-s { display: inline; }</style>
 </head>
 <body>
 
@@ -21,7 +24,7 @@
         <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
         <div class="appbar__titles">
             <div class="appbar__title">FK AGRO VNOROVY</div>
-            <div class="appbar__sub">DOROST</div>
+            <div class="appbar__sub"><span class="st-sub-d">DOROST</span><span class="st-sub-s">STATISTIKY</span></div>
         </div>
         <div class="appbar__spacer"></div>
         <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
@@ -229,6 +232,6 @@
 <div class="toast" id="toast"></div>
 
 <script type="module" src="assets/js/statistiky.js?v=39"></script>
-<script type="module" src="assets/js/navstevy.js?v=1"></script>
+<script type="module" src="assets/js/navstevy.js?v=2"></script>
 </body>
 </html>
