@@ -240,7 +240,7 @@ function compute(matches, old = []) {
     const get = (n) => {
         if (!P.has(n)) P.set(n, {
             name: n, id: slug(n), teams: new Set(), seasons: new Set(), apps: 0, starts: 0, subIn: 0, bench: 0, min: 0, full: 0,
-            goals: 0, goalsLu: 0, assists: 0, kbG: 0, kbApps: 0, kbMin: 0, prihral: {}, odKoho: {}, pens: 0, subGoals: 0, og: 0, zk: 0, ck: 0, kap: 0, pos: {}, gMin: [], home: 0, away: 0,
+            goals: 0, goalsLu: 0, assists: 0, kbG: 0, kbApps: 0, kbMin: 0, prihral: {}, odKoho: {}, pens: 0, subGoals: 0, og: 0, zk: 0, ck: 0, kap: 0, zV: 0, zR: 0, zP: 0, pos: {}, gMin: [], home: 0, away: 0,
             h1: 0, h2: 0, bands: [0, 0, 0, 0, 0, 0], perMatch: [], vsOpp: {}, partners: {}, multi: 0, hat: 0, best: null
         });
         return P.get(n);
@@ -263,6 +263,8 @@ function compute(matches, old = []) {
             if (c.tin === 0 && c.tout === DELKA) p.full++;
             if (row[5]) { const k = row[5]; p.partners[k] = (p.partners[k] || 0) + 1; }
             if (m.asist) { p.kbApps++; p.kbMin += c.min; }
+            const vy = vysledek(m);                     // bilance zápasů, kdy byl na hřišti
+            if (vy) p["z" + vy]++;
         }
         const gBy = {};
         for (const [n, mn, pen, own] of (m.g || [])) {
@@ -318,6 +320,9 @@ function compute(matches, old = []) {
     for (const p of P.values()) {
         p.g90 = p.min >= MIN_PRO_POMER ? p.goalsLu * 90 / p.min : null;
         p.kb = p.kbG + p.assists;
+        p.zN = p.zV + p.zR + p.zP;
+        p.body = p.zV * 3 + p.zR;
+        p.bz = p.zN ? p.body / p.zN : null;
         p.posMain = Object.entries(p.pos).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
     }
     return P;
@@ -1283,7 +1288,7 @@ function prepniTabulku(tr) {
 
 const COLS = [
     ["name", "Hráč", false], ["team", "Tým", false], ["apps", "Z", true], ["starts", "Základ", true], ["subIn", "Střídal", true],
-    ["min", "Minuty", true], ["goals", "Góly", true], ["g90", "G/90", true], ["zk", "ŽK", true], ["ck", "ČK", true]
+    ["min", "Minuty", true], ["goals", "Góly", true], ["g90", "G/90", true], ["zV", "V–R–P", true], ["body", "Body", true], ["bz", "B/zápas", true], ["zk", "ŽK", true], ["ck", "ČK", true]
 ];
 
 function renderTable() {
@@ -1293,7 +1298,8 @@ function renderTable() {
     P.sort((a, b) => {
         if (key === "name") return st.dir * a.name.localeCompare(b.name, "cs");
         if (key === "team") return st.dir * [...a.teams].sort().join().localeCompare([...b.teams].sort().join());
-        return st.dir * (((a[key] ?? -1) - (b[key] ?? -1)) || (a.goals - b.goals) || (a.min - b.min));
+        const v = x => (key === "bz" && x.zN < 5 ? -1 : x[key] ?? -1);       // body na zápas až od 5 zápasů, jinak vyhraje jeden zápas
+        return st.dir * ((v(a) - v(b)) || (a.zN - b.zN) || (a.goals - b.goals) || (a.min - b.min));
     });
     const pages = st.perPage ? Math.max(1, Math.ceil(P.length / st.perPage)) : 1;
     st.page = Math.min(st.page, pages - 1);
@@ -1306,10 +1312,12 @@ function renderTable() {
         <td class="st-teamcell">${[...p.teams].sort().map(t => `<span class="st-chip st-chip--${t}">${t === "D" ? "Dor" : t}</span>`).join("")}</td>
         <td class="ptable__num">${p.apps || "–"}</td><td class="ptable__num">${p.starts || "–"}</td><td class="ptable__num">${p.subIn || "–"}</td>
         <td class="ptable__num">${p.min ? fmt(p.min) : "–"}</td><td class="ptable__num ptable__points">${p.goals || "–"}</td>
-        <td class="ptable__num">${p.g90 != null ? r1(p.g90) : "–"}</td><td class="ptable__num">${p.zk || "–"}</td><td class="ptable__num">${p.ck || "–"}</td>
+        <td class="ptable__num">${p.g90 != null ? r1(p.g90) : "–"}</td>
+        <td class="ptable__num st-vrp">${p.zN ? `<span class="c-plus">${p.zV}</span>–${p.zR}–<span class="c-minus">${p.zP}</span>` : "–"}</td><td class="ptable__num">${p.zN ? p.body : "–"}</td><td class="ptable__num"><b>${p.bz != null ? r1(p.bz) : "–"}</b></td>
+        <td class="ptable__num">${p.zk || "–"}</td><td class="ptable__num">${p.ck || "–"}</td>
     </tr>`).join("");
     const t = document.getElementById("playersTable");
-    t.innerHTML = `<thead><tr>${th}</tr></thead><tbody>${rows || `<tr><td colspan="10" class="st-empty">${st.jenFav && !st.fav.size ? "Zatím nemáš oblíbené – klikni u hráče na ☆." : "Nikdo neodpovídá."}</td></tr>`}</tbody>`;
+    t.innerHTML = `<thead><tr>${th}</tr></thead><tbody>${rows || `<tr><td colspan="13" class="st-empty">${st.jenFav && !st.fav.size ? "Zatím nemáš oblíbené – klikni u hráče na ☆." : "Nikdo neodpovídá."}</td></tr>`}</tbody>`;
     t.querySelectorAll("th").forEach(h => h.onclick = () => { const k = h.dataset.k; if (st.sort === k) st.dir *= -1; else { st.sort = k; st.dir = k === "name" || k === "team" ? 1 : -1; } st.page = 0; renderTable(); });
     t.onclick = (e) => {
         const f = e.target.closest("[data-fav]");
@@ -1349,6 +1357,7 @@ function renderPorovnani() {
         ["Zápasy", p => p.apps, 1], ["Minuty", p => p.min, 1, fmt], ["Minut na zápas", p => (p.apps ? Math.round(p.min / p.apps) : null), 1],
         ["Góly", p => p.goals, 1], ["Góly na 90 min", p => p.g90, 1, r1], ["Gól každých … min", p => (p.goalsLu ? Math.round(p.min / p.goalsLu) : null), -1],
         ["Asistence", p => (p.kbApps ? p.assists : null), 1], ["Kanadské body", p => (p.kbApps ? p.kb : null), 1],
+        ["Výhry–remízy–prohry, když hrál", p => (p.zN ? `${p.zV}–${p.zR}–${p.zP}` : null), null], ["Body týmu, když hrál", p => (p.zN ? p.body : null), 1], ["Bodů na zápas, když hrál", p => p.bz, 1, r1],
         ["Celých 90 minut", p => (p.starts + p.subIn ? p.full : null), 1], ["Z penalty", p => p.pens, 1], ["Žluté karty", p => p.zk, -1], ["Červené karty", p => p.ck, -1]
     ];
     const bunky = RADKY.map(([l, f, lepsi, fm = x => x]) => {

@@ -343,7 +343,9 @@
     .st-table td:nth-child(5), .st-table th:nth-child(5),
     .st-table td:nth-child(8), .st-table th:nth-child(8),
     .st-table td:nth-child(9), .st-table th:nth-child(9),
-    .st-table td:nth-child(10), .st-table th:nth-child(10) { display: none; }
+    .st-table td:nth-child(10), .st-table th:nth-child(10),
+    .st-table td:nth-child(12), .st-table th:nth-child(12),
+    .st-table td:nth-child(13), .st-table th:nth-child(13) { display: none; }
     .st-table .tag { display: none; }
     .st-table td, .st-table th { padding: 9px 6px; }
     .st-chip { padding: 2px 5px; margin-right: 2px; }
@@ -522,3 +524,5 @@
     .st-rozbal > td { display: table-cell !important; }
     .st-tiles { grid-template-columns: repeat(2, 1fr); }
 }
+
+.st-vrp { white-space: nowrap; }
