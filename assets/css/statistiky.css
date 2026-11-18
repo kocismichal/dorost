@@ -564,3 +564,27 @@
 .st-side__ico { flex: none; width: 20px; text-align: center; font-size: 14px; }
 #viewPlayer:not([hidden]) ~ * { display: none; }
 @media (max-width: 1100px) { .st-side__list { max-height: 70vh; width: 250px; } }
+
+/* v34: úroveň nevypadá jako vybraná; rekordy vycentrované, popisek dole přes celou dlaždici */
+.st-cchip--g { background: var(--surface); border: 1px dashed var(--ink); color: var(--ink); }
+.st-cchip--g:hover { border-style: solid; }
+.st-cchip--g.is-on { background: var(--accent); border: 1px solid var(--accent); color: #fff; }
+.st-records { gap: 14px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.st-rec { flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 16px 14px 0; position: relative; overflow: hidden; }
+.st-rec__ico { width: 44px; height: 44px; font-size: 24px; }
+.st-rec__b { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.st-rec__t { font-size: 11px; line-height: 1.3; }
+.st-rec__p { font-size: 15.5px; line-height: 1.3; margin-top: 4px; }
+.st-rec__p small { display: block; font-size: 11.5px; line-height: 1.25; margin: 1px 0 4px; }
+.st-rec__v { font-size: 12.5px; line-height: 1.35; }
+.st-rec__d { margin: auto -14px 0; padding: 9px 14px 11px; width: calc(100% + 28px); background: var(--bg-soft); border-top: 1px solid var(--line); font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+.st-rec__more { display: none; }
+.st-rec__top { width: 100%; text-align: left; }
+.st-rec__top--dal { text-align: left; }
+.st-records.is-top3 .st-rec__b { align-items: stretch; }
+.st-records.is-top3 .st-rec__t { text-align: center; }
+
+.st-htym { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: -4px 0 14px; font-size: 12.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.st-htym .st-seg button { text-transform: none; letter-spacing: 0; }
+.st-rec__jm { margin-bottom: 4px; }
+.st-rec__jm small { margin: 0; }
