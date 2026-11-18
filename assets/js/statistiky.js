@@ -405,6 +405,7 @@ const aktSekce = () => (naKarte() ? SEKCE_HRAC.filter(([id]) => document.getElem
 
 /** Nejvýznamnější hráči výběru nahoře – kdo je v čem nejlepší (pod čarou v boční liště). */
 function vyznamniHtml() {
+    if (!st.players.size && st.matches.length) st.players = compute(filtered(), filteredOld());     // karta otevřená přímo odkazem
     const P = [...st.players.values()];
     if (!P.length) return "";
     /* kategorie: [ikona, co, řazení (větší = lepší), podmínka, text]; po kolech se z každé vezme nejlepší, kdo ještě v seznamu není */
