@@ -1734,23 +1734,25 @@ function renderPlayer(id) {
 /* ================================================================ v37: další přehledy ================ */
 
 const MESICE = ["leden", "únor", "březen", "duben", "květen", "červen", "červenec", "srpen", "září", "říjen", "listopad", "prosinec"];
-const mesicLbl = ym => { const [y, m] = ym.split("-"); return `${MESICE[+m - 1]} ${y}`; };
+/* období: listopad se počítá dohromady s říjnem (konec podzimu má málo zápasů) */
+const obdobi = d => { const ym = (d || "").slice(0, 7); return ym.endsWith("-11") ? ym.slice(0, 5) + "10" : ym; };
+const mesicLbl = ym => { const [y, m] = ym.split("-"); return +m === 10 ? `říjen + listopad ${y}` : `${MESICE[+m - 1]} ${y}`; };
 
 /** Hráč měsíce: kanadské body (góly + asistence), při shodě góly a minuty; měsíc jde přepnout. */
 function renderMesic(ms) {
     const sec = document.getElementById("mesicSec");
-    const mesice = [...new Set(ms.filter(m => (m.lu || []).length).map(m => (m.d || "").slice(0, 7)).filter(Boolean))].sort().reverse();
+    const mesice = [...new Set(ms.filter(m => (m.lu || []).length).map(m => obdobi(m.d)).filter(Boolean))].sort().reverse();
     sec.hidden = !mesice.length;
     if (sec.hidden) return;
     if (!mesice.includes(st.mesic)) st.mesic = mesice[0];
-    const mm = ms.filter(m => (m.d || "").startsWith(st.mesic));
+    const mm = ms.filter(m => obdobi(m.d) === st.mesic);
     const P = [...compute(mm).values()].filter(p => p.apps);
     const sk = p => p.goals + p.assists;
     P.sort((a, b) => sk(b) - sk(a) || b.goals - a.goals || (b.bz || 0) - (a.bz || 0) || b.min - a.min);
     const vit = P[0];
     const b = bilance(mm);
     const link = p => `<a href="#hrac=${encodeURIComponent(p.id)}">${esc(p.name)}</a>`;
-    const nej = (f, ok = () => true) => P.filter(ok).sort((a, b) => f(b) - f(a))[0];
+    const nej = (f, ok = () => true) => { const t = P.filter(ok).sort((a, b) => f(b) - f(a)).slice(0, 3); return t.length ? t : null; };
     const kdo = [
         ["⚽", "Nejvíc gólů", nej(p => p.goals, p => p.goals > 0), p => goly(p.goals)],
         ["🅰️", "Nejvíc asistencí", nej(p => p.assists, p => p.assists > 0), p => `${p.assists} asistencí`],
@@ -1758,15 +1760,16 @@ function renderMesic(ms) {
         ["📈", "Nejlepší bilance", nej(p => p.bz || 0, p => p.zN >= 2), p => `${r1(p.bz)} bodu na zápas · ${p.zV}–${p.zR}–${p.zP}`]
     ].filter(x => x[2]);
     document.getElementById("mesic").innerHTML = `
-        <div class="st-mesic__volba"><label>Měsíc <select class="st-select" id="mesicSel">${mesice.map(m => `<option value="${m}" ${m === st.mesic ? "selected" : ""}>${mesicLbl(m)}</option>`).join("")}</select></label>
+        <div class="st-mesic__volba"><label>Období <select class="st-select" id="mesicSel">${mesice.map(m => `<option value="${m}" ${m === st.mesic ? "selected" : ""}>${mesicLbl(m)}</option>`).join("")}</select></label>
             <span class="st-dim">${zapasu(b.z)} · ${b.v}–${b.r}–${b.p} · skóre ${b.f}:${b.a}</span></div>
         <div class="st-mesic">
             ${vit ? `<div class="st-mesic__vit"><div class="st-mesic__l">🏅 Hráč měsíce · ${mesicLbl(st.mesic)}</div><div class="st-mesic__jm">${link(vit)}</div>
                 <div class="st-mesic__cisla"><span><b>${vit.goals}</b> ${goly(vit.goals).split(" ")[1]}</span>${vit.kbApps ? `<span><b>${vit.assists}</b> asistencí</span>` : ""}<span><b>${vit.apps}</b> zápasů</span><span><b>${fmt(vit.min)}</b> min</span>${vit.zN ? `<span><b>${vit.zV}–${vit.zR}–${vit.zP}</b> když hrál</span>` : ""}</div>
-                <ol class="st-mesic__top" start="2">${P.slice(1, 5).filter(sk).map(p => `<li>${link(p)} <small>${p.goals} G${p.kbApps ? ` + ${p.assists} A` : ""}</small></li>`).join("")}</ol></div>` : ""}
-            <div class="st-mesic__kat">${kdo.map(([i, l, p, t]) => `<div class="st-mesic__k"><span class="st-mesic__i">${i}</span><div><div class="st-mesic__l">${l}</div><b>${link(p)}</b><small>${esc(t(p))}</small></div></div>`).join("")}</div>
+                <ol class="st-mesic__top" start="2">${P.slice(1, 10).map(p => `<li>${link(p)} <small>${p.goals} G${p.kbApps ? ` + ${p.assists} A` : ""}</small></li>`).join("")}</ol></div>` : ""}
+            <div class="st-mesic__kat">${kdo.map(([i, l, t3, t]) => `<div class="st-mesic__k"><span class="st-mesic__i">${i}</span><div><div class="st-mesic__l">${l}</div><b>${link(t3[0])}</b><small>${esc(t(t3[0]))}</small>
+                ${t3.slice(1).map((p, j) => `<div class="st-mesic__dal">${j + 2}. ${link(p)} <small>${esc(t(p))}</small></div>`).join("")}</div></div>`).join("")}</div>
         </div>
-        <p class="st-note">Hráč měsíce = nejvíc gólů + asistencí v zápasech toho měsíce (asistence jen tam, kde je evidence), při shodě víc gólů, pak lepší bilance týmu. Platí pro tým a soutěže vybrané nahoře.</p>`;
+        <p class="st-note">Hráč měsíce = nejvíc gólů + asistencí v zápasech toho měsíce (říjen a listopad dohromady) (asistence jen tam, kde je evidence), při shodě víc gólů, pak lepší bilance týmu. Platí pro tým a soutěže vybrané nahoře.</p>`;
     document.getElementById("mesicSel").onchange = (e) => { st.mesic = e.target.value; renderMesic(ms); };
 }
 
