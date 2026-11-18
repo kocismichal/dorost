@@ -379,7 +379,7 @@ const SEKCE = [["recordsSec", "Rekordy hráčů"], ["tableSec", "Všichni hráč
     ["evidenceSec", "O evidenci"], ["kanadskeSec", "Kanadské bodování"], ["benfikaSec", "Benfika"]];
 
 /* části stránky – přepínají se lištou nahoře, ať není všechno pod sebou v jednom rolování */
-const CASTI = [["hraci", "Hráči"], ["tym", "Tým a soupeři"], ["tabulky", "Ligové tabulky"], ["evidence", "Evidence 2024–26"]];
+const CASTI = [["hraci", "Hráči"], ["tym", "Tým a soupeři"], ["evidence", "Ruční evidence"], ["tabulky", "Ligové tabulky"]];
 const vCasti = id => { const s = document.getElementById(id); return s && !s.hidden && s.dataset.cast === st.cast; };
 
 function renderCasti() {
@@ -404,13 +404,20 @@ const naKarte = () => /^#hrac=/.test(location.hash);
 const aktSekce = () => (naKarte() ? SEKCE_HRAC.filter(([id]) => document.getElementById(id)) : SEKCE.filter(([id]) => vCasti(id)));
 
 /** Nejvýznamnější hráči výběru nahoře – kdo je v čem nejlepší (pod čarou v boční liště). */
+const BEZ_V_LISTE = ["Bačík Michal"];       // Michal 19. 11. 2026: v liště nejlepších neukazovat
+
 function vyznamniHtml() {
     if (!st.players.size && st.matches.length) st.players = compute(filtered(), filteredOld());     // karta otevřená přímo odkazem
     const P = [...st.players.values()];
     if (!P.length) return "";
+    /* nejvíc gólů jednoho hráče v jedné sezóně (za jeden tým) */
+    P.forEach(p => { p.nejSez = 0; });
+    sezonniStrelci(filtered(), filteredOld()).forEach(x => { const p = st.players.get(x.p.name); if (p && x.g > p.nejSez) { p.nejSez = x.g; p.nejSezS = x.s; } });
     /* kategorie: [ikona, co, řazení (větší = lepší), podmínka, text]; po kolech se z každé vezme nejlepší, kdo ještě v seznamu není */
     const K = [
         ["⚽", "góly", p => p.goals, p => p.goals > 0, p => goly(p.goals)],
+        ["🏆", "góly v jedné sezóně", p => p.nejSez || 0, p => p.nejSez > 0, p => `${goly(p.nejSez)} v sezóně ${seasonLbl(p.nejSezS)}`],
+        ["🎩", "hattricky", p => p.hat, p => p.hat > 0, p => `${p.hat}× tři a víc gólů v zápase`],
         ["🅰️", "asistence", p => p.assists, p => p.assists > 0, p => `${p.assists} asistencí`],
         ["🍁", "kanadské body", p => p.kb, p => p.kb > 0, p => `${p.kb} bodů (${p.kbG} G + ${p.assists} A)`],
         ["⏱️", "minuty", p => p.min, p => p.min > 0, p => `${fmt(p.min)} min`],
@@ -418,7 +425,7 @@ function vyznamniHtml() {
         ["📈", "body týmu na zápas", p => p.bz, p => p.zN >= 10, p => `${r1(p.bz)} b/z · ${p.zV}–${p.zR}–${p.zP}`],
         ["🛡️", "celé zápasy", p => p.full, p => p.full > 0, p => `${p.full}× celých 90 minut`],
         ["©️", "kapitán", p => p.kap, p => p.kap > 0, p => `${p.kap}× s páskou`]
-    ].map(([ico, co, f, ok, txt]) => ({ ico, co, txt, poradi: P.filter(ok).sort((a, b) => f(b) - f(a)) }));
+    ].map(([ico, co, f, ok, txt]) => ({ ico, co, txt, poradi: P.filter(p => ok(p) && !BEZ_V_LISTE.includes(p.name)).sort((a, b) => f(b) - f(a)) }));
     const vyb = [], uz = new Set();
     for (let kolo = 0; vyb.length < 15 && K.some(k => k.poradi.length > kolo); kolo++)
         for (const k of K) {
@@ -427,7 +434,7 @@ function vyznamniHtml() {
             if (p && k.poradi.indexOf(p) <= kolo + 2) { uz.add(p.id); vyb.push({ ...k, p, misto: k.poradi.indexOf(p) + 1 }); }
         }
     return `<div class="st-side__sep"></div><div class="st-side__h">Nejlepší ve výběru</div>
-        ${vyb.map(({ ico, co, txt, p, misto }) => `<a class="st-side__hrac" href="#hrac=${encodeURIComponent(p.id)}" title="${esc(co)}"><span class="st-side__ico">${ico}</span><span><b>${esc(p.name)}</b><small>${misto}. ${esc(co)} · ${esc(txt(p))}</small></span></a>`).join("")}`;
+        ${vyb.map(({ ico, co, txt, p, misto }) => `<a class="st-side__hrac" href="#hrac=${encodeURIComponent(p.id)}" data-tip="${esc(`${ico} ${misto}. ${co} · ${txt(p)}`)}" aria-label="${esc(`${p.name} – ${misto}. ${co}, ${txt(p)}`)}">${esc(p.name)}</a>`).join("")}`;
 }
 
 function renderNav() {
@@ -902,7 +909,7 @@ const REC_POPIS = {
     "Rodinné góly v zápase": "Kolik gólů dali v jednom zápase dohromady hráči jedné rodiny (aspoň dva z nich skórovali).",
     "Nejrychlejší gól": "Gól v nejnižší minutě zápasu (gól „v 0. minutě“ je chyba zápisu a nepočítá se).",
     "Nejpozdější gól": "Gól v nejvyšší minutě zápasu – nad 90 znamená v nastavení.",
-    "Nejvíc asistencí": "Přihrávky na gól. FAČR je nevede – jen z vlastní evidence (část Evidence 2024–26).",
+    "Nejvíc asistencí": "Přihrávky na gól. FAČR je nevede – jen z vlastní evidence (část Ruční evidence).",
     "Kanadské body": "Góly + asistence dohromady, jen ze zápasů, ke kterým je evidence asistencí.",
     "Nejvíc žlutých": "Žluté karty ze zápisů a ze statistik IS FAČR.",
     "Kapitán": "Kolikrát nastoupil s kapitánskou páskou.",

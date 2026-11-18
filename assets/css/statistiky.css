@@ -588,3 +588,18 @@
 .st-htym .st-seg button { text-transform: none; letter-spacing: 0; }
 .st-rec__jm { margin-bottom: 4px; }
 .st-rec__jm small { margin: 0; }
+
+/* v36: části pod hlavním menu (stejné zarovnání jako Pokutníček…), v liště jen jména, detail po najetí */
+.st-frow--casti { width: 100%; max-width: 1400px; margin: 0 auto; padding-inline: 22px; }
+.st-side__list a.st-side__hrac { display: block; position: relative; padding: 5px 10px; font-size: 12.5px; font-weight: 700; color: var(--text); }
+.st-side__hrac[data-tip]:hover::after, .st-side__hrac[data-tip]:focus-visible::after {
+    content: attr(data-tip); position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%); z-index: 90;
+    width: max-content; max-width: 260px; padding: 7px 10px; border-radius: 8px; background: var(--ink); color: #fff;
+    font-size: 12px; font-weight: 700; line-height: 1.35; box-shadow: var(--shadow-up); pointer-events: none; white-space: normal;
+}
+@media (min-width: 1101px) { .st-side__list { overflow: visible; max-height: none; } }
+@media (max-width: 1100px) {
+    .st-side__list { overflow-y: auto; }
+    .st-side__hrac[data-tip]:hover::after { display: none; }
+    .st-side__list a.st-side__hrac::after { content: attr(data-tip); display: block; position: static; transform: none; background: none; color: var(--muted); font-size: 11px; font-weight: 600; padding: 0; box-shadow: none; width: auto; }
+}
