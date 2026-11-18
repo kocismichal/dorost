@@ -1395,6 +1395,9 @@ function hracVZapase(p, { m, c, row, g }) {
     return kus.filter(Boolean).join(" · ");
 }
 
+/** V–R–P zápasů, kdy byl hráč na hřišti (barevně), nebo „–“. */
+const vrpHtml = x => (x && x.zN ? `<span class="c-plus">${x.zV}</span>–${x.zR}–<span class="c-minus">${x.zP}</span>` : "–");
+
 function renderPlayer(id) {
     const el = document.getElementById("viewPlayer");
     const all = compute(st.matches, st.old);
@@ -1479,7 +1482,8 @@ function renderPlayer(id) {
             <td class="st-psez__s">${prvni ? seasonLbl(s) : ""}</td>
             <td><span class="st-chip st-chip--${t}">${t === "D" ? "Dor" : t}</span> ${esc(u)}</td>
             <td class="ptable__num">${lu ? x.apps : "?"}</td>
-            <td class="ptable__num">${lu ? fmt(x.min) : "?"}</td><td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${x.zk}</td><td class="st-zrow__x">▾</td></tr>`;
+            <td class="ptable__num">${lu ? fmt(x.min) : "?"}</td><td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${x.g90 != null ? r1(x.g90) : "–"}</td>
+            <td class="ptable__num st-vrp">${vrpHtml(x)}</td><td class="ptable__num">${x.zN ? r1(x.bz) : "–"}</td><td class="ptable__num">${x.zk}</td><td class="st-zrow__x">▾</td></tr>`;
     }).join("");
 
     el.innerHTML = `
@@ -1493,36 +1497,38 @@ function renderPlayer(id) {
                 <span class="st-hero__pos">sezóny ${[...p.seasons].sort().map(seasonLbl).join(", ")}</span></div>
         </div>
     </section>
-    <div class="st-tiles" style="--n:${p.kb || p.kbMin ? 7 : 6}">
+    <div class="st-tiles" style="--n:${6 + (p.kb || p.kbMin ? 1 : 0) + (p.zN ? 1 : 0)}">
         ${tile(p.apps || "–", "zápasů", p.starts + p.subIn ? `od 2023/24: ${p.starts} v základu · ${p.subIn} střídal` : "")}
         ${tile(p.min ? fmt(p.min) : "–", "minut", p.apps ? `${Math.round(p.min / p.apps)} min na zápas` : "")}
         ${tile(p.goals, "gólů", p.pens ? `${p.pens} z penalty (od 2020/21)` : "")}
         ${p.kb || p.kbMin ? tile(p.assists, "asistencí", `kanadské body ${p.kb} (${p.kbG} G + ${p.assists} A) · vlastní evidence`) : ""}
         ${tile(p.g90 != null ? r1(p.g90) : "–", "gólů na 90 min", p.goalsLu && p.min ? `gól každých ${Math.round(p.min / p.goalsLu)} min` : "")}
         ${tile(p.starts + p.subIn ? p.full : "–", "celých 90 minut", p.starts + p.subIn ? "od 2023/24" : "známe až ze sestav od 2023/24")}
+        ${p.zN ? tile(vrpHtml(p), "V–R–P, když hrál", `${p.body} bodů · ${r1(p.bz)} na zápas · ${p.zN} zápasů`) : ""}
         ${tile(`${p.zk} / ${p.ck}`, "žluté / červené")}
     </div>
 
-    <div class="st-grid2">
-        <section class="st-box">
+    <section class="st-box">
             <h3>Po sezónách</h3>
             <div class="archive__scroll"><table class="ptable st-small st-psezt" id="hracSezony">
-                <thead><tr><th>Sezóna</th><th>Soutěž</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">ŽK</th><th></th></tr></thead>
+                <thead><tr><th>Sezóna</th><th>Soutěž</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">G/90</th><th class="ptable__num">V–R–P</th><th class="ptable__num">B/zápas</th><th class="ptable__num">ŽK</th><th></th></tr></thead>
                 <tbody>${sezRows}</tbody>
             </table></div>
-            <p class="st-note">Klik na řádek ukáže zápasy té sezóny. Do 2022/23 jsou zápasy, minuty a karty ze statistik soutěží IS FAČR (góly do 2019/20 taky), od 2020/21 góly ze zápisů, od 2023/24 všechno ze sestav.</p>
-        </section>
+            <p class="st-note">Klik na řádek ukáže zápasy té sezóny. V–R–P a B/zápas = zápasy, kdy byl na hřišti (ze sestav od 2023/24). Do 2022/23 jsou zápasy, minuty a karty ze statistik soutěží IS FAČR (góly do 2019/20 taky), od 2020/21 góly ze zápisů, od 2023/24 všechno ze sestav.</p>
+    </section>
+
+    <div class="st-grid2 st-grid2--hrac">
 
         <section class="st-box">
             <h3>Podle soutěže</h3>
             <div class="archive__scroll"><table class="ptable st-small">
-                <thead><tr><th>Soutěž</th><th class="ptable__num">Sezón</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">G/90</th></tr></thead>
+                <thead><tr><th>Soutěž</th><th class="ptable__num">Sezón</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">G/90</th><th class="ptable__num">V–R–P</th></tr></thead>
                 <tbody>${byComp.map(({ u, sez, x, lu, vsechnyLu }) => `<tr><td>${esc(u)}</td><td class="ptable__num">${sez}</td>
                     <td class="ptable__num">${lu ? x.apps + (vsechnyLu ? "" : "+") : "?"}</td>
                     <td class="ptable__num">${lu ? fmt(x.min) + (vsechnyLu ? "" : "+") : "?"}</td>
-                    <td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${x.g90 != null ? r1(x.g90) : "–"}</td></tr>`).join("")}</tbody>
+                    <td class="ptable__num ptable__points">${x.goals}</td><td class="ptable__num">${x.g90 != null ? r1(x.g90) : "–"}</td><td class="ptable__num st-vrp">${vrpHtml(x)}</td></tr>`).join("")}</tbody>
             </table></div>
-            <p class="st-note">G/90 = góly na 90 odehraných minut.</p>
+            <p class="st-note">G/90 = góly na 90 odehraných minut · V–R–P = výsledky zápasů, kdy byl na hřišti.</p>
         </section>
 
         <section class="st-box">
@@ -1586,7 +1592,7 @@ function renderPlayer(id) {
         const sz = e.target.closest("[data-psez]");
         if (sz) {
             const [s, t, u] = sz.dataset.psez.split("|");
-            rozbal(sz, zapasy.filter(x => x.m.s === +s && x.m.t === t && x.m.u === u), 7, "Za tuhle sezónu jsou jen součty ze statistik IS FAČR – zápisy po zápasech nejsou.");
+            rozbal(sz, zapasy.filter(x => x.m.s === +s && x.m.t === t && x.m.u === u), 10, "Za tuhle sezónu jsou jen součty ze statistik IS FAČR – zápisy po zápasech nejsou.");
             return;
         }
         const so = e.target.closest("[data-popp]");

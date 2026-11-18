@@ -526,3 +526,18 @@
 }
 
 .st-vrp { white-space: nowrap; }
+
+/* karta hráče v29+: Po sezónách přes celou šířku, pod ní dva boxy vedle sebe bez natahování */
+.st-grid2--hrac { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; }
+.st-grid2--hrac .st-box { margin-bottom: 16px; }
+.st-grid2--hrac td:first-child, .st-psezt td:nth-child(2) { white-space: nowrap; }
+.st-tile__v .c-plus, .st-tile__v .c-minus { color: inherit; }
+.st-tile__v .c-plus { color: var(--ok); }
+.st-tile__v .c-minus { color: var(--danger); }
+@media (max-width: 900px) { .st-grid2--hrac { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+    .st-psezt th:nth-child(6), .st-psezt td:nth-child(6), .st-psezt th:nth-child(8), .st-psezt td:nth-child(8), .st-psezt th:nth-child(9), .st-psezt td:nth-child(9) { display: none; }
+    .st-psezt td, .st-psezt th { padding: 8px 5px; }
+    .st-psezt td:nth-child(2) { white-space: normal; }
+    .st-grid2--hrac td:first-child { white-space: normal; }
+}
