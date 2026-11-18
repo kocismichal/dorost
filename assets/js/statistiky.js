@@ -40,6 +40,7 @@ whenReady(async () => {
             } catch (e) { console.warn("Statistiky: dokument", d.id, "se nedá přečíst", e); }
         });
         cistaData();
+        sjednotSoupere();
         asistence(asist);
         nactiIS(is, sjednotJmena(st.matches, is));
         st.matches.forEach(m => { m.t = teamOf(m); m.u = uroven(m.c); });
@@ -92,6 +93,36 @@ function cistaData() {
         ...t, s: +t.s, c: s(t.c), id: s(t.id), stav: t.stav === "p" || t.stav === "n" ? t.stav : "",
         rows: t.rows.map(r => [n(r[0]) ?? 0, s(r[1]), n(r[2]) ?? 0, n(r[3]) ?? 0, n(r[4]) ?? 0, n(r[5]) ?? 0, s(r[6]), n(r[7]) ?? 0])
     }));
+}
+
+/* Klíč klubu soupeře: stejný tým se v zápisech jmenuje různě („Sokol Dambořice“ × „TJ Sokol Dambořice“,
+   „Družba Bukovany“ × „Tělovýchovná jednota Družba Bukovany“, „FC Mor.Písek“ × „Moravský Písek“).
+   B tým soupeře zůstává zvlášť („Velká nad Veličkou B“ ≠ „TJ Velká nad Veličkou“). */
+const BEZ_FORMY = new Set(["tj", "sk", "fk", "fc", "mfk", "msk", "1fk", "rafk", "fkm", "sokol", "slavoj", "banik", "druzstevnik", "slovan", "jiskra",
+    "kovo", "kordarna", "spartak", "britterm", "renocar", "tatran", "viktoria", "podluzan", "start", "telovychovna", "jednota"]);
+const ZKRATKY = [[/\bn\.\s*v\.?$/, "nova ves"], [/\bn\.\s*vel\.?/, "nad velickou"], [/\bnad v\./, "nad velickou"], [/\bn\.\s*/g, "nad "], [/\bmor\.\s*/g, "moravsky "],
+    [/\bst\.\s*/g, "stary "], [/\bhr\.\s*/g, "hroznova "], [/\btv\.\s*/g, "tvarozna "], [/\bd\.\s*/g, "dolni "], [/svatobor\S*\s*-?\s*mistrin/, "svatobor"]];
+function klicKlubu(o) {
+    let s = kratce(o).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+        .replace(/,,|''|[„“"”]/g, " ").replace(/\s+/g, " ").trim();
+    for (const [re, za] of ZKRATKY) s = s.replace(re, za);
+    s = s.replace(/svatobor\S*/, "svatoborice");
+    let t = s.split(/[\s\/\-]+/).filter(w => w && !BEZ_FORMY.has(w));
+    if (t.length > 1 && t[t.length - 1] === "a") t.pop();               // „FK Baník Ratíškovice "A"“ = áčko
+    const b = t.length > 1 && t[t.length - 1] === "b" ? t.pop() : "";
+    return t.sort().join(" ") + (b ? " |B" : "");
+}
+
+/** Soupeř se stejným klíčem dostane jeden název – ten z nejnovějšího zápisu (B tým jako „ B“, „Tělovýchovná jednota“ = „TJ“). */
+function sjednotSoupere() {
+    const G = new Map();
+    for (const m of st.matches) {
+        const k = klicKlubu(m.o);
+        const x = G.get(k);
+        if (!x || (m.d || "") > x.d || ((m.d || "") === x.d && m.o.length > x.o.length)) G.set(k, { o: m.o, d: m.d || "" });
+    }
+    const hezky = o => kratce(o).normalize("NFC").replace(/^T\S*lovýchovná\s+jednota\s+/i, "TJ ").replace(/\s*(,,B''|"B"|„B“|“B”)\s*$/, " B").replace(/\s*"A"\s*$/, "").replace(/^Tělovýchovná jednota/, "TJ").replace(/\s+/g, " ").trim();
+    for (const m of st.matches) m.o = hezky(G.get(klicKlubu(m.o)).o);
 }
 
 /** Asistence z vlastní evidence (FAČR je nevede): [{id zápasu, a: [[minuta gólu, kdo přihrál, nejisté]]}]. */
@@ -366,18 +397,46 @@ function renderCasti() {
     document.getElementById("castEmpty").hidden = SEKCE.some(([id]) => vCasti(id)) || !st.matches.length;
 }
 
+/* sekce karty hráče (boční lišta na kartě) */
+const SEKCE_HRAC = [["hracSezonySec", "Po sezónách"], ["hracSoutezSec", "Podle soutěže"], ["hracKdySec", "Kdy dává góly"], ["hracFaktaSec", "Zajímavosti"],
+    ["hracVsSec", "S ním a bez něj"], ["hracSouperi", "Proti soupeřům"], ["hracZapasySec", "Zápasy"]];
+const naKarte = () => /^#hrac=/.test(location.hash);
+const aktSekce = () => (naKarte() ? SEKCE_HRAC.filter(([id]) => document.getElementById(id)) : SEKCE.filter(([id]) => vCasti(id)));
+
+/** Nejvýznamnější hráči výběru nahoře – kdo je v čem nejlepší (pod čarou v boční liště). */
+function vyznamniHtml() {
+    const P = [...st.players.values()];
+    if (!P.length) return "";
+    const nej = (f, ok = () => true) => P.filter(p => ok(p) && f(p) > 0).sort((a, b) => f(b) - f(a))[0];
+    const R = [
+        ["⚽", "střelec", nej(p => p.goals), p => goly(p.goals)],
+        ["🎯", "góly na 90 min", nej(p => p.g90 || 0, p => p.g90 != null), p => `${r1(p.g90)} na 90 min`],
+        ["🅰️", "asistence", nej(p => p.assists), p => `${p.assists} asistencí`],
+        ["🍁", "kanadské body", nej(p => p.kb), p => `${p.kb} bodů (${p.kbG} G + ${p.assists} A)`],
+        ["📈", "body týmu na zápas", nej(p => p.bz || 0, p => p.zN >= 10), p => `${r1(p.bz)} b/z · ${p.zV}–${p.zR}–${p.zP}`],
+        ["⏱️", "minuty", nej(p => p.min), p => `${fmt(p.min)} min`],
+        ["👟", "zápasy", nej(p => p.apps), p => `${p.apps} zápasů`],
+        ["🛡️", "celých 90 minut", nej(p => p.full), p => `${p.full}× celý zápas`],
+        ["©️", "kapitán", nej(p => p.kap), p => `${p.kap}× s páskou`]
+    ].filter(r => r[2]);
+    return `<div class="st-side__sep"></div><div class="st-side__h">Nejlepší ve výběru</div>
+        ${R.map(([ico, co, p, txt]) => `<a class="st-side__hrac" href="#hrac=${encodeURIComponent(p.id)}" title="${esc(co)}"><span class="st-side__ico">${ico}</span><span><b>${esc(p.name)}</b><small>${esc(co)} · ${esc(txt(p))}</small></span></a>`).join("")}`;
+}
+
 function renderNav() {
     const nav = document.getElementById("sideNav");
     nav.innerHTML = `<button type="button" class="st-side__btn" aria-expanded="false">☰ Sekce</button><div class="st-side__list">
-        <a href="#" data-sek="top">↑ Nahoru (filtry)</a>
-        ${SEKCE.filter(([id]) => vCasti(id)).map(([id, l]) => `<a href="#" data-sek="${id}">${l}</a>`).join("")}</div>`;
+        ${naKarte() ? `<a href="#" class="st-side__zpet">← Zpět na přehled</a>` : `<a href="#" data-sek="top">↑ Nahoru (filtry)</a>`}
+        ${aktSekce().map(([id, l]) => `<a href="#" data-sek="${id}">${l}</a>`).join("")}
+        ${vyznamniHtml()}</div>`;
     nav.onclick = (e) => {
         if (e.target.closest(".st-side__btn")) { nav.classList.toggle("is-open"); return; }
+        if (e.target.closest("a:not([data-sek])")) { nav.classList.remove("is-open"); return; }     // odkaz na hráče / zpět
         const a = e.target.closest("[data-sek]"); if (!a) return;
         e.preventDefault(); nav.classList.remove("is-open");
         if (a.dataset.sek === "top") { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
         const sec = document.getElementById(a.dataset.sek);
-        const det = sec.querySelector("details"); if (det) det.open = true;         // sbalenou sekci rovnou rozbalit
+        const det = sec.matches("details") ? sec : sec.querySelector("details"); if (det) det.open = true;         // sbalenou sekci rovnou rozbalit
         sec.scrollIntoView({ behavior: "smooth", block: "start" });
     };
     hlidejSekce();
@@ -397,7 +456,7 @@ function hlidejSekce() {
             document.querySelectorAll("#sideNav [data-sek]").forEach(a => a.classList.toggle("is-on", a.dataset.sek === z.target.id));
         });
     }, { rootMargin: "-30% 0px -60% 0px" });
-    SEKCE.forEach(([id]) => { if (vCasti(id)) pozorovatel.observe(document.getElementById(id)); });
+    aktSekce().forEach(([id]) => pozorovatel.observe(document.getElementById(id)));
 }
 
 function buildFilters() {
@@ -450,9 +509,7 @@ function route() {
     const m = location.hash.match(/^#hrac=(.+)$/);
     const ov = document.getElementById("viewOverview"), pv = document.getElementById("viewPlayer");
     document.getElementById("filterBar").hidden = !!m;
-    document.getElementById("sideNav").hidden = !!m;
-    document.getElementById("stLayout").classList.toggle("is-hrac", !!m);
-    if (m) { ov.hidden = true; pv.hidden = false; let id = m[1]; try { id = decodeURIComponent(id); } catch { /* poškozený odkaz → „Hráč nenalezen“ */ } renderPlayer(id); window.scrollTo(0, 0); }
+    if (m) { ov.hidden = true; pv.hidden = false; let id = m[1]; try { id = decodeURIComponent(id); } catch { /* poškozený odkaz → „Hráč nenalezen“ */ } renderPlayer(id); renderNav(); window.scrollTo(0, 0); }
     else { pv.hidden = true; ov.hidden = false; renderOverview(); }
 }
 
@@ -1508,7 +1565,7 @@ function renderPlayer(id) {
         ${tile(`${p.zk} / ${p.ck}`, "žluté / červené")}
     </div>
 
-    <section class="st-box">
+    <section class="st-box st-hsec" id="hracSezonySec">
             <h3>Po sezónách</h3>
             <div class="archive__scroll"><table class="ptable st-small st-psezt" id="hracSezony">
                 <thead><tr><th>Sezóna</th><th>Soutěž</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">G/90</th><th class="ptable__num">V–R–P</th><th class="ptable__num">B/zápas</th><th class="ptable__num">ŽK</th><th></th></tr></thead>
@@ -1519,7 +1576,7 @@ function renderPlayer(id) {
 
     <div class="st-grid2 st-grid2--hrac">
 
-        <section class="st-box">
+        <section class="st-box st-hsec" id="hracSoutezSec">
             <h3>Podle soutěže</h3>
             <div class="archive__scroll"><table class="ptable st-small">
                 <thead><tr><th>Soutěž</th><th class="ptable__num">Sezón</th><th class="ptable__num">Z</th><th class="ptable__num">Min</th><th class="ptable__num">Góly</th><th class="ptable__num">G/90</th><th class="ptable__num">V–R–P</th></tr></thead>
@@ -1531,7 +1588,7 @@ function renderPlayer(id) {
             <p class="st-note">G/90 = góly na 90 odehraných minut · V–R–P = výsledky zápasů, kdy byl na hřišti.</p>
         </section>
 
-        <section class="st-box">
+        <section class="st-box st-hsec" id="hracKdySec">
             <h3>Kdy dává góly</h3>
             ${p.goals ? `<div class="st-bars">${p.bands.map((v, i) => `<div class="st-bar"><div class="st-bar__col"><div class="st-bar__fill" style="height:${Math.round(v / maxBand * 100)}%"></div></div><div class="st-bar__v">${v}</div><div class="st-bar__l">${bandsLbl[i]}'</div></div>`).join("")}</div>
             <div class="st-split">
@@ -1542,8 +1599,8 @@ function renderPlayer(id) {
     </div>
 
     <div class="st-grid2 st-grid2--fakta">
-    ${fakta.length ? `<section class="st-box"><h3>Zajímavosti</h3><ul class="st-facts">${fakta.map(f => `<li>${f}</li>`).join("")}</ul></section>` : ""}
-    ${bS.z && bB.z ? `<section class="st-box st-vsbox">
+    ${fakta.length ? `<section class="st-box st-hsec" id="hracFaktaSec"><h3>Zajímavosti</h3><ul class="st-facts">${fakta.map(f => `<li>${f}</li>`).join("")}</ul></section>` : ""}
+    ${bS.z && bB.z ? `<section class="st-box st-vsbox st-hsec" id="hracVsSec">
         <h3>Tým s ním a bez něj <small>zápasy se sestavou v sezónách a týmech, kde hrál</small></h3>
         <div class="st-vs">
             ${[["S ním na hřišti", bS], ["Bez něj", bB]].map(([l, b]) => `<div class="st-vs__col">
@@ -1567,7 +1624,7 @@ function renderPlayer(id) {
     </details>` : ""}
 
 
-    <section class="st-box">
+    <section class="st-box st-hsec" id="hracZapasySec">
         <h3>Zápasy <small>${p.perMatch.length}</small></h3>
         <div id="hracZapasy"></div>
         <div class="st-pager" id="hracPager"></div>
