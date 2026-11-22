@@ -8,7 +8,7 @@ import { col, whenReady, setStatus, esc } from "./core.js?v=11";
 
 const STRANKY = { index: "Pokutníček", "kanadske-body": "Kanadské body", dochazka: "Docházka", taktika: "Taktika", statistiky: "Statistiky", "statistiky-klub": "Statistiky (odkaz bez lišty)",
     "pro-hrace": "Pro hráče", "pro-hrace-jidlo": "Pro hráče – jídlo", "pro-hrace-kviz": "Pro hráče – kvíz", "pro-hrace-regenerace": "Pro hráče – regenerace",
-    "pro-hrace-rozcvicka": "Pro hráče – rozcvička" };
+    "pro-hrace-rozcvicka": "Pro hráče – rozcvička", "posilovna": "Posilovna" };
 const fmt = n => n.toLocaleString("cs-CZ");
 const czd = d => { const [y, m, dd] = d.split("-"); return `${+dd}. ${+m}.`; };
 let DNY = [], obdobi = 30;

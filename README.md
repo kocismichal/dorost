@@ -8,6 +8,7 @@ Firestore, takže je vidí všichni živě. Stránky:
 - **Docházka** (`dochazka.html`) – docházka dorostu, automaticky z Týmuj
 - **Taktika** (`taktika.html`) – taktická tabule: rozestavení, rohy, pokyny
 - **Pro hráče** (`pro-hrace*.html`) – přehled k nastudování, 5 podstránek: přehled, rozcvička a prevence, regenerace, jídlo a pití, otázky
+- **Posilovna** (`posilovna.html`) – stroje v naší posilovně s fotkou a návodem, jak vypadá hodina pro 10+ lidí (dvojice na stanovištích + kruh 40/20 na konec), plány A a B; fotky `assets/img/posilovna/` (bez obličejů hráčů), z databáze nic nečte
 
 Platí pro všechny:
 
@@ -30,9 +31,11 @@ pro-hrace-rozcvicka.html   – rozcvička a prevence (FIFA 11+, guma)
 pro-hrace-regenerace.html  – regenerace (válec, míček, spánek)
 pro-hrace-jidlo.html       – jídlo a pití (kolem tréninku, strava a doplňky, pití)
 pro-hrace-kviz.html        – otázky k nastudování
+posilovna.html           Posilovna – stroje, hodina, plány A a B
 assets/css/app.css       styly webu
 assets/css/taktika.css   styly taktické tabule
 assets/css/pro-hrace.css styly stránky Pro hráče
+assets/css/posilovna.css styly stránky Posilovna (navíc k pro-hrace.css)
 assets/js/dochazka.js    zobrazení docházky
 assets/js/tymuj.js       stažení docházky z Týmuj + zápis do databáze (sdílí web i synchronizace)
 assets/css/dochazka.css  styly docházky

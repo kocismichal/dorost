@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Posilovna</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=12">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=10">
+<link rel="stylesheet" href="assets/css/posilovna.css?v=1">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link" href="dochazka.html">Docházka</a>
+        <a class="subnav__link" href="taktika.html">Taktika</a>
+        <a class="subnav__link" href="statistiky.html">Statistiky</a>
+        <a class="subnav__link" href="pro-hrace.html">Pro hráče</a>
+        <a class="subnav__link is-active" href="posilovna.html">Posilovna</a>
+    </div>
+</nav>
+
+<main class="wrap ph">
+
+    <!-- ============================================================ úvod -->
+    <section class="section">
+        <div class="section-head section-head--row">
+            <div>
+                <h2>Posilovna</h2>
+                <p>Co v naší posilovně je, jak se na kterém stroji cvičí a jak má vypadat hodina, když nás tam jde deset a víc. Podrobný obrázek svalů a pohybu najdeš vždycky na cedulce přímo na stroji.</p>
+            </div>
+            <button type="button" class="btn btn--ghost" id="printBtn">Vytisknout</button>
+        </div>
+        <nav class="ph-chips" aria-label="Obsah stránky">
+            <a href="#pravidla">Pravidla</a>
+            <a href="#hodina">Jak vypadá hodina</a>
+            <a href="#plany">Plány A a B</a>
+            <a href="#kruh">Kruh na konec</a>
+            <a href="#nohy">Stroje – nohy</a>
+            <a href="#zada">Stroje – záda, prsa, ramena</a>
+            <a href="#bricho">Břicho a střed</a>
+            <a href="#cinky">Činky a kardio</a>
+        </nav>
+    </section>
+
+<!-- ============================================================ pravidla -->
+    <section class="section ph-block ph-c-bolest" id="pravidla">
+        <div class="ph-block__head">
+            <span class="ph-tag">Platí vždycky</span>
+            <h2>Sedm pravidel posilovny</h2>
+            <p>Posilovna má z tebe udělat rychlejšího a odolnějšího hráče, ne kulturistu. A hlavně se tam nemáš zranit.</p>
+        </div>
+        <div class="ph-card ph-card--warn ph-card--wide">
+            <ul class="ph-list ph-list--cols">
+                <li><b>Nejdřív zahřátí</b> – 5–10 minut pás, rotoped nebo rozcvička s gumou. Na studený sval nesedej ke stroji.</li>
+                <li><b>Technika je víc než váha.</b> Když se škubeš, houpeš nebo kulatíš záda, je závaží moc těžké.</li>
+                <li><b>10–15 opakování</b>, poslední dvě těžká, ale pořád čistá. Zvládneš 20? Přidej závaží.</li>
+                <li><b>Dýchání:</b> při námaze výdech, při povolování nádech. Nezadržuj dech.</li>
+                <li><b>Den před zápasem nohy naplno ne.</b> Nejlepší jsou 2–3 dny před zápasem.</li>
+                <li><b>Velká osa jen s parťákem</b>, který jistí. Kdo ji nezná, začíná s prázdnou.</li>
+                <li><b>Po sobě ukliď</b> kotouče a činky. Kotouč na zemi = podvrtnutý kotník.</li>
+            </ul>
+        </div>
+    </section>
+
+<!-- ============================================================ hodina -->
+    <section class="section ph-block ph-c-tyden" id="hodina">
+        <div class="ph-block__head">
+            <span class="ph-tag">Pro 10 a víc lidí · 60 minut</span>
+            <h2>Jak vypadá hodina</h2>
+            <p>Doteď jsme jezdili kruh <b>40 vteřin cvičení, 20 vteřin pauza a přechod</b> na další stroj. Je to dobrý základ, ale na posilování má slabiny. Proto hlavní část děláme <b>ve dvojicích na stanovištích</b> a kruh 40/20 si necháváme na konec.</p>
+        </div>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Kruh 40/20 – co je na něm dobré</h3>
+                <ul class="ph-list pos-plus">
+                    <li>Všichni pořád cvičí, nikdo nestojí.</li>
+                    <li>Jednoduché na řízení – stačí stopky.</li>
+                    <li>Dobrá kondice a parta.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>…a co nefunguje</h3>
+                <ul class="ph-list pos-minus">
+                    <li><b>20 vteřin nestačí</b> přejít, nastavit sedačku a závaží. Cvičíš s tím, co tam nechal ten před tebou – pro někoho moc, pro jiného málo.</li>
+                    <li><b>40 vteřin na stroji</b> vydržíš jen s lehkou váhou. Je to spíš kondice než síla.</li>
+                    <li>S únavou se <b>rozpadá technika</b> a nikdo to nehlídá.</li>
+                    <li>Nikdo neví, kolik zvedl – <b>nejde poznat pokrok</b>.</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="ph-sub">Nová hodina – 60 minut</h3>
+        <ul class="ph-week">
+            <li><span class="ph-week__d pos-cas">0–10 min</span><b>Rozcvička všichni</b>
+                <p>Pás a rotoped se střídají po 2 minutách, ostatní guma: příšerky do stran, mosty, výpady, kroužení rameny.</p></li>
+            <li class="is-key"><span class="ph-week__d pos-cas">10–46 min</span><b>Stanoviště ve dvojicích</b>
+                <p>6 stanovišť × 6 minut. Na každém dvojice (při 14 a víc lidech trojice).</p>
+                <p><i>Jak:</i> A cvičí sérii, B jistí, počítá a hlídá techniku. Pak se vymění. Každý <i>3 série</i>.</p>
+                <p>Na pokyn se všichni posunou na další stanoviště – minuta na přesun a nastavení.</p></li>
+            <li><span class="ph-week__d pos-cas">46–54 min</span><b>Kruh 40/20 na konec</b>
+                <p>Bez strojů – břicho, střed a prevence. Tady 40/20 funguje skvěle, nic se nenastavuje.</p></li>
+            <li><span class="ph-week__d pos-cas">54–60 min</span><b>Protažení a úklid</b>
+                <p>Zadní a přední stehno, třísla, hýždě, prsa. Kotouče a činky na místo.</p></li>
+        </ul>
+
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Proč dvojice</h3>
+                <ul class="ph-list">
+                    <li>Pauza je přirozená – zatímco cvičí parťák, ty si odpočineš (asi 1 minuta).</li>
+                    <li>Každý si nastaví <b>svoje závaží</b> a sedačku.</li>
+                    <li>Parťák hlídá techniku a u osy jistí.</li>
+                    <li>Počítají se opakování, ne vteřiny – dá se přidávat a vidět pokrok.</li>
+                </ul>
+            </div>
+            <div class="ph-card">
+                <h3>Když vás je víc nebo míň</h3>
+                <ul class="ph-list">
+                    <li><b>8–12 lidí:</b> 6 stanovišť, dvojice.</li>
+                    <li><b>13–18 lidí:</b> 6 stanovišť, trojice. Třetí mezitím dělá cvik bez stroje vedle (plank, guma) a v další sérii se střídají.</li>
+                    <li><b>Víc než 18:</b> rozdělit na dvě skupiny – jedna stanoviště, druhá kruh bez strojů, po 18 minutách výměna.</li>
+                    <li>Kdo chybí, nevadí – dvojice se dají skládat na místě.</li>
+                </ul>
+            </div>
+        </div>
+        <p class="ph-tip"><b>Tip:</b> zapiš si, s kolika jsi na stroji cvičil (stačí poznámka v mobilu: <i>zakopávání 25 kg 3×12</i>). Až to zvládneš čistě 15×, přidej závaží.</p>
+    </section>
+
+<!-- ============================================================ plány -->
+    <section class="section ph-block ph-c-guma" id="plany">
+        <div class="ph-block__head">
+            <span class="ph-tag">Střídat po týdnech</span>
+            <h2>Plány A a B</h2>
+            <p>Oba plány jsou na celé tělo a vždycky obsahují zadní stehna – to je ve fotbale prevence číslo jedna. Jeden týden A, další týden B. Pořadí stanovišť je jedno, každá dvojice začíná jinde a posouvá se dokola.</p>
+        </div>
+        <div class="ph-grid">
+            <div class="ph-card">
+                <h3>Plán A</h3>
+                <ol class="ph-ex">
+                    <li><b>Zakopávání vleže</b><span class="ph-dose">3 × 10–12</span>
+                        <p>Spouštět pomalu, 3 vteřiny.</p></li>
+                    <li><b>Unožování ve stoje</b><span class="ph-dose">3 × 12 každá noha</span>
+                        <p>Lehčí váha, bez naklánění.</p></li>
+                    <li><b>Výpady s jednoručkami</b><span class="ph-dose">3 × 8 každá noha</span>
+                        <p>Koleno nepadá dovnitř.</p></li>
+                    <li><b>Horní kladka</b><span class="ph-dose">3 × 10–12</span>
+                        <p>Tyč ke hrudníku, ne za hlavu.</p></li>
+                    <li><b>Tlaky na prsa (stroj)</b><span class="ph-dose">3 × 10–12</span>
+                        <p>Lokty nepropínat do zámku.</p></li>
+                    <li><b>Šikmá lavice – sklapovačky</b><span class="ph-dose">3 × 12–15</span>
+                        <p>Pomalu dolů, netahat za hlavu.</p></li>
+                </ol>
+            </div>
+            <div class="ph-card">
+                <h3>Plán B</h3>
+                <ol class="ph-ex">
+                    <li><b>Zakopávání vleže – jednonož</b><span class="ph-dose">3 × 8 každá noha</span>
+                        <p>Polovina váhy než obounož.</p></li>
+                    <li><b>Dřep s jednoručkou u hrudníku</b><span class="ph-dose">3 × 10</span>
+                        <p>Záda rovná, paty na zemi.</p></li>
+                    <li><b>Rumunský mrtvý tah s osou</b><span class="ph-dose">3 × 10</span>
+                        <p>Začít s prázdnou osou, záda rovná.</p></li>
+                    <li><b>Spodní kladka</b><span class="ph-dose">3 × 10–12</span>
+                        <p>Na konci stáhnout lopatky.</p></li>
+                    <li><b>Delt-deck</b><span class="ph-dose">3 × 15</span>
+                        <p>Lehce, hodně opakování.</p></li>
+                    <li><b>Předkopávání vsedě</b><span class="ph-dose">2 × 15</span>
+                        <p>Lehká váha, bez švihu.</p></li>
+                </ol>
+            </div>
+        </div>
+        <p class="ph-tip"><b>Před zápasem:</b> když je zápas do 2 dnů, cvič jen horní část těla a břicho, nohy vynech nebo dej polovinu sérií.</p>
+    </section>
+
+<!-- ============================================================ kruh -->
+    <section class="section ph-block ph-c-prevence" id="kruh">
+        <div class="ph-block__head">
+            <span class="ph-tag">Posledních 8 minut · 40/20</span>
+            <h2>Kruh na konec – břicho a prevence</h2>
+            <p>8 stanovišť, na každém 40 vteřin cvičení a 20 vteřin přechod. Nic se nenastavuje, takže 40/20 tady sedí. Na každém stanovišti 1–2 lidi, kdo je navíc, dělá plank vedle.</p>
+        </div>
+        <ol class="ph-ex">
+            <li><b>Plank</b><span class="ph-dose">40 s</span><p>Tělo v jedné přímce, nepropadat v bedrech.</p></li>
+            <li><b>Boční plank</b><span class="ph-dose">20 s každá strana</span><p>Pánev nahoře.</p></li>
+            <li><b>Nordické zakopávání</b><span class="ph-dose">ve dvojici, 4–6×</span><p>Parťák drží kotníky, brzdi zadními stehny co nejdéle. Pauza mezi opakováními.</p></li>
+            <li><b>Copenhagen plank na lavici</b><span class="ph-dose">20 s každá strana</span><p>Boční plank, horní noha na lavici. Posiluje třísla – ve fotbale časté zranění.</p></li>
+            <li><b>Kolečko na břicho</b><span class="ph-dose">40 s</span><p>Z kolen na podložce, jen kam se neprohneš v bedrech.</p></li>
+            <li><b>Příšerky s gumou</b><span class="ph-dose">40 s</span><p>Guma nad koleny, podřep, krátké kroky do strany.</p></li>
+            <li><b>AB Trimmer</b><span class="ph-dose">40 s</span><p>Pomalu, tahem z břicha, ne z rukou.</p></li>
+            <li><b>Most na hýždě</b><span class="ph-dose">40 s</span><p>Na zádech, paty u zadku, pánev nahoru a nahoře na chvilku zastavit.</p></li>
+        </ol>
+    </section>
+
+<!-- ============================================================ nohy -->
+    <section class="section ph-block ph-c-guma" id="nohy">
+        <div class="ph-block__head">
+            <span class="ph-tag">Stroje</span>
+            <h2>Nohy a kyčle</h2>
+            <p>Pro fotbalistu nejdůležitější část posilovny. Silná zadní stehna, hýždě a kyčle chrání před natržením svalu i zraněním kolena.</p>
+        </div>
+        <div class="pos-stroje">
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/zakopavani.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/zakopavani.jpg" alt="Stroj na zakopávání vleže" loading="lazy" width="720" height="960"></a>
+                <div>
+                    <h3>Zakopávání vleže</h3>
+                    <p class="pos-stroj__svaly">Zadní stehna · lýtko</p>
+                    <ul>
+                        <li>Lehni na břicho, kotníky pod válec, chyť držadla.</li>
+                        <li>Pokrč nohy k hýždím, <b>pomalu</b> vrať zpět.</li>
+                        <li>Chyba: zvedání pánve z lavice, rychlé spouštění.</li>
+                    </ul>
+                    <p class="pos-fotbal">⚽ Nejdůležitější stroj. Natržený hamstring je nejčastější svalové zranění fotbalistů. Spouštěj aspoň 3 vteřiny.</p>
+                </div>
+            </article>
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/predkopavani.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/predkopavani.jpg" alt="Stroj na předkopávání vsedě" loading="lazy" width="720" height="960"></a>
+                <div>
+                    <h3>Předkopávání vsedě</h3>
+                    <p class="pos-stroj__svaly">Přední stehno (čtyřhlavý sval)</p>
+                    <ul>
+                        <li>Sedni, chyť držadla u sedadla, kotníky pod válec.</li>
+                        <li>Natáhni nohy do vodorovné polohy, pomalu vrať.</li>
+                        <li>Chyba: těžká váha a švih – koleno dostává zbytečně.</li>
+                    </ul>
+                    <p class="pos-fotbal">⚽ Spíš lehčí váha a víc opakování. Doplněk, ne hlavní cvik na nohy.</p>
+                </div>
+            </article>
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/unozovani.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/unozovani.jpg" alt="Stroj na unožování do stran ve stoje" loading="lazy" width="559" height="960"></a>
+                <div>
+                    <h3>Unožování do stran ve stoje</h3>
+                    <p class="pos-stroj__svaly">Boční strana hýždí (střední hýžďový sval)</p>
+                    <ul>
+                        <li>Jednou nohou na plošinu, chyť se držadla.</li>
+                        <li>Druhou nohu vnější stranou bérce k válci, pomalu unož co nejvýš a vrať.</li>
+                        <li>Chyba: naklánění trupu do strany, švih.</li>
+                    </ul>
+                    <p class="pos-fotbal">⚽ Zpevňuje kyčel a koleno při běhu a kličkách. Dlouhé série s lehkou vahou.</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+<!-- ============================================================ záda, prsa -->
+    <section class="section ph-block ph-c-valec" id="zada">
+        <div class="ph-block__head">
+            <span class="ph-tag">Stroje</span>
+            <h2>Záda, prsa a ramena</h2>
+            <p>Silná záda a ramena pomáhají v soubojích, při hlavičkách i v držení těla. Na každý cvik „tlačením“ (prsa) patří aspoň jeden „tahem“ (záda).</p>
+        </div>
+        <div class="pos-stroje">
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/horni-kladka.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/horni-kladka.jpg" alt="Horní kladka" loading="lazy" width="610" height="960"></a>
+                <div>
+                    <h3>Horní kladka</h3>
+                    <p class="pos-stroj__svaly">Široký sval zádový · biceps</p>
+                    <ul>
+                        <li>Čelem ke stroji, stehna zapři o válce, tyč širokým úchopem.</li>
+                        <li>Stahuj ji <b>ke hrudní kosti</b>, hrudník vypnutý, lokty dolů a dozadu.</li>
+                        <li>Chyba: velké zaklánění a cukání.</li>
+                    </ul>
+                    <p class="pos-pozor"><b>Nestahuj tyč za hlavu</b> – cedulka to ukazuje jako variantu, ale ramenům to nedělá dobře.</p>
+                </div>
+            </article>
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/spodni-kladka.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/spodni-kladka.jpg" alt="Spodní kladka" loading="lazy" width="720" height="960"></a>
+                <div>
+                    <h3>Spodní kladka</h3>
+                    <p class="pos-stroj__svaly">Střed zad · lopatky · biceps</p>
+                    <ul>
+                        <li>Sedni, chodidla na opěrky, táhni držadlo k břichu.</li>
+                        <li>Na konci stáhni lopatky k sobě, pomalu vrať.</li>
+                    </ul>
+                    <p class="pos-pozor"><b>Záda rovná, nekulatá</b> – varuje i cedulka na stroji.</p>
+                    <p class="pos-fotbal">⚽ Dobrá protiváha k prsům, rovná záda.</p>
+                </div>
+            </article>
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/peck-deck.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/peck-deck.jpg" alt="Stroj peck-deck a delt-deck" loading="lazy" width="720" height="960"></a>
+                <div>
+                    <h3>Peck-deck / Delt-deck</h3>
+                    <p class="pos-stroj__svaly">Prsa · zadní část ramen</p>
+                    <p><b>Peck-deck (prsa):</b> zády k opěradlu, předloktí na opěrky, lokty v úrovni ramen, stlač paže k sobě.</p>
+                    <p><b>Delt-deck (zadní ramena):</b> obráceně, hrudníkem k opěradlu, natažené paže rozpaž do stran a stáhni lopatky.</p>
+                    <ul>
+                        <li>Chyba: moc velký rozsah dozadu, ramena u uší.</li>
+                    </ul>
+                    <p class="pos-fotbal">⚽ Delt-deck je pro fotbalistu užitečnější – zdravá ramena a rovná záda. Lehce, hodně opakování.</p>
+                </div>
+            </article>
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/tlaky.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/tlaky.jpg" alt="Stroj na tlaky na prsa vsedě" loading="lazy" width="592" height="960"></a>
+                <div>
+                    <h3>Tlaky na prsa vsedě</h3>
+                    <p class="pos-stroj__svaly">Prsa · triceps · přední ramena</p>
+                    <ul>
+                        <li>Záda opřená. Nášlapem pro nohy si posuneš držadla do výchozí polohy.</li>
+                        <li>Tlač držadla před sebe, pomalu vracej.</li>
+                        <li>Chyba: propínání loktů do zámku, odlepování zad.</li>
+                    </ul>
+                </div>
+            </article>
+        </div>
+    </section>
+
+<!-- ============================================================ břicho -->
+    <section class="section ph-block ph-c-prevence" id="bricho">
+        <div class="ph-block__head">
+            <span class="ph-tag">Střed těla</span>
+            <h2>Břicho a střed</h2>
+            <p>Pevný střed těla = lepší rovnováha v souboji, silnější střela a méně bolavá záda.</p>
+        </div>
+        <div class="pos-stroje">
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/lavice-bricho.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/lavice-bricho.jpg" alt="Šikmá lavice na břicho" loading="lazy" width="720" height="960"></a>
+                <div>
+                    <h3>Šikmá lavice na břicho</h3>
+                    <p class="pos-stroj__svaly">Přímý sval břišní</p>
+                    <ul>
+                        <li>Nohy zaklesni pod válce, pomalé sklapovačky.</li>
+                        <li>Ruce na hrudníku nebo u spánků – <b>netahej se za hlavu</b>.</li>
+                        <li>Těžší: s kotoučem na hrudníku nebo s přetočením do stran.</li>
+                    </ul>
+                </div>
+            </article>
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/kolecko.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/kolecko.jpg" alt="Kolečko na břicho s podložkou a odporová guma" loading="lazy" width="720" height="960"></a>
+                <div>
+                    <h3>Kolečko na břicho a guma</h3>
+                    <p class="pos-stroj__svaly">Celý střed těla · hýždě</p>
+                    <ul>
+                        <li><b>Kolečko:</b> těžký cvik. Začni z kolen na podložce a jen do vzdálenosti, kde se neprohneš v bedrech.</li>
+                        <li><b>Guma:</b> rozcvička kyčlí, příšerky do stran, aktivace hýždí před tréninkem.</li>
+                    </ul>
+                </div>
+            </article>
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/ab-trimmer.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/ab-trimmer.jpg" alt="Posilovač břicha AB Trimmer" loading="lazy" width="720" height="960"></a>
+                <div>
+                    <h3>AB Trimmer</h3>
+                    <p class="pos-stroj__svaly">Břicho</p>
+                    <ul>
+                        <li>Pomalý pohyb tahem z břicha, ne z rukou.</li>
+                        <li>Spíš doplněk – plank, boční plank a kolečko dají víc.</li>
+                    </ul>
+                </div>
+            </article>
+        </div>
+    </section>
+
+<!-- ============================================================ činky -->
+    <section class="section ph-block ph-c-jidlo" id="cinky">
+        <div class="ph-block__head">
+            <span class="ph-tag">Volné činky a kardio</span>
+            <h2>Činky, lavice a kardio</h2>
+        </div>
+        <div class="pos-stroje">
+            <article class="pos-stroj">
+                <a class="pos-stroj__foto" href="assets/img/posilovna/prehled.jpg" target="_blank" rel="noopener"><img src="assets/img/posilovna/prehled.jpg" alt="Lavice Tunturi, osa na stojanech, činky a běžecký pás" loading="lazy" width="608" height="960"></a>
+                <div>
+                    <h3>Osa, lavice Tunturi, jednoručky, pás</h3>
+                    <p class="pos-stroj__svaly">Celé tělo</p>
+                    <ul>
+                        <li><b>Osa na stojanech:</b> bench press, dřep, rumunský mrtvý tah. <b>Jen s parťákem, který jistí.</b> Začíná se s prázdnou osou.</li>
+                        <li><b>Lavice Tunturi:</b> dá se sklopit, má pult na biceps a nástavec na předkopávání a zakopávání.</li>
+                        <li><b>Jednoručky a kotouče:</b> výpady, dřep s činkou u hrudníku, přítahy, tlaky.</li>
+                        <li><b>Běžecký pás a rotoped:</b> zahřátí na začátku a vyklusání na konci.</li>
+                    </ul>
+                    <p class="pos-pozor">Stojany nemají bezpečnostní zarážky – proto u osy vždycky parťák. Kotouče po cvičení na místo, ne na zem.</p>
+                </div>
+            </article>
+        </div>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · posilovna</footer>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/pro-hrace.js?v=6"></script>
+<script type="module" src="assets/js/navstevy.js?v=2"></script>
+</body>
+</html>
