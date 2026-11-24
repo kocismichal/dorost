@@ -9,6 +9,7 @@ Firestore, takže je vidí všichni živě. Stránky:
 - **Taktika** (`taktika.html`) – taktická tabule: rozestavení, rohy, pokyny
 - **Pro hráče** (`pro-hrace*.html`) – přehled k nastudování, 5 podstránek: přehled, rozcvička a prevence, regenerace, jídlo a pití, otázky
 - **Posilovna** (`posilovna.html`) – stroje v naší posilovně s fotkou a návodem, jak vypadá hodina pro 10+ lidí (dvojice na stanovištích + kruh 40/20 na konec), plány A a B; fotky `assets/img/posilovna/` (bez obličejů hráčů), z databáze nic nečte
+- **Časovač** (`casovac.html`) – časovač sérií do posilovny: cvičení / výměna / pauza mezi koly, počet sérií a kol, příprava. Konec každé části odťuká tónem (poslední 3 / 5 / 10 vteřin), změnu ohlásí dlouhým tónem a hlasem. Zvuk jde přes Web Audio (typ `ambient`), takže na iPhonu hraje **spolu s hudbou** z jiné aplikace a nevypíná ji – za to v tichém režimu telefonu nehraje a stránka musí zůstat na obrazovce (drží ji rozsvícenou). Nastavení a vlastní uložené sady jen v zařízení (localStorage `casovac`), z databáze nic nečte. Hlášky: texty v `assets/zvuk/hlasky.json`, soubory `<klíč>.wav` z nich vyrobí `scripts/hlasky.ps1` (český hlas Windows); po změně zvýšit `ZV` v `casovac.js`. Volba „Hlas telefonu“ čte tytéž texty hlasem zařízení.
 
 Platí pro všechny:
 
@@ -32,6 +33,11 @@ pro-hrace-regenerace.html  – regenerace (válec, míček, spánek)
 pro-hrace-jidlo.html       – jídlo a pití (kolem tréninku, strava a doplňky, pití)
 pro-hrace-kviz.html        – otázky k nastudování
 posilovna.html           Posilovna – stroje, hodina, plány A a B
+casovac.html             Časovač sérií – tóny a hlášky přes hudbu
+assets/js/casovac.js     logika časovače (čas, tóny, hlas, rozsvícená obrazovka)
+assets/css/casovac.css   styly časovače
+assets/zvuk/             hlášky časovače (hlasky.json + wav)
+scripts/hlasky.ps1       výroba hlášek českým hlasem Windows (PowerShell)
 assets/css/app.css       styly webu
 assets/css/taktika.css   styly taktické tabule
 assets/css/pro-hrace.css styly stránky Pro hráče

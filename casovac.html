@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14171a">
+<title>FK Agro Vnorovy – Dorost | Časovač</title>
+<link rel="icon" href="assets/img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<!-- ?v= číslo zvyš při každé úpravě CSS/JS, jinak si prohlížeče drží starou verzi -->
+<link rel="stylesheet" href="assets/css/app.css?v=12">
+<link rel="stylesheet" href="assets/css/pro-hrace.css?v=10">
+<link rel="stylesheet" href="assets/css/casovac.css?v=1">
+</head>
+<body>
+
+<header class="appbar">
+    <div class="appbar__in">
+        <img class="appbar__logo" src="assets/img/logo.png" alt="FK Agro Vnorovy">
+        <div class="appbar__titles">
+            <div class="appbar__title">FK AGRO VNOROVY</div>
+            <div class="appbar__sub">DOROST</div>
+        </div>
+        <div class="appbar__spacer"></div>
+        <span id="connStatus" class="appbar__status" data-state="connecting">● Připojuji…</span>
+
+        <button type="button" id="loginBtn" class="btn btn--login">Přihlásit se</button>
+        <div id="authbox" class="authbox" hidden>
+            <div class="authbox__name">přihlášen<br><b id="authName"></b></div>
+            <button type="button" id="logoutBtn" class="btn btn--login btn--sm">Odhlásit</button>
+        </div>
+    </div>
+</header>
+
+<nav class="subnav">
+    <div class="subnav__in">
+        <a class="subnav__link" href="index.html">Pokutníček</a>
+        <a class="subnav__link" href="kanadske-body.html">Kanadské body</a>
+        <a class="subnav__link" href="dochazka.html">Docházka</a>
+        <a class="subnav__link" href="taktika.html">Taktika</a>
+        <a class="subnav__link" href="statistiky.html">Statistiky</a>
+        <a class="subnav__link" href="pro-hrace.html">Pro hráče</a>
+        <a class="subnav__link" href="posilovna.html">Posilovna</a>
+        <a class="subnav__link is-active" href="casovac.html">Časovač</a>
+    </div>
+</nav>
+
+<main class="wrap ph">
+
+    <section class="section">
+        <div class="section-head">
+            <h2>Časovač sérií</h2>
+            <p>Hlídá cvičení a výměny za tebe. Před koncem každé části odťuká poslední vteřiny tónem, výměnu ohlásí dlouhým tónem a hlasem. Tóny hrají <b>přes hudbu</b>, hudbu nevypínají.</p>
+        </div>
+
+        <div class="cas-karta">
+            <div class="cas-sady" id="sady" aria-label="Uložená nastavení"></div>
+
+            <div class="cas-pole-mriz">
+                <div class="cas-pole">
+                    <label class="label" for="nCvic">Cvičení</label>
+                    <div class="cas-krok">
+                        <button type="button" data-pro="nCvic" data-smer="-1" aria-label="Ubrat cvičení">−</button>
+                        <input class="field" id="nCvic" data-typ="cas" data-min="5" data-max="3600" inputmode="numeric" autocomplete="off">
+                        <button type="button" data-pro="nCvic" data-smer="1" aria-label="Přidat cvičení">+</button>
+                    </div>
+                </div>
+                <div class="cas-pole">
+                    <label class="label" for="nVymena">Výměna (pauza)</label>
+                    <div class="cas-krok">
+                        <button type="button" data-pro="nVymena" data-smer="-1" aria-label="Ubrat výměnu">−</button>
+                        <input class="field" id="nVymena" data-typ="cas" data-min="0" data-max="1800" inputmode="numeric" autocomplete="off">
+                        <button type="button" data-pro="nVymena" data-smer="1" aria-label="Přidat výměnu">+</button>
+                    </div>
+                </div>
+                <div class="cas-pole">
+                    <label class="label" for="nSerii">Počet sérií</label>
+                    <div class="cas-krok">
+                        <button type="button" data-pro="nSerii" data-smer="-1" aria-label="Ubrat sérii">−</button>
+                        <input class="field" id="nSerii" data-typ="pocet" data-min="1" data-max="60" inputmode="numeric" autocomplete="off">
+                        <button type="button" data-pro="nSerii" data-smer="1" aria-label="Přidat sérii">+</button>
+                    </div>
+                </div>
+                <div class="cas-pole">
+                    <label class="label" for="nPriprava">Příprava</label>
+                    <div class="cas-krok">
+                        <button type="button" data-pro="nPriprava" data-smer="-1" aria-label="Ubrat přípravu">−</button>
+                        <input class="field" id="nPriprava" data-typ="cas" data-min="0" data-max="120" inputmode="numeric" autocomplete="off">
+                        <button type="button" data-pro="nPriprava" data-smer="1" aria-label="Přidat přípravu">+</button>
+                    </div>
+                </div>
+                <div class="cas-pole">
+                    <label class="label" for="nKol">Počet kol</label>
+                    <div class="cas-krok">
+                        <button type="button" data-pro="nKol" data-smer="-1" aria-label="Ubrat kolo">−</button>
+                        <input class="field" id="nKol" data-typ="pocet" data-min="1" data-max="20" inputmode="numeric" autocomplete="off">
+                        <button type="button" data-pro="nKol" data-smer="1" aria-label="Přidat kolo">+</button>
+                    </div>
+                </div>
+                <div class="cas-pole" id="polePauza">
+                    <label class="label" for="nPauza">Pauza mezi koly</label>
+                    <div class="cas-krok">
+                        <button type="button" data-pro="nPauza" data-smer="-1" aria-label="Ubrat pauzu">−</button>
+                        <input class="field" id="nPauza" data-typ="cas" data-min="0" data-max="1800" inputmode="numeric" autocomplete="off">
+                        <button type="button" data-pro="nPauza" data-smer="1" aria-label="Přidat pauzu">+</button>
+                    </div>
+                </div>
+            </div>
+            <p class="cas-pozn">Čas napiš ve vteřinách (90) nebo jako minuty:vteřiny (1:30). Kolo = všechny série dokola ještě jednou.</p>
+
+            <div class="cas-pole-mriz cas-pole-mriz--zvuk">
+                <div class="cas-pole">
+                    <label class="label" for="nTuk">Odťukat na konci</label>
+                    <select class="field" id="nTuk">
+                        <option value="0">Vypnuto</option>
+                        <option value="3">3 vteřiny</option>
+                        <option value="5">5 vteřin</option>
+                        <option value="10">10 vteřin</option>
+                    </select>
+                </div>
+                <div class="cas-pole">
+                    <label class="label" for="nHlas">Hlas</label>
+                    <select class="field" id="nHlas">
+                        <option value="nahrany">Nahraný hlas</option>
+                        <option value="telefon">Hlas telefonu</option>
+                        <option value="">Jen tóny</option>
+                    </select>
+                </div>
+                <label class="cas-zaskrt"><input type="checkbox" id="nPul"> Tón v polovině cvičení (na výměnu strany)</label>
+            </div>
+
+            <div class="cas-akce">
+                <div class="cas-souhrn" id="souhrn"></div>
+                <button type="button" class="btn btn--ghost" id="zkusBtn">Zkusit zvuk</button>
+                <button type="button" class="btn btn--ok cas-start" id="startBtn">Start</button>
+            </div>
+
+            <form class="cas-uloz" id="ulozForm">
+                <input class="field" id="ulozNazev" type="text" maxlength="24" placeholder="Název, např. Tabata 20/10" autocomplete="off" aria-label="Název nastavení">
+                <button type="submit" class="btn btn--ghost">Uložit nastavení</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="section ph-block ph-c-tyden">
+        <div class="ph-block__head">
+            <span class="ph-tag">Na iPhonu</span>
+            <h2>Aby to hrálo přes hudbu</h2>
+        </div>
+        <ul class="ph-list">
+            <li><b>Pusť hudbu</b> jako vždycky (Spotify, Apple Music, YouTube…) a pak otevři tuhle stránku v Safari.</li>
+            <li><b>Vypni tichý režim</b> (přepínač na boku telefonu nebo zvoneček v Ovládacím centru). V tichém režimu hudba hraje, ale tóny časovače ne.</li>
+            <li><b>Zmáčkni Zkusit zvuk</b> ještě před tréninkem – tři ťuknutí, dlouhý tón a hlas musí být slyšet přes písničku.</li>
+            <li><b>Telefon nezamykej a stránku nech otevřenou.</b> Obrazovka se během cvičení drží rozsvícená sama.</li>
+            <li>Když si odskočíš přepnout písničku, čas běží dál správně – jen tóny hrají až po návratu na stránku.</li>
+            <li>Tóny jsou stejně hlasité jako hudba (hlasitost telefonu). Hudbu ztlumit neumí, proto jsou ostré.</li>
+        </ul>
+    </section>
+
+</main>
+
+<footer class="foot">FK Agro Vnorovy · Dorost · časovač</footer>
+
+<!-- ============================================================ běh časovače (přes celou obrazovku) -->
+<div class="cas-beh" id="beh" data-faze="priprava" hidden>
+    <div class="cas-beh__top">
+        <span class="cas-beh__serie" id="behSerie"></span>
+        <button type="button" class="cas-beh__konec" id="behKonec">Ukončit</button>
+    </div>
+    <div class="cas-beh__stred">
+        <div class="cas-beh__faze" id="behFaze"></div>
+        <div class="cas-beh__cas" id="behCas">0:00</div>
+        <div class="cas-beh__pruh"><i id="behPruh"></i></div>
+        <div class="cas-beh__potom" id="behPotom"></div>
+        <div class="cas-beh__info" id="behInfo" hidden></div>
+    </div>
+    <div class="cas-beh__tl" id="behTl">
+        <button type="button" id="behZpet">Znovu</button>
+        <button type="button" class="is-hlavni" id="behStop">Pauza</button>
+        <button type="button" id="behDalsi">Další</button>
+    </div>
+</div>
+
+<!-- ============================================================ přihlášení -->
+<div class="overlay" id="loginOverlay">
+    <div class="modal">
+        <h3>Přihlášení</h3>
+        <p class="hint">Jméno slouží jen pro archiv zápisů – klidně přezdívka. Heslo je společné pro celý tým.</p>
+        <form id="loginForm">
+            <label class="label" for="loginName">Tvoje jméno</label>
+            <input class="field" id="loginName" type="text" placeholder="např. Štěpa, Déna…" autocomplete="name" required>
+            <label class="label" for="loginPassword">Heslo</label>
+            <input class="field" id="loginPassword" type="password" placeholder="heslo týmu" autocomplete="current-password" required>
+            <div class="modal__err" id="loginErr"></div>
+            <div class="modal__actions">
+                <button type="button" class="btn btn--ghost" data-close>Zrušit</button>
+                <button type="submit" class="btn btn--primary">Přihlásit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="assets/js/casovac.js?v=1"></script>
+<script type="module" src="assets/js/navstevy.js?v=2"></script>
+</body>
+</html>
